@@ -1,51 +1,45 @@
-export async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = localStorage.getItem("token");
+export async function fetchWithAuth<T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> {
+  let token = localStorage.getItem("token");
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
-  const API_BASE_URL = "http://localhost:3000";
-
-  let response = await fetch(url, {
+  let response = await fetch(`${API_BASE_URL}${url}`, {
     ...options,
-    headers: {
-      ...options.headers,
-      Authorization: `Bearer ${token}`,
-    },
-    credentials: "include", // ✅ important — send the refresh cookie
+    headers: { ...options.headers, Authorization: `Bearer ${token}` },
+    credentials: "include",
   });
 
-  // If the access token expired
   if (response.status === 401) {
-    console.warn("Access token expired, trying refresh...");
-
-    // Try refreshing
+    // try refresh
     const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
-      credentials: "include", // ✅ also needed here
+      credentials: "include",
     });
 
     if (refreshResponse.ok) {
       const { token: newToken } = await refreshResponse.json();
-      localStorage.setItem("token", newToken);
+      token = newToken;
+      localStorage.setItem("token", token as string);
 
-      // Retry original request with new token
-      response = await fetch(url, {
+      // retry original request
+      response = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${newToken}`,
-        },
+        headers: { ...options.headers, Authorization: `Bearer ${token}` },
         credentials: "include",
       });
     } else {
-      console.error("Refresh token invalid or expired — logging out");
       localStorage.removeItem("token");
       window.location.href = "/login";
-      return;
+      return Promise.reject(new Error("Session expired"));
     }
   }
 
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(errText || `HTTP error ${response.status}`);
+    const text = await response.text();
+    return Promise.reject(new Error(text || `HTTP error ${response.status}`));
   }
 
   return response.json();
