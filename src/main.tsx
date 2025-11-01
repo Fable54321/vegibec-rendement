@@ -1,0 +1,92 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import './index.css'
+import App from './App/000--App/App'
+import VisualTaskCosts from './App/030--VisualTaskCosts/VisualTaskCosts'
+import TaskCostsInput from './App/010--TaskCostsInput/TaskcostsInput'
+import TaskCostsPage from './App/020--TaskCostsPage/TaskCostsPage'
+import Home from './App/005--Home/Home'
+import Revenues from './App/040--Revenues/Revenues'
+import Costs from './App/050--Costs/Costs'
+import USDA from './App/060--USDA/USDA'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+
+
+
+
+
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <App />,
+    children: [
+      {
+        index: true,
+        element: (
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/entrer-couts-des-taches',
+        element: (
+          <ProtectedRoute>
+            <TaskCostsInput />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/couts-des-taches',
+        element: (
+          <ProtectedRoute>
+            <TaskCostsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/couts-des-taches/visualisation',
+        element: (
+          <ProtectedRoute>
+            <VisualTaskCosts />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'revenus',
+        element: (
+          <ProtectedRoute>
+            <Revenues />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/couts',
+        element: (
+          <ProtectedRoute>
+            <Costs />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/comparatif-usda',
+        element: (
+          <ProtectedRoute>
+            <USDA />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+]);
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  </StrictMode>,
+)

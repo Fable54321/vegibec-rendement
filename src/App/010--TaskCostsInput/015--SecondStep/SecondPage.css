@@ -1,0 +1,11 @@
+.wage-list-input::-webkit-inner-spin-button,
+.wage-list-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.wage-list-input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
