@@ -26,7 +26,7 @@ export async function fetchWithAuth<T>(
     if (refreshResponse.ok) {
       const data = await refreshResponse.json();
       token = data.token;
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", token as string);
 
       // Retry original request
       response = await fetch(url, {
