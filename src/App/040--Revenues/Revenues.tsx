@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 
 
 const Revenues = () => {
-    const [selectedYear, setSelectedYear] = useState("2024");
+    const [selectedYear] = useState("2024");
     const [revenues, setRevenues] = useState<{ vegetable: string; total_revenue: number }[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [revenuePercentages, setRevenuePercentages] = useState<{ [vegetable: string]: number }>({});
+
+    // const [revenuePercentages, setRevenuePercentages] = useState<{ [vegetable: string]: number }>({});
 
     useEffect(() => {
         const fetchRevenues = async () => {
@@ -30,17 +31,18 @@ const Revenues = () => {
     }, [selectedYear]);
 
 
-    useEffect(() => {
-        if (revenues.length > 0) {
-            const total = revenues.reduce((sum, r) => sum + Number(r.total_revenue), 0);
-            const percentages = revenues.reduce((acc, r) => {
-                acc[r.vegetable] = (Number(r.total_revenue) / total) * 100;
-                return acc;
-            }, {} as { [vegetable: string]: number });
+    // useEffect(() => {
+    //     if (revenues.length > 0) {
+    //         const total = revenues.reduce((sum, r) => sum + Number(r.total_revenue), 0);
+    //         const percentages = revenues.reduce((acc, r) => {
+    //             acc[r.vegetable] = (Number(r.total_revenue) / total) * 100;
+    //             return acc;
+    //         }, {} as { [vegetable: string]: number });
 
-            setRevenuePercentages(percentages);
-        }
-    }, [revenues]);
+    //         setRevenuePercentages(percentages);
+    //     }
+    // // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [revenues]);
 
 
 
