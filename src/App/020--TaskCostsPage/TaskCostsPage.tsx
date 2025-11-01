@@ -276,6 +276,7 @@ const TaskCostsPage = () => {
                             {finalData.map((row, i) => (
                                 <tr key={i}>
                                     <td className="border-1 border-green-400 p-2">
+                                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                         {groupBy === "sub_category" ? `${row.sub_category} (${row.category})` : (row as any)[groupBy]}
                                     </td>
                                     <td className="border-1 border-green-400 p-2"><FormatHours hours={row.total_hours} /></td>

@@ -1,9 +1,10 @@
 // src/context/AuthContext.tsx
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useState, useContext, type ReactNode, useEffect } from "react";
+import { createContext, useState, useContext, type ReactNode, useEffect } from "react";
 
 interface AuthContextType {
     token: string | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     user: any;
     login: (token: string) => void;
     logout: () => void;
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 

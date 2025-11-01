@@ -143,6 +143,7 @@ function App() {
     };
 
     fetchCosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yearSelected, monthSelected, startDate, endDate, token]);
 
   // --- Fetch Other Costs ---
@@ -271,6 +272,7 @@ function App() {
     });
 
     setVegetableTotalCosts(finalTotals);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute]);
 
   if (loading) return <p>Loading...</p>;
