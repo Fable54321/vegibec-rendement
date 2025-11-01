@@ -3,34 +3,42 @@ export async function fetchWithAuth<T>(
   options: RequestInit = {}
 ): Promise<T> {
   let token = localStorage.getItem("token");
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
-  let response = await fetch(`${API_BASE_URL}${url}`, {
+  // First request
+  let response = await fetch(url, {
     ...options,
-    headers: { ...options.headers, Authorization: `Bearer ${token}` },
-    credentials: "include",
+    headers: {
+      ...options.headers,
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+    credentials: "include", // send refresh cookie
   });
 
+  // If access token expired
   if (response.status === 401) {
-    // try refresh
-    const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    console.warn("Access token expired, trying refresh...");
+
+    const refreshResponse = await fetch(`${new URL(url).origin}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
 
     if (refreshResponse.ok) {
-      const { token: newToken } = await refreshResponse.json();
-      token = newToken;
-      localStorage.setItem("token", token as string);
+      const data = await refreshResponse.json();
+      token = data.token;
+      localStorage.setItem("token", token);
 
-      // retry original request
-      response = await fetch(`${API_BASE_URL}${url}`, {
+      // Retry original request
+      response = await fetch(url, {
         ...options,
-        headers: { ...options.headers, Authorization: `Bearer ${token}` },
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        },
         credentials: "include",
       });
     } else {
+      console.error("Refresh token invalid or expired — logging out");
       localStorage.removeItem("token");
       window.location.href = "/login";
       return Promise.reject(new Error("Session expired"));
@@ -38,8 +46,10 @@ export async function fetchWithAuth<T>(
   }
 
   if (!response.ok) {
-    const text = await response.text();
-    return Promise.reject(new Error(text || `HTTP error ${response.status}`));
+    const errText = await response.text();
+    return Promise.reject(
+      new Error(errText || `HTTP error ${response.status}`)
+    );
   }
 
   return response.json();
