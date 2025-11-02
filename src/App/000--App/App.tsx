@@ -32,15 +32,56 @@ export type AppOutletContext = {
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 function App() {
-  const { token, loading } = useAuth();
+  const { token, login, logout, loading } = useAuth();
 
-  // --- Filters
+  // --- AUTO-REFRESH ACCESS TOKEN ---
+  useEffect(() => {
+    if (!token) return;
+
+    const scheduleRefresh = () => {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const expiresAt = payload.exp * 1000; // JWT exp is in seconds
+        const now = Date.now();
+        const timeout = expiresAt - now - 5000; // refresh 5s before expiry
+
+        if (timeout <= 0) {
+          refreshToken();
+        } else {
+          const timer = setTimeout(refreshToken, timeout);
+          return () => clearTimeout(timer);
+        }
+      } catch (err) {
+        console.error("Failed to parse token for refresh:", err);
+      }
+    };
+
+    const refreshToken = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to refresh token");
+        const data = await res.json();
+        login(data.token);
+      } catch (err) {
+        console.error("Refresh token failed:", err);
+        logout();
+      }
+    };
+
+    const cleanup = scheduleRefresh();
+    return cleanup;
+  }, [token, login, logout]);
+
+  // --- Filters ---
   const [yearSelected, setYearSelected] = useState("2024");
   const [monthSelected, setMonthSelected] = useState<string | undefined>();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // --- Data
+  // --- Data ---
   const [revenues, setRevenues] = useState<{ vegetable: string; total_revenue: number }[]>([]);
   const [percentages, setPercentages] = useState<RevenuePercentage>({});
   const [vegetableCosts, setVegetableCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
@@ -51,7 +92,7 @@ function App() {
   const [otherCosts, setOtherCosts] = useState<[string, number][]>([]);
   const [seedCosts, setSeedCosts] = useState<{ seed: string; total_cost: number }[]>([]);
 
-  // --- Loading / errors
+  // --- Loading / errors ---
   const [loadingRevenues, setLoadingRevenues] = useState(false);
   const [loadingCosts, setLoadingCosts] = useState(false);
   const [loadingOtherCosts, setLoadingOtherCosts] = useState(false);
@@ -64,7 +105,7 @@ function App() {
   const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts;
   const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts;
 
-  // --- Derived query period
+  // --- Derived query period ---
   const periodQuery = (() => {
     const pad = (n: number) => n.toString().padStart(2, "0");
     if (startDate && endDate) return `start=${startDate}&end=${endDate}`;
@@ -203,7 +244,7 @@ function App() {
     setTotalCostsToRedistribute(Number(noCultureCosts) + Number(otherCostsTotal));
   }, [noCultureCosts, otherCostsTotal]);
 
-  // --- Adjust vegetable costs (lettuce split etc.) ---
+  // --- Adjust vegetable costs ---
   useEffect(() => {
     if (!vegetableCosts.length || !revenues.length) {
       setAdjustedVegetableCosts([]);
