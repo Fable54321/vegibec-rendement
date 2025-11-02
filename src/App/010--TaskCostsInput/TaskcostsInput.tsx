@@ -13,11 +13,11 @@ const TaskCostsInput = () => {
 
 
     const [task, setTask] = useState({
-        entretien: false,
-        entrepot: false,
-        agronomie: false,
-        pompage: false,
-        autre: false,
+        Entretien: false,
+        Entrepôt: false,
+        Agronomie: false,
+        Pompage: false,
+        Autre: false,
 
     })
 
