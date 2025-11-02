@@ -13,6 +13,7 @@ import USDA from './App/060--USDA/USDA'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './components/login'
+import ChangePassword from './components/ChangePassword'
 
 
 
@@ -88,7 +89,7 @@ const router = createBrowserRouter([
         path: 'change-password',
         element: (
           <ProtectedRoute>
-            <Login />
+            <ChangePassword />
           </ProtectedRoute>
         ),
       }
