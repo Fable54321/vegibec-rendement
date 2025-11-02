@@ -136,7 +136,7 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/revenues/by-year?year_from=${yearSelected}`,
+          `${API_BASE_URL}/revenues/by-year?year_from=2024`,
           { headers: { Authorization: `Bearer ${token}` } }
         )) as { vegetable: string; total_revenue: number }[];
 
