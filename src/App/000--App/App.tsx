@@ -259,67 +259,84 @@ function App() {
       return;
     }
 
-    let newAdjusted = [...vegetableCosts].map((item) => ({ ...item, total_cost: Number(item.total_cost) }));
+    let newAdjusted = vegetableCosts.map((item) => ({
+      ...item,
+      total_cost: Number(item.total_cost),
+    }));
 
-    const redistributeGroupCost = (
-      groupName: string,
-      varieties: string[],
-      exclude: string[] = []
-    ) => {
-      const children = varieties.filter((v) => !exclude.includes(v));
-      const totalRevenue = children.reduce(
-        (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 0),
+    // --- Lettuce redistribution ---
+
+    // Step 1: LAITUE FRISÉE → VERTE & ROUGE
+    const friseeCost = newAdjusted.find((v) => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
+    const friseeVarieties = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
+    const friseeRevenueTotal = friseeVarieties.reduce(
+      (sum, name) => sum + (revenues.find((r) => r.vegetable === name)?.total_revenue || 0),
+      0
+    );
+    friseeVarieties.forEach((name) => {
+      const idx = newAdjusted.findIndex((v) => v.vegetable === name);
+      const revenue = revenues.find((r) => r.vegetable === name)?.total_revenue || 0;
+      const costShare = friseeRevenueTotal > 0 ? (revenue / friseeRevenueTotal) * friseeCost : 0;
+      if (idx >= 0) newAdjusted[idx].total_cost += costShare;
+      else newAdjusted.push({ vegetable: name, total_cost: costShare });
+    });
+    newAdjusted = newAdjusted.filter((v) => v.vegetable !== "LAITUE FRISÉE");
+
+    // Step 2: LAITUE ROMAINE + CŒUR DE ROMAINE split by revenue
+    const romaineCost =
+      (newAdjusted.find((v) => v.vegetable === "LAITUE ROMAINE")?.total_cost || 0) +
+      (newAdjusted.find((v) => v.vegetable === "CŒUR DE ROMAINE")?.total_cost || 0);
+    const romaineVarieties = ["LAITUE ROMAINE", "CŒUR DE ROMAINE"];
+    const romaineRevenueTotal = romaineVarieties.reduce(
+      (sum, name) => sum + (revenues.find((r) => r.vegetable === name)?.total_revenue || 0),
+      0
+    );
+    romaineVarieties.forEach((name) => {
+      const idx = newAdjusted.findIndex((v) => v.vegetable === name);
+      const revenue = revenues.find((r) => r.vegetable === name)?.total_revenue || 0;
+      if (idx >= 0) newAdjusted[idx].total_cost = romaineRevenueTotal > 0 ? (revenue / romaineRevenueTotal) * romaineCost : 0;
+    });
+
+    // Step 3: Spread generic LAITUE across all lettuces
+    const genericLettuceCost = newAdjusted.find((v) => v.vegetable === "LAITUE")?.total_cost || 0;
+    const allLettuceVarieties = ["LAITUE ROMAINE", "CŒUR DE ROMAINE", "LAITUE POMMÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
+    const totalLettuceRevenue = allLettuceVarieties.reduce(
+      (sum, name) => sum + (revenues.find((r) => r.vegetable === name)?.total_revenue || 0),
+      0
+    );
+    allLettuceVarieties.forEach((name) => {
+      const idx = newAdjusted.findIndex((v) => v.vegetable === name);
+      const revenue = revenues.find((r) => r.vegetable === name)?.total_revenue || 0;
+      if (idx >= 0) newAdjusted[idx].total_cost += totalLettuceRevenue > 0 ? (revenue / totalLettuceRevenue) * genericLettuceCost : 0;
+    });
+    newAdjusted = newAdjusted.filter((v) => v.vegetable !== "LAITUE");
+
+    // --- CHOU, ZUCCHINI, POIVRON redistribution (keep old logic intact) ---
+    const redistributions = [
+      { base: "CHOU", exclude: ["CHOU-FLEUR", "CHOU DE BRUXELLES"] },
+      { base: "ZUCCHINI", exclude: [] },
+      { base: "POIVRON", exclude: [] },
+    ];
+
+    redistributions.forEach(({ base, exclude }) => {
+      const baseCost = newAdjusted.find((v) => v.vegetable === base)?.total_cost || 0;
+      const related = newAdjusted.filter(
+        (v) => v.vegetable.startsWith(base) && !exclude.includes(v.vegetable)
+      );
+      const totalRevenue = related.reduce(
+        (sum, item) => sum + (revenues.find((r) => r.vegetable === item.vegetable)?.total_revenue || 0),
         0
       );
-
-      if (totalRevenue <= 0) return;
-
-      const groupCost = Number(newAdjusted.find((v) => v.vegetable === groupName)?.total_cost || 0);
-
-      children.forEach((name) => {
-        const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 0);
-        const idx = newAdjusted.findIndex((v) => v.vegetable === name);
-        if (idx >= 0) {
-          newAdjusted[idx].total_cost += (revenue / totalRevenue) * groupCost;
-        } else {
-          newAdjusted.push({ vegetable: name, total_cost: (revenue / totalRevenue) * groupCost });
-        }
+      related.forEach((item) => {
+        const revenue = revenues.find((r) => r.vegetable === item.vegetable)?.total_revenue || 0;
+        item.total_cost += totalRevenue > 0 ? (revenue / totalRevenue) * baseCost : 0;
       });
-
-      // Remove the group placeholder
-      newAdjusted = newAdjusted.filter((v) => v.vegetable !== groupName);
-    };
-
-    // Lettuce
-    redistributeGroupCost("LAITUE", [
-      "LAITUE POMMÉE",
-      "LAITUE FRISÉE VERTE",
-      "LAITUE FRISÉE ROUGE",
-      "LAITUE FRISÉE",
-      "LAITUE ROMAINE",
-      "CŒUR DE ROMAINE"
-    ]);
-
-    // CHOU group (exclude CHOU-FLEUR, CHOU DE BRUXELLES)
-    redistributeGroupCost("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"], [
-      "CHOU-FLEUR",
-      "CHOU DE BRUXELLES"
-    ]);
-
-    // ZUCCHINI group
-    redistributeGroupCost("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
-
-    // POIVRON group
-    redistributeGroupCost("POIVRON", [
-      "POIVRON VERT",
-      "POIVRON ROUGE",
-      "POIVRON JAUNE",
-      "POIVRON ORANGE",
-      "POIVRON VERT/ROUGE"
-    ]);
+      newAdjusted = newAdjusted.filter((v) => v.vegetable !== base);
+    });
 
     setAdjustedVegetableCosts(newAdjusted);
   }, [vegetableCosts, revenues]);
+
 
   // --- Compute final total costs per vegetable ---
   useEffect(() => {
