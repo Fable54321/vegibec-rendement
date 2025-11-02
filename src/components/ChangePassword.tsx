@@ -14,6 +14,11 @@ const ChangePassword = () => {
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
+    // 👁️ visibility toggles
+    const [showCurrent, setShowCurrent] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +32,7 @@ const ChangePassword = () => {
         }
 
         if (!token) {
-            setError("You must be logged in to change your password.");
+            setError("Vous devez être connecté pour changer votre mot de passe.");
             return;
         }
 
@@ -54,16 +59,40 @@ const ChangePassword = () => {
             setNewPassword("");
             setConfirmPassword("");
 
-            setTimeout(() => {
-                navigate("/");
-            }, 200);
+            setTimeout(() => navigate("/"), 200);
         } catch (err) {
             setError((err as Error).message);
         } finally {
             setLoading(false);
-
         }
     };
+
+    const renderPasswordField = (
+        label: string,
+        value: string,
+        setValue: (v: string) => void,
+        show: boolean,
+        toggleShow: () => void
+    ) => (
+        <label className="block mb-3">
+            {label}
+            <div className="relative mt-1">
+                <input
+                    type={show ? "text" : "password"}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    className="w-full border p-2 rounded pr-10"
+                />
+                <button
+                    type="button"
+                    onClick={toggleShow}
+                    className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                >
+                    {show ? "🙈" : "👁️"}
+                </button>
+            </div>
+        </label>
+    );
 
     return (
         <div className="max-w-md mx-auto p-4 border rounded mt-8">
@@ -72,40 +101,32 @@ const ChangePassword = () => {
             {success && <p className="text-green-500 mb-2">{success}</p>}
 
             <form onSubmit={handleSubmit}>
-                <label className="block mb-2">
-                    Mot de passe actuel:
-                    <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full border p-1 rounded mt-1"
-                    />
-                </label>
-
-                <label className="block mb-2">
-                    Nouveau mot de passe:
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full border p-1 rounded mt-1"
-                    />
-                </label>
-
-                <label className="block mb-4">
-                    Confirmer le nouveau mot de passe:
-                    <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full border p-1 rounded mt-1"
-                    />
-                </label>
+                {renderPasswordField(
+                    "Mot de passe actuel:",
+                    currentPassword,
+                    setCurrentPassword,
+                    showCurrent,
+                    () => setShowCurrent(!showCurrent)
+                )}
+                {renderPasswordField(
+                    "Nouveau mot de passe:",
+                    newPassword,
+                    setNewPassword,
+                    showNew,
+                    () => setShowNew(!showNew)
+                )}
+                {renderPasswordField(
+                    "Confirmer le nouveau mot de passe:",
+                    confirmPassword,
+                    setConfirmPassword,
+                    showConfirm,
+                    () => setShowConfirm(!showConfirm)
+                )}
 
                 <button
                     type="submit"
                     disabled={loading}
-                    className="button-generic"
+                    className="button-generic w-full mt-4"
                 >
                     {loading ? "En cours..." : "Changer le mot de passe"}
                 </button>

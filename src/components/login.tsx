@@ -2,13 +2,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
-
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 const Login = () => {
     const { login } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,9 @@ const Login = () => {
 
             if (!res.ok) {
                 const errorData = await res.json().catch(() => null);
-                throw new Error(errorData?.message || "Nom d’utilisateur ou mot de passe invalide");
+                throw new Error(
+                    errorData?.message || "Nom d’utilisateur ou mot de passe invalide"
+                );
             }
 
             const data = await res.json();
@@ -40,7 +42,10 @@ const Login = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 mt-8">
+        <form
+            onSubmit={handleSubmit}
+            className="flex flex-col items-center gap-4 mt-8"
+        >
             <input
                 type="text"
                 placeholder="Nom d'utilisateur"
@@ -48,19 +53,27 @@ const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="border p-2 rounded w-64"
             />
-            <input
-                type="password"
-                placeholder="Mot de passe"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="border p-2 rounded w-64"
-            />
+
+            <div className="relative w-64">
+                <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Mot de passe"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="border p-2 rounded w-full pr-10"
+                />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                >
+                    {showPassword ? "🙈" : "👁️"}
+                </button>
+            </div>
+
             {error && <p className="text-red-500">{error}</p>}
-            <button
-                type="submit"
-                disabled={loading}
-                className="button-generic"
-            >
+
+            <button type="submit" disabled={loading} className="button-generic">
                 {loading ? "Connexion..." : "Se connecter"}
             </button>
         </form>
