@@ -12,7 +12,8 @@ const Home = () => {
     }
 
     return (
-        <main className="flex flex-col item-center w-full md:text-[1.5em]">
+        <main className="relative flex flex-col item-center w-full md:text-[1.5em]">
+            <Link to="change-password" className='absolute top-[1rem] right-[1rem]'>Changer le mot de passe</Link>
             <section className="flex flex-col items-center w-full mt-[2rem] text-[1.9em] gap-[1rem] md:gap-[1.5rem] font-bold text-center">
                 <h1>Outil de rendement comparatif</h1>
                 <img src={vegibec} alt="le logo de Vegibec" className='w-[min(80%,_400px)]' />
