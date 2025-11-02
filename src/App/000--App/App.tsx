@@ -301,7 +301,7 @@ function App() {
         })
         .filter(Boolean) as { vegetable: string; total_cost: number }[];
     }
-
+    console.log("Adjusted vegetable costs computed:", newAdjusted);
     setAdjustedVegetableCosts(newAdjusted);
   }, [vegetableCosts, revenues]);
 
@@ -319,7 +319,7 @@ function App() {
       const redistributed = totalCostsToRedistribute * (Number(percentages[item.vegetable] || 0) / 100);
       finalTotals[item.vegetable] = Number(item.total_cost) + seedCost + redistributed;
     });
-
+    console.log("Vegetable total costs computed:", finalTotals);
     setVegetableTotalCosts(finalTotals);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute]);
