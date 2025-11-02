@@ -249,13 +249,52 @@ function App() {
 
   // --- Adjust vegetable costs ---
   useEffect(() => {
-    if (!vegetableCosts.length) {
+    if (!revenues.length) {
       setAdjustedVegetableCosts([]);
       return;
     }
 
-    let newAdjusted = [...vegetableCosts].map((item) => ({ ...item, total_cost: Number(item.total_cost) }));
+    // 1️⃣ Full template of all vegetables
+    const allVegetables = [
+      "AUCUNE",
+      "CHOU",
+      "CHOU DE BRUXELLES",
+      "CHOU-FLEUR",
+      "CHOU VERT",
+      "CHOU PLAT",
+      "CHOU ROUGE",
+      "CHOU DE SAVOIE",
+      "CÉLERI",
+      "CŒUR DE ROMAINE",
+      "ENDIVES",
+      "LAITUE",
+      "LAITUE POMMÉE",
+      "LAITUE FRISÉE",
+      "LAITUE FRISÉE VERTE",
+      "LAITUE FRISÉE ROUGE",
+      "LAITUE ROMAINE",
+      "POIVRON",
+      "POIVRON VERT",
+      "POIVRON ROUGE",
+      "POIVRON JAUNE",
+      "POIVRON ORANGE",
+      "POIVRON VERT/ROUGE",
+      "ZUCCHINI",
+      "ZUCCHINI VERT",
+      "ZUCCHINI JAUNE",
+      "ZUCCHINI LIBANAIS",
+    ];
 
+    // 2️⃣ Initialize all vegetables with 0 cost
+    let newAdjusted = allVegetables.map((veg) => ({ vegetable: veg, total_cost: 0 }));
+
+    // 3️⃣ Merge in fetched costs (default to 0)
+    vegetableCosts.forEach((item) => {
+      const idx = newAdjusted.findIndex((v) => v.vegetable === item.vegetable);
+      if (idx >= 0) newAdjusted[idx].total_cost = Number(item.total_cost || 0);
+    });
+
+    // 4️⃣ Redistribution helpers
     const redistributeGroupCost = (
       groupName: string,
       varieties: string[],
@@ -284,11 +323,11 @@ function App() {
       newAdjusted = newAdjusted.filter((v) => v.vegetable !== groupName);
     };
 
-    // --- Lettuce logic (robust fix) ---
+    // 5️⃣ Lettuce redistribution
     const redistributeLettuce = () => {
       let updated = [...newAdjusted];
 
-      // 1️⃣ LAITUE FRISÉE → VERTE & ROUGE
+      // LAITUE FRISÉE → VERTE & ROUGE
       const friseeCost = updated.find((v) => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
       if (friseeCost > 0) {
         const friseeVarieties = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
@@ -308,7 +347,7 @@ function App() {
         updated = updated.filter((v) => v.vegetable !== "LAITUE FRISÉE");
       }
 
-      // 2️⃣ LAITUE ROMAINE + CŒUR DE ROMAINE split by revenue
+      // LAITUE ROMAINE + CŒUR DE ROMAINE
       const romaineCost =
         (updated.find((v) => v.vegetable === "LAITUE ROMAINE")?.total_cost || 0) +
         (updated.find((v) => v.vegetable === "CŒUR DE ROMAINE")?.total_cost || 0);
@@ -325,7 +364,7 @@ function App() {
         else updated.push({ vegetable: name, total_cost: costShare });
       });
 
-      // 3️⃣ Spread generic LAITUE across all lettuces
+      // Spread generic LAITUE across all lettuces
       const genericLettuceCost = updated.find((v) => v.vegetable === "LAITUE")?.total_cost || 0;
       if (genericLettuceCost > 0) {
         const allLettuceVarieties = [
@@ -354,19 +393,14 @@ function App() {
       return updated;
     };
 
-    // --- Apply lettuce redistribution ---
     newAdjusted = redistributeLettuce();
 
-    // --- CHOU group (exclude CHOU-FLEUR, CHOU DE BRUXELLES) ---
+    // 6️⃣ Other groups
     redistributeGroupCost("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"], [
       "CHOU-FLEUR",
       "CHOU DE BRUXELLES",
     ]);
-
-    // --- ZUCCHINI group ---
     redistributeGroupCost("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
-
-    // --- POIVRON group ---
     redistributeGroupCost("POIVRON", [
       "POIVRON VERT",
       "POIVRON ROUGE",
@@ -377,6 +411,7 @@ function App() {
 
     setAdjustedVegetableCosts(newAdjusted);
   }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate]);
+
 
   // --- Compute final total costs per vegetable ---
   useEffect(() => {
