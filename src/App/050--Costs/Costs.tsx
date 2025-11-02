@@ -250,8 +250,8 @@ const Costs = () => {
                 </div>
             </section>
             {/* --- 4. Total costs per vegetable --- */}
-            <section className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4 border-b pb-2">
+            <section className="mb-8 mt-[2rem]">
+                <h2 className="text-[2em] font-bold text-gray-700 mb-4 border-b pb-2">
                     Coûts totaux par culture
                 </h2>
 
