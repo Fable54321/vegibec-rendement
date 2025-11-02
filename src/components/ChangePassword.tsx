@@ -1,6 +1,7 @@
 // src/components/ChangePassword.tsx
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
@@ -13,13 +14,15 @@ const ChangePassword = () => {
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
+    const navigate = useNavigate();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
 
         if (newPassword !== confirmPassword) {
-            setError("New passwords do not match.");
+            setError("Les nouveaux mots de passe ne correspondent pas.");
             return;
         }
 
@@ -43,17 +46,22 @@ const ChangePassword = () => {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.error || "Failed to change password");
+                throw new Error(data.error || "Échec du changement de mot de passe.");
             }
 
-            setSuccess("Password changed successfully!");
+            setSuccess("Le mot de passe a été changé avec succès.");
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
+
+            setTimeout(() => {
+                navigate("/");
+            }, 200);
         } catch (err) {
             setError((err as Error).message);
         } finally {
             setLoading(false);
+
         }
     };
 
