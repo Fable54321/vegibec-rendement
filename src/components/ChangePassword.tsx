@@ -59,7 +59,7 @@ const ChangePassword = () => {
             setNewPassword("");
             setConfirmPassword("");
 
-            setTimeout(() => navigate("/"), 200);
+            setTimeout(() => navigate("/"), 700);
         } catch (err) {
             setError((err as Error).message);
         } finally {
