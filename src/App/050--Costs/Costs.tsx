@@ -23,6 +23,11 @@ const Costs = () => {
         vegetableTotalCosts,
     } = useOutletContext<AppOutletContext>();
 
+    console.log("=== Costs component render ===");
+    console.log("mainLoading:", mainLoading);
+    console.log("adjustedVegetableCosts:", adjustedVegetableCosts);
+    console.log("vegetableTotalCosts:", vegetableTotalCosts);
+
     const formatCurrency = (value: number | string | undefined | null) => {
         if (value == null) return "—";
         const n = typeof value === "string" ? parseFloat(value) : value;
