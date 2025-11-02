@@ -18,7 +18,7 @@ const VisualTaskCosts = () => {
         try {
             const start = `${year}-01-01`;
             const end = `${year}-12-31`;
-            const url = `http://localhost:3000/data/costs/summary?groupBy=vegetable&start=${start}&end=${end}`;
+            const url = `https://vegibec-rendement-backend.onrender.com/data/costs/summary?groupBy=vegetable&start=${start}&end=${end}`;
             const res = await fetch(url);
             const json = await res.json();
 

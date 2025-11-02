@@ -53,7 +53,7 @@ const TaskCostsPage = () => {
     // --- Fetch main cost summary ---
     const fetchData = async () => {
         try {
-            let url = `http://localhost:3000/data/costs/summary?groupBy=${groupBy}`;
+            let url = `https://vegibec-rendement-backend.onrender.com/data/costs/summary?groupBy=${groupBy}`;
 
             if (yearSelected) {
                 if (monthSelected) {

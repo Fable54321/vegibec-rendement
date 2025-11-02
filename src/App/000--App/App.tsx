@@ -29,7 +29,7 @@ export type AppOutletContext = {
   setEndDate: (date: string) => void;
 };
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 function App() {
   const { token, loading } = useAuth();

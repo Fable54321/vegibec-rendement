@@ -16,7 +16,7 @@ const Revenues = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const res = await fetch(`http://localhost:3000/revenues/by-year?year_from=${selectedYear}`);
+                const res = await fetch(`https://vegibec-rendement-backend.onrender.com/revenues/by-year?year_from=${selectedYear}`);
                 if (!res.ok) throw new Error("Erreur de chargement");
                 const data = await res.json();
                 setRevenues(data);
