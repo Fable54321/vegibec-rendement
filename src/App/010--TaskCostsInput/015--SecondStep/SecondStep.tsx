@@ -1,6 +1,7 @@
 import './SecondPage.css';
 import { useEffect, useState } from 'react';
 import DatePicker from '../../Components/DatePicker';
+import { fetchWithAuth } from '@/utils/fetchWithAuth';
 
 interface SecondStepProps {
     numberOfWages: number;
@@ -32,6 +33,8 @@ const SecondStep: React.FC<SecondStepProps> = ({
     supervisor,
     selectedDate, setSelectedDate
 }) => {
+
+
 
     const [useCustomDate, setUseCustomDate] = useState(false);
     const [totalHours, setTotalHours] = useState(0);
@@ -93,12 +96,10 @@ const SecondStep: React.FC<SecondStepProps> = ({
             return;
         }
 
-        // Calculate total cost
         const totalCost = numericHours === null
             ? 0
             : wages.reduce((acc, cur, i) => acc + cur * multiplier[i] * numericHours, 0);
 
-        // Prepare data to send
         const payload = {
             vegetable: cultureDefined ? selectedVeggie.toUpperCase() : "AUCUNE",
             category: Object.keys(task).find((k) => task[k as keyof typeof task]) || "Autre",
@@ -110,17 +111,15 @@ const SecondStep: React.FC<SecondStepProps> = ({
         };
 
         try {
-            const response = await fetch("https://vegibec-rendement-backend.onrender.com/data/costs", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const result = await fetchWithAuth(
+                "https://vegibec-rendement-backend.onrender.com/data/costs",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                }
+            );
 
-            if (!response.ok) {
-                throw new Error("Erreur lors de l'enregistrement");
-            }
-
-            const result = await response.json();
             console.log("Report saved:", result);
             alert("✅ Tâche enregistrée avec succès !");
             setIsFirstStepCompleted(true);
@@ -128,6 +127,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
             console.error(err);
             alert("❌ Une erreur est survenue lors de l'enregistrement.");
         }
+
         setTimeout(() => window.location.reload(), 200);
     };
 

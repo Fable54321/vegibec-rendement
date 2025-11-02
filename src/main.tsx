@@ -12,6 +12,7 @@ import Costs from './App/050--Costs/Costs'
 import USDA from './App/060--USDA/USDA'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import Login from './components/login'
 
 
 
@@ -79,6 +80,10 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'login',
+        element: <Login />
+      }
     ],
   },
 ]);

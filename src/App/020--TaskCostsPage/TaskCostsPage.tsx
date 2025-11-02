@@ -12,6 +12,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import type { AppOutletContext } from "../000--App/App";
+import { fetchWithAuth } from "@/utils/fetchWithAuth";
 
 const TaskCostsPage = () => {
     type CostRow = {
@@ -67,8 +68,7 @@ const TaskCostsPage = () => {
                 url += `&start=${startDate}&end=${endDate}`;
             }
 
-            const res = await fetch(url);
-            const json = await res.json();
+            const json = await fetchWithAuth(url); // <-- use fetchWithAuth
             if (Array.isArray(json)) setData(json);
             else setData([]);
         } catch (err) {
@@ -76,6 +76,7 @@ const TaskCostsPage = () => {
             setData([]);
         }
     };
+
 
     useEffect(() => {
         fetchData();
