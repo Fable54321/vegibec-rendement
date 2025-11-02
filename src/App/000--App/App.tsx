@@ -41,9 +41,9 @@ function App() {
     const scheduleRefresh = () => {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        const expiresAt = payload.exp * 1000; // JWT exp is in seconds
+        const expiresAt = payload.exp * 1000;
         const now = Date.now();
-        const timeout = expiresAt - now - 5000; // refresh 5s before expiry
+        const timeout = expiresAt - now - 5000;
 
         if (timeout <= 0) {
           refreshToken();
@@ -171,17 +171,12 @@ function App() {
       setErrorCosts(null);
 
       try {
-        console.log("Fetching vegetable costs with URL:", `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`);
         const data = (await fetchWithAuth(
           `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`,
           { headers: { Authorization: `Bearer ${token}` } }
         )) as { vegetable: string; total_cost: number }[];
 
-        console.log("Fetched vegetable costs data:", data);
-
         setVegetableCosts(data);
-
-        console.log("VegetableCosts state now:", data);
         if (!data.length) setNoCultureCosts(0);
         else setNoCultureCosts(data.find((i) => i.vegetable === "AUCUNE")?.total_cost || 0);
       } catch (err) {
@@ -286,36 +281,98 @@ function App() {
         }
       });
 
-      // Remove the group placeholder
       newAdjusted = newAdjusted.filter((v) => v.vegetable !== groupName);
     };
 
-    // Lettuce
-    redistributeGroupCost("LAITUE", [
-      "LAITUE POMMÉE",
-      "LAITUE FRISÉE VERTE",
-      "LAITUE FRISÉE ROUGE",
-      "LAITUE FRISÉE",
-      "LAITUE ROMAINE",
-      "CŒUR DE ROMAINE"
-    ]);
+    // --- Lettuce logic (robust fix) ---
+    const redistributeLettuce = () => {
+      let updated = [...newAdjusted];
 
-    // CHOU group (exclude CHOU-FLEUR, CHOU DE BRUXELLES)
+      // 1️⃣ LAITUE FRISÉE → VERTE & ROUGE
+      const friseeCost = updated.find((v) => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
+      if (friseeCost > 0) {
+        const friseeVarieties = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
+        const friseeRevenueTotal = friseeVarieties.reduce(
+          (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1),
+          0
+        );
+
+        friseeVarieties.forEach((name) => {
+          const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1);
+          const idx = updated.findIndex((v) => v.vegetable === name);
+          const costShare = (revenue / friseeRevenueTotal) * friseeCost;
+          if (idx >= 0) updated[idx].total_cost += costShare;
+          else updated.push({ vegetable: name, total_cost: costShare });
+        });
+
+        updated = updated.filter((v) => v.vegetable !== "LAITUE FRISÉE");
+      }
+
+      // 2️⃣ LAITUE ROMAINE + CŒUR DE ROMAINE split by revenue
+      const romaineCost =
+        (updated.find((v) => v.vegetable === "LAITUE ROMAINE")?.total_cost || 0) +
+        (updated.find((v) => v.vegetable === "CŒUR DE ROMAINE")?.total_cost || 0);
+      const romaineVarieties = ["LAITUE ROMAINE", "CŒUR DE ROMAINE"];
+      const romaineRevenueTotal = romaineVarieties.reduce(
+        (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1),
+        0
+      );
+      romaineVarieties.forEach((name) => {
+        const idx = updated.findIndex((v) => v.vegetable === name);
+        const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1);
+        const costShare = (revenue / romaineRevenueTotal) * romaineCost;
+        if (idx >= 0) updated[idx].total_cost = costShare;
+        else updated.push({ vegetable: name, total_cost: costShare });
+      });
+
+      // 3️⃣ Spread generic LAITUE across all lettuces
+      const genericLettuceCost = updated.find((v) => v.vegetable === "LAITUE")?.total_cost || 0;
+      if (genericLettuceCost > 0) {
+        const allLettuceVarieties = [
+          "LAITUE ROMAINE",
+          "CŒUR DE ROMAINE",
+          "LAITUE POMMÉE",
+          "LAITUE FRISÉE VERTE",
+          "LAITUE FRISÉE ROUGE",
+        ];
+        const totalLettuceRevenue = allLettuceVarieties.reduce(
+          (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1),
+          0
+        );
+
+        allLettuceVarieties.forEach((name) => {
+          const idx = updated.findIndex((v) => v.vegetable === name);
+          const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1);
+          const costShare = (revenue / totalLettuceRevenue) * genericLettuceCost;
+          if (idx >= 0) updated[idx].total_cost += costShare;
+          else updated.push({ vegetable: name, total_cost: costShare });
+        });
+
+        updated = updated.filter((v) => v.vegetable !== "LAITUE");
+      }
+
+      return updated;
+    };
+
+    // --- Apply lettuce redistribution ---
+    newAdjusted = redistributeLettuce();
+
+    // --- CHOU group (exclude CHOU-FLEUR, CHOU DE BRUXELLES) ---
     redistributeGroupCost("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"], [
       "CHOU-FLEUR",
-      "CHOU DE BRUXELLES"
+      "CHOU DE BRUXELLES",
     ]);
 
-    // ZUCCHINI group
+    // --- ZUCCHINI group ---
     redistributeGroupCost("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
 
-    // POIVRON group
+    // --- POIVRON group ---
     redistributeGroupCost("POIVRON", [
       "POIVRON VERT",
       "POIVRON ROUGE",
       "POIVRON JAUNE",
       "POIVRON ORANGE",
-      "POIVRON VERT/ROUGE"
+      "POIVRON VERT/ROUGE",
     ]);
 
     setAdjustedVegetableCosts(newAdjusted);
@@ -331,7 +388,7 @@ function App() {
     const finalTotals: Record<string, number> = {};
 
     adjustedVegetableCosts.forEach((item) => {
-      const seedCost = Number(seedCosts.find(s => s.seed === item.vegetable)?.total_cost || 0);
+      const seedCost = Number(seedCosts.find((s) => s.seed === item.vegetable)?.total_cost || 0);
       const redistributed = totalCostsToRedistribute * (Number(percentages[item.vegetable] || 0) / 100);
       finalTotals[item.vegetable] = Number(item.total_cost) + seedCost + redistributed;
     });
@@ -378,4 +435,3 @@ function App() {
 }
 
 export default App;
-
