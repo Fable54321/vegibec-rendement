@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import type { VegetableCosts } from "@/utils/types";
@@ -106,9 +106,11 @@ function App() {
   const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts;
 
   // --- Derived query period ---
-  const periodQuery = (() => {
+  const periodQuery = useMemo(() => {
     const pad = (n: number) => n.toString().padStart(2, "0");
+
     if (startDate && endDate) return `start=${startDate}&end=${endDate}`;
+
     if (monthSelected) {
       const monthNum = Number(monthSelected);
       const yearNum = Number(yearSelected);
@@ -117,8 +119,9 @@ function App() {
       const lastDay = `${yearNum}-${pad(monthNum)}-${pad(lastDayDate.getDate())}`;
       return `start=${firstDay}&end=${lastDay}`;
     }
+
     return `start=${yearSelected}-01-01&end=${yearSelected}-12-31`;
-  })();
+  }, [startDate, endDate, monthSelected, yearSelected]);
 
   // --- Vegetable total costs (final) ---
   const [vegetableTotalCosts, setVegetableTotalCosts] = useState<Record<string, number>>({});
