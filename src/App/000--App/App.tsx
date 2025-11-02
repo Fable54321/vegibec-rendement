@@ -171,12 +171,17 @@ function App() {
       setErrorCosts(null);
 
       try {
+        console.log("Fetching vegetable costs with URL:", `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`);
         const data = (await fetchWithAuth(
           `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`,
           { headers: { Authorization: `Bearer ${token}` } }
         )) as { vegetable: string; total_cost: number }[];
 
+        console.log("Fetched vegetable costs data:", data);
+
         setVegetableCosts(data);
+
+        console.log("VegetableCosts state now:", data);
         if (!data.length) setNoCultureCosts(0);
         else setNoCultureCosts(data.find((i) => i.vegetable === "AUCUNE")?.total_cost || 0);
       } catch (err) {
