@@ -376,7 +376,7 @@ function App() {
     ]);
 
     setAdjustedVegetableCosts(newAdjusted);
-  }, [vegetableCosts, revenues]);
+  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate]);
 
   // --- Compute final total costs per vegetable ---
   useEffect(() => {
