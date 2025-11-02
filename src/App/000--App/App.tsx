@@ -41,12 +41,13 @@ function App() {
     const scheduleRefresh = () => {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        const expiresAt = payload.exp * 1000;
+        const expiresAt = payload.exp * 1000; // JWT exp is in seconds
         const now = Date.now();
-        const timeout = expiresAt - now - 5000;
+        const timeout = expiresAt - now - 5000; // refresh 5s before expiry
 
-        if (timeout <= 0) refreshToken();
-        else {
+        if (timeout <= 0) {
+          refreshToken();
+        } else {
           const timer = setTimeout(refreshToken, timeout);
           return () => clearTimeout(timer);
         }
@@ -109,6 +110,7 @@ function App() {
     const pad = (n: number) => n.toString().padStart(2, "0");
 
     if (startDate && endDate) return `start=${startDate}&end=${endDate}`;
+
     if (monthSelected) {
       const monthNum = Number(monthSelected);
       const yearNum = Number(yearSelected);
@@ -117,78 +119,131 @@ function App() {
       const lastDay = `${yearNum}-${pad(monthNum)}-${pad(lastDayDate.getDate())}`;
       return `start=${firstDay}&end=${lastDay}`;
     }
+
     return `start=${yearSelected}-01-01&end=${yearSelected}-12-31`;
   }, [startDate, endDate, monthSelected, yearSelected]);
 
   // --- Vegetable total costs (final) ---
   const [vegetableTotalCosts, setVegetableTotalCosts] = useState<Record<string, number>>({});
 
-  // --- Fetch data hooks (revenues, costs, other costs, seeds) ---
+  // --- Fetch Revenues ---
   useEffect(() => {
     if (!token) return;
+
     const fetchRevenues = async () => {
       setLoadingRevenues(true);
       setErrorRevenues(null);
+
       try {
-        const data = (await fetchWithAuth(`${API_BASE_URL}/revenues/by-year?year_from=${yearSelected}`, { headers: { Authorization: `Bearer ${token}` } })) as { vegetable: string; total_revenue: number }[];
+        const data = (await fetchWithAuth(
+          `${API_BASE_URL}/revenues/by-year?year_from=${yearSelected}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )) as { vegetable: string; total_revenue: number }[];
+
         setRevenues(data);
-        if (!data.length) setPercentages({});
-        else {
+
+        if (!data.length) {
+          setPercentages({});
+        } else {
           const total = data.reduce((sum, r) => sum + Number(r.total_revenue), 0);
           const pct: RevenuePercentage = {};
-          data.forEach((item) => (pct[item.vegetable] = (Number(item.total_revenue) / total) * 100));
+          data.forEach((item) => {
+            pct[item.vegetable] = (Number(item.total_revenue) / total) * 100;
+          });
           setPercentages(pct);
         }
-      } catch (err) { setErrorRevenues((err as Error).message); }
-      finally { setLoadingRevenues(false); }
+      } catch (err) {
+        setErrorRevenues((err as Error).message);
+      } finally {
+        setLoadingRevenues(false);
+      }
     };
+
     fetchRevenues();
   }, [yearSelected, token]);
 
+  // --- Fetch Vegetable Costs ---
   useEffect(() => {
     if (!token) return;
+
     const fetchCosts = async () => {
       setLoadingCosts(true);
       setErrorCosts(null);
+
       try {
-        const data = (await fetchWithAuth(`${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`, { headers: { Authorization: `Bearer ${token}` } })) as { vegetable: string; total_cost: number }[];
+        console.log("Fetching vegetable costs with URL:", `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`);
+        const data = (await fetchWithAuth(
+          `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )) as { vegetable: string; total_cost: number }[];
+
+        console.log("Fetched vegetable costs data:", data);
+
         setVegetableCosts(data);
+
+        console.log("VegetableCosts state now:", data);
         if (!data.length) setNoCultureCosts(0);
         else setNoCultureCosts(data.find((i) => i.vegetable === "AUCUNE")?.total_cost || 0);
-      } catch (err) { setErrorCosts((err as Error).message); }
-      finally { setLoadingCosts(false); }
+      } catch (err) {
+        setErrorCosts((err as Error).message);
+      } finally {
+        setLoadingCosts(false);
+      }
     };
+
     fetchCosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yearSelected, monthSelected, startDate, endDate, token]);
 
+  // --- Fetch Other Costs ---
   useEffect(() => {
     if (!token) return;
+
     const fetchOtherCosts = async () => {
       setLoadingOtherCosts(true);
       setErrorOtherCosts(null);
+
       try {
-        const data = (await fetchWithAuth(`${API_BASE_URL}/data/costs/other_costs?${periodQuery}`, { headers: { Authorization: `Bearer ${token}` } })) as { category: string; total_cost: number }[];
+        const data = (await fetchWithAuth(
+          `${API_BASE_URL}/data/costs/other_costs?${periodQuery}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )) as { category: string; total_cost: number }[];
+
         const entries: [string, number][] = data.map((item) => [item.category, Number(item.total_cost)]);
         setOtherCosts(entries);
         setOtherCostsTotal(entries.reduce((sum, [, v]) => sum + v, 0));
-      } catch (err) { setErrorOtherCosts((err as Error).message); }
-      finally { setLoadingOtherCosts(false); }
+      } catch (err) {
+        setErrorOtherCosts((err as Error).message);
+      } finally {
+        setLoadingOtherCosts(false);
+      }
     };
+
     fetchOtherCosts();
   }, [periodQuery, token]);
 
+  // --- Fetch Seed Costs ---
   useEffect(() => {
     if (!token) return;
+
     const fetchSeedCosts = async () => {
       setLoadingSeedCosts(true);
       setErrorSeedCosts(null);
+
       try {
-        const data = (await fetchWithAuth(`${API_BASE_URL}/data/costs/seed_costs?${periodQuery}`, { headers: { Authorization: `Bearer ${token}` } })) as { seed: string; total_cost: number }[];
+        const data = (await fetchWithAuth(
+          `${API_BASE_URL}/data/costs/seed_costs?${periodQuery}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )) as { seed: string; total_cost: number }[];
+
         setSeedCosts(data);
-      } catch (err) { setErrorSeedCosts((err as Error).message); }
-      finally { setLoadingSeedCosts(false); }
+      } catch (err) {
+        setErrorSeedCosts((err as Error).message);
+      } finally {
+        setLoadingSeedCosts(false);
+      }
     };
+
     fetchSeedCosts();
   }, [periodQuery, token]);
 
@@ -206,47 +261,53 @@ function App() {
 
     let newAdjusted = [...vegetableCosts].map((item) => ({ ...item, total_cost: Number(item.total_cost) }));
 
-    // --- Lettuce Redistribution ---
-    const redistributeGroupCost = (groupName: string, varieties: string[], exclude: string[] = []) => {
-      const filteredVarieties = varieties.filter(v => !exclude.includes(v));
-      const totalRevenue = filteredVarieties.reduce((sum, name) => sum + Number(revenues.find(r => r.vegetable === name)?.total_revenue || 0), 0);
+    const redistributeGroupCost = (
+      groupName: string,
+      varieties: string[],
+      exclude: string[] = []
+    ) => {
+      const children = varieties.filter((v) => !exclude.includes(v));
+      const totalRevenue = children.reduce(
+        (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 0),
+        0
+      );
+
       if (totalRevenue <= 0) return;
-      const groupCost = Number(newAdjusted.find(v => v.vegetable === groupName)?.total_cost || 0);
 
-      // Ensure all varieties exist
-      filteredVarieties.forEach(name => {
-        if (!newAdjusted.find(v => v.vegetable === name)) {
-          newAdjusted.push({ vegetable: name, total_cost: 0 });
+      const groupCost = Number(newAdjusted.find((v) => v.vegetable === groupName)?.total_cost || 0);
+
+      children.forEach((name) => {
+        const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 0);
+        const idx = newAdjusted.findIndex((v) => v.vegetable === name);
+        if (idx >= 0) {
+          newAdjusted[idx].total_cost += (revenue / totalRevenue) * groupCost;
+        } else {
+          newAdjusted.push({ vegetable: name, total_cost: (revenue / totalRevenue) * groupCost });
         }
       });
 
-      newAdjusted = newAdjusted.map(item => {
-        if (filteredVarieties.includes(item.vegetable)) {
-          const revenue = Number(revenues.find(r => r.vegetable === item.vegetable)?.total_revenue || 0);
-          return { ...item, total_cost: item.total_cost + (revenue / totalRevenue) * groupCost };
-        }
-        if (item.vegetable === groupName) return { ...item, total_cost: 0 };
-        return item;
-      });
+      // Remove the group placeholder
+      newAdjusted = newAdjusted.filter((v) => v.vegetable !== groupName);
     };
 
     // Lettuce
-    redistributeGroupCost("LAITUE", ["LAITUE POMMÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE", "LAITUE ROMAINE", "CŒUR DE ROMAINE"]);
+    redistributeGroupCost("LAITUE", [
+      "LAITUE POMMÉE",
+      "LAITUE FRISÉE VERTE",
+      "LAITUE FRISÉE ROUGE",
+      "LAITUE FRISÉE",
+      "LAITUE ROMAINE",
+      "CŒUR DE ROMAINE"
+    ]);
 
     // CHOU group (exclude CHOU-FLEUR, CHOU DE BRUXELLES)
-    redistributeGroupCost("CHOU", [
-      "CHOU VERT",
-      "CHOU PLAT",
-      "CHOU ROUGE",
-      "CHOU DE SAVOIE"
-    ], ["CHOU-FLEUR", "CHOU DE BRUXELLES"]);
+    redistributeGroupCost("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"], [
+      "CHOU-FLEUR",
+      "CHOU DE BRUXELLES"
+    ]);
 
     // ZUCCHINI group
-    redistributeGroupCost("ZUCCHINI", [
-      "ZUCCHINI VERT",
-      "ZUCCHINI JAUNE",
-      "ZUCCHINI LIBANAIS"
-    ]);
+    redistributeGroupCost("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
 
     // POIVRON group
     redistributeGroupCost("POIVRON", [
@@ -268,11 +329,13 @@ function App() {
     }
 
     const finalTotals: Record<string, number> = {};
+
     adjustedVegetableCosts.forEach((item) => {
       const seedCost = Number(seedCosts.find(s => s.seed === item.vegetable)?.total_cost || 0);
       const redistributed = totalCostsToRedistribute * (Number(percentages[item.vegetable] || 0) / 100);
       finalTotals[item.vegetable] = Number(item.total_cost) + seedCost + redistributed;
     });
+
     setVegetableTotalCosts(finalTotals);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute]);
@@ -283,6 +346,7 @@ function App() {
     <>
       {mainLoading && <p className="text-center">Chargement...</p>}
       {mainError && <p className="text-center text-red-500">{mainError}</p>}
+
       <div className="font-[nunito] w-full">
         <Outlet
           context={{
@@ -314,3 +378,4 @@ function App() {
 }
 
 export default App;
+
