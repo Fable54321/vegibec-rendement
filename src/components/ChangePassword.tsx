@@ -59,13 +59,13 @@ const ChangePassword = () => {
 
     return (
         <div className="max-w-md mx-auto p-4 border rounded mt-8">
-            <h2 className="text-xl font-bold mb-4">Change Password</h2>
+            <h2 className="text-xl font-bold mb-4">Changer le mot de passe</h2>
             {error && <p className="text-red-500 mb-2">{error}</p>}
             {success && <p className="text-green-500 mb-2">{success}</p>}
 
             <form onSubmit={handleSubmit}>
                 <label className="block mb-2">
-                    Current Password:
+                    Mot de passe actuel:
                     <input
                         type="password"
                         value={currentPassword}
@@ -75,7 +75,7 @@ const ChangePassword = () => {
                 </label>
 
                 <label className="block mb-2">
-                    New Password:
+                    Nouveau mot de passe:
                     <input
                         type="password"
                         value={newPassword}
@@ -85,7 +85,7 @@ const ChangePassword = () => {
                 </label>
 
                 <label className="block mb-4">
-                    Confirm New Password:
+                    Confirmer le nouveau mot de passe:
                     <input
                         type="password"
                         value={confirmPassword}
@@ -97,9 +97,9 @@ const ChangePassword = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                    className="button-generic"
                 >
-                    {loading ? "Updating..." : "Change Password"}
+                    {loading ? "En cours..." : "Changer le mot de passe"}
                 </button>
             </form>
         </div>
