@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import SecondStep from "./015--SecondStep/SecondStep";
 import FirstStep from "./011--firstStep/FirstStep";
 import { Link } from "react-router-dom";
+import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "@/context/AuthContext";
+
 
 const TaskCostsInput = () => {
     const [task, setTask] = useState({
@@ -27,6 +30,10 @@ const TaskCostsInput = () => {
         "Zucchini",
     ];
 
+    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
+    const { token } = useAuth();
+
     const [subCategories, setSubcategories] = useState<string[]>([]);
     const [subCategory, setSubCategory] = useState("");
     const [cultureDefined, setCultureDefined] = useState(false);
@@ -39,6 +46,7 @@ const TaskCostsInput = () => {
     const [hoursInput, setHoursInput] = useState<string>("");
     const [isFirstStepCompleted, setIsFirstStepCompleted] = useState(false);
 
+
     // --- New states for overlay ---
     const [showOverlay, setShowOverlay] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,39 +54,49 @@ const TaskCostsInput = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchLatestEntries = async () => {
-        try {
+    useEffect(() => {
+        if (!token || !showOverlay) return;
+
+        const fetchLatestEntries = async () => {
             setLoading(true);
             setError(null);
-            const res = await fetch(
-                "https://vegibec-rendement-backend.onrender.com/data/costs/latest",
-                { credentials: "include" }
-            );
-            if (!res.ok) throw new Error("Erreur lors du chargement des données");
-            const data = await res.json();
-            setLatestEntries(data);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+
+            try {
+                const data = (await fetchWithAuth(
+                    `${API_BASE_URL}/data/costs/latest`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                )) as {
+                    vegetable: string;
+                    category: string;
+                    sub_category: string;
+                    total_hours: number;
+                    supervisor: string;
+                    total_cost: number;
+                    created_at: string;
+                }[];
+
+                setLatestEntries(data);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLatestEntries();
+
+    }, [showOverlay, token]);
 
     const openOverlay = () => {
         setShowOverlay(true);
-        fetchLatestEntries();
+
     };
 
     const closeOverlay = () => {
         setShowOverlay(false);
     };
 
-    useEffect(() => {
-        if (showOverlay) {
-            fetchLatestEntries();
-        }
-    }, [showOverlay])
+
 
     return (
         <>
@@ -100,7 +118,7 @@ const TaskCostsInput = () => {
                 {/* --- New Button for Overlay --- */}
                 <button
                     onClick={openOverlay}
-                    className="mt-4 bg-green-700 text-white px-4 py-2 rounded-xl hover:bg-green-800 transition"
+                    className="button-generic mt-[1rem]"
                 >
                     Voir les dix dernières entrées
                 </button>
