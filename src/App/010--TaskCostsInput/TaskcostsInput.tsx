@@ -66,6 +66,7 @@ const TaskCostsInput = () => {
                     `${API_BASE_URL}/data/costs/latest`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 )) as {
+                    id: number;
                     vegetable: string;
                     category: string;
                     sub_category: string;
@@ -160,9 +161,9 @@ const TaskCostsInput = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {latestEntries.map((entry, index) => (
+                                    {latestEntries.map((entry) => (
                                         <tr
-                                            key={index}
+                                            key={entry.id}
                                             className="odd:bg-gray-100 even:bg-white text-center"
                                         >
                                             <td className="p-2 border">{entry.vegetable}</td>
@@ -175,6 +176,33 @@ const TaskCostsInput = () => {
                                             </td>
                                             <td className="p-2 border">
                                                 {new Date(entry.created_at).toLocaleDateString("fr-CA")}
+                                            </td>
+                                            <td className="p-2 border">
+                                                <button
+                                                    onClick={async () => {
+                                                        const confirmDelete = window.confirm(
+                                                            "Confirmez-vous que vous voulez supprimer l'entrée sélectionnée ?"
+                                                        );
+                                                        if (!confirmDelete) return;
+
+                                                        try {
+                                                            await fetchWithAuth(`${API_BASE_URL}/data/costs/${entry.id}`, {
+                                                                method: "DELETE",
+                                                                headers: { Authorization: `Bearer ${token}` },
+                                                            });
+
+                                                            // remove the entry locally after deletion
+                                                            setLatestEntries((prev) =>
+                                                                prev.filter((e) => e.id !== entry.id)
+                                                            );
+                                                        } catch (err) {
+                                                            alert("Erreur lors de la suppression : " + (err as Error).message);
+                                                        }
+                                                    }}
+                                                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm"
+                                                >
+                                                    Supprimer
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
