@@ -273,7 +273,7 @@ const Costs = () => {
                             </tr>
                         </thead>
                         <tbody className="text-gray-700">
-                            {Object.entries(vegetableTotalCosts).map(([veg, cost]) => (
+                            {Object.entries(vegetableTotalCosts).filter(([veg]) => veg !== "AUCUNE").map(([veg, cost]) => (
                                 <tr
                                     key={veg}
                                     className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
