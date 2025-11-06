@@ -3,6 +3,7 @@ import { Listbox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 
+
 interface FirstStepProps {
     task: {
         Entretien: boolean;
@@ -176,6 +177,49 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
         setIsFirstStepCompleted(true);
     }
 
+    useEffect(() => {
+        if (task.Entrepôt === false) {
+            return
+        }
+        switch (subCategory) {
+            case "Emballage céleri":
+                setCultureDefined(true);
+                setSelectedVeggie("Céleri");
+                break;
+            case "Emballage chou":
+                setCultureDefined(true);
+                setSelectedVeggie("Chou");
+                break;
+            case "Emballage chou de Bruxelles":
+                setCultureDefined(true);
+                setSelectedVeggie("Chou de Bruxelles");
+                break;
+            case "Emballage chou-fleur":
+                setCultureDefined(true);
+                setSelectedVeggie("Chou-fleur");
+                break;
+            case "Emballage cœur de romaine":
+                setCultureDefined(true);
+                setSelectedVeggie("Cœur de romaine");
+                break;
+            case "Emballage laitue frisée":
+                setCultureDefined(true);
+                setSelectedVeggie("Laitue frisée");
+                break;
+            case "Emballage laitue pommée":
+                setCultureDefined(true);
+                setSelectedVeggie("Laitue pommée");
+                break;
+            case "Emballage laitue romaine":
+                setCultureDefined(true);
+                setSelectedVeggie("Laitue romaine");
+                break;
+            case "Emballage poivron":
+                setCultureDefined(true);
+                setSelectedVeggie("Poivron");
+                break;
+        }
+    }, [task.Entrepôt, subCategory])
 
 
 
@@ -307,13 +351,13 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                 </div>
             </section>
 
-            <section className="flex flex-col mt-[0.5rem]">
+            <section className="flex flex-col mt-[0.5rem] items-center">
                 <div className="flex justify-center w-full gap-[0.5rem]">
                     <label htmlFor="cultureDefined">Cutlure précisée :</label>
                     <input onChange={(e) => setCultureDefined(e.target.checked)} type="checkbox" id="cultureDefined" name="cultureDefined" checked={cultureDefined} />
                 </div>
                 {cultureDefined && (
-                    <div className="flex gap-[1rem] justify-center">
+                    <div className="flex gap-[1rem] justify-center w-[80%]">
                         <label className="text-[1.1rem] font-bold">Culture:</label>
                         <div className="w-64">
                             <Listbox value={selectedVeggie} onChange={setSelectedVeggie}>

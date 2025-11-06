@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import type { AppOutletContext } from "../000--App/App";
 import { useEffect } from "react";
 
@@ -13,7 +13,6 @@ const Costs = () => {
         setStartDate,
         endDate,
         setEndDate,
-        adjustedVegetableCosts, // ✅ comes from App now
         percentages,
         otherCostsTotal,
         totalCostsToRedistribute,
@@ -21,12 +20,12 @@ const Costs = () => {
         mainError,
         otherCosts,
         vegetableTotalCosts,
+        adjustedPackagingCosts,
+        adjustedVegetableCosts,
     } = useOutletContext<AppOutletContext>();
 
-    console.log("=== Costs component render ===");
-    console.log("mainLoading:", mainLoading);
-    console.log("adjustedVegetableCosts:", adjustedVegetableCosts);
-    console.log("vegetableTotalCosts:", vegetableTotalCosts);
+
+
 
     const formatCurrency = (value: number | string | undefined | null) => {
         if (value == null) return "—";
@@ -37,7 +36,7 @@ const Costs = () => {
     };
 
 
-    useEffect(() => { console.log(seedCosts) }, [seedCosts])
+    useEffect(() => { console.log("adjusted packaging costs COSTS PAGE   ", adjustedPackagingCosts) }, [adjustedPackagingCosts])
 
 
     return (
@@ -49,10 +48,12 @@ const Costs = () => {
             <h1 className="text-3xl font-extrabold text-center mb-6 text-gray-800">
                 Analyse des Coûts Annuels
             </h1>
-
+            <div className="w-full flex justify-center">
+                <Link to="/" className="button-generic " >Accueil</Link>
+            </div>
             {/* --- Date Controls --- */}
             <section
-                className="bg-gray-50 p-4 rounded-lg shadow-inner mb-8"
+                className="bg-gray-50 p-4 rounded-lg shadow-inner mb-8 mt-[1rem]"
                 style={{
                     display: "grid",
                     gap: "1rem",
@@ -112,7 +113,7 @@ const Costs = () => {
 
             {/* --- 1. Coûts provenant des heures de travail --- */}
             <section className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4 border-b pb-2">
+                <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
                     Coûts provenant des heures de travail
                 </h2>
 
@@ -153,29 +154,34 @@ const Costs = () => {
             {/* --- 1.1 Coûts de semences --- */}
             {!mainLoading ? (
                 seedCosts.length > 0 ? (
-                    <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
-                        <thead className="bg-green-700 text-white">
-                            <tr>
-                                <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
-                                    Semence
-                                </th>
-                                <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
-                                    Coûts Totaux ($)
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-700">
-                            {seedCosts.map((item) => (
-                                <tr
-                                    key={item.seed}
-                                    className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
-                                >
-                                    <td className="py-3 px-4">{item.seed}</td>
-                                    <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
+                    <>
+                        <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                            Coûts des semences
+                        </h2>
+                        <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+                            <thead className="bg-green-700 text-white">
+                                <tr>
+                                    <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
+                                        Semence
+                                    </th>
+                                    <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
+                                        Coûts Totaux ($)
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                {seedCosts.map((item) => (
+                                    <tr
+                                        key={item.seed}
+                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                    >
+                                        <td className="py-3 px-4">{item.seed}</td>
+                                        <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </>
                 ) : (
                     <p className="text-gray-500 italic">
                         Aucun coût de semences trouvé pour la période sélectionnée.
@@ -183,11 +189,52 @@ const Costs = () => {
                 )
             ) : null}
 
+            {/* --- 1.2 Coûts de packaging --- */}
+            {!mainLoading ? (
+                adjustedPackagingCosts.length > 0 ? (
+                    <section className="mb-8 mt-[1.5rem]">
+                        <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                            Coûts d'emballage
+                        </h2>
+                        <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+                            <thead className="bg-green-700 text-white">
+                                <tr>
+                                    <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
+                                        Culture
+                                    </th>
+                                    <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
+                                        Coûts Totaux ($)
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                {adjustedPackagingCosts.map((item) => (
+                                    <tr
+                                        key={item.vegetable}
+                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                    >
+                                        <td className="py-3 px-4">{item.vegetable}</td>
+                                        <td className="py-3 px-4 text-right">
+                                            {formatCurrency(item.total_cost)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </section>
+                ) : (
+                    <p className="text-gray-500 italic">
+                        Aucun coût de packaging trouvé pour la période sélectionnée.
+                    </p>
+                )
+            ) : null}
+
+
 
 
             {/* --- 2. Coûts autres --- */}
             <section className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-700 mb-4 border-b pb-2">
+                <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
                     Coûts autres
                 </h2>
 
