@@ -1,6 +1,7 @@
 // src/components/Login.tsx
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
@@ -11,6 +12,8 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,6 +37,8 @@ const Login = () => {
 
             const data = await res.json();
             login(data.token); // Save token in context/localStorage
+
+            navigate("/");
         } catch (err) {
             setError((err as Error).message);
         } finally {

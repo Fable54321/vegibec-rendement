@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import type { VegetableCosts } from "@/utils/types";
 
+
 export type RevenuePercentage = Record<string, number>;
 
 export type AppOutletContext = {
@@ -28,14 +29,23 @@ export type AppOutletContext = {
   endDate: string;
   setEndDate: (date: string) => void;
   packagingCosts: { vegetable: string; total_cost: number }[];
-  // 🌟 NEW CONTEXT VARIABLE 🌟
   adjustedPackagingCosts: { vegetable: string; total_cost: number }[];
+  vegetableSoilProducts: { vegetable: string; total_cost: number }[];
+  categorySoilProducts: { category: string; total_cost: number }[];
+  soilGroupBy: "vegetable" | "category";
+  setSoilGroupBy: (groupBy: "vegetable" | "category") => void;
+  adjustedSoilProducts: { vegetable: string; total_cost: number }[];
+
 };
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 function App() {
   const { token, login, logout, loading } = useAuth();
+
+  type SoilProductCost =
+    | { vegetable: string; total_cost: number }
+    | { category: string; total_cost: number };
 
   // --- AUTO-REFRESH ACCESS TOKEN ---
   useEffect(() => {
@@ -83,6 +93,7 @@ function App() {
   const [monthSelected, setMonthSelected] = useState<string | undefined>();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [soilGroupBy, setSoilGroupBy] = useState<"vegetable" | "category">("vegetable");
 
   // --- Data ---
   const [revenues, setRevenues] = useState<{ vegetable: string; total_revenue: number }[]>([]);
@@ -94,9 +105,13 @@ function App() {
   const [otherCosts, setOtherCosts] = useState<[string, number][]>([]);
   const [seedCosts, setSeedCosts] = useState<{ seed: string; total_cost: number }[]>([]);
   const [packagingCosts, setPackagingCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
+  const [vegetableSoilProducts, setVegetableSoilProducts] = useState<SoilProductCost[]>([]);
+  const [categorySoilProducts, setCategorySoilProducts] = useState<SoilProductCost[]>([]);
+  const [aucuneSoilCost, setAucuneSoilCost] = useState(0);
   // 🌟 NEW STATE FOR ADJUSTED PACKAGING COSTS 🌟
   const [adjustedPackagingCosts, setAdjustedPackagingCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
-  const [loadingPackagingCosts, setLoadingPackagingCosts] = useState(false);
+  const [adjustedSoilProducts, setAdjustedSoilProducts] = useState<{ vegetable: string; total_cost: number }[]>([]);
+
   const [errorPackagingCosts, setErrorPackagingCosts] = useState<string | null>(null);
 
   // --- Loading / errors ---
@@ -104,14 +119,19 @@ function App() {
   const [loadingCosts, setLoadingCosts] = useState(false);
   const [loadingOtherCosts, setLoadingOtherCosts] = useState(false);
   const [loadingSeedCosts, setLoadingSeedCosts] = useState(false);
+  const [loadingPackagingCosts, setLoadingPackagingCosts] = useState(false);
+  const [loadingSoilProducts, setLoadingSoilProducts] = useState(false);
   const [errorRevenues, setErrorRevenues] = useState<string | null>(null);
   const [errorCosts, setErrorCosts] = useState<string | null>(null);
   const [errorOtherCosts, setErrorOtherCosts] = useState<string | null>(null);
   const [errorSeedCosts, setErrorSeedCosts] = useState<string | null>(null);
+  const [errorSoilProducts, setErrorSoilProducts] = useState<string | null>(null);
+
+
   const [adjustedVegetableCosts, setAdjustedVegetableCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
 
-  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts;
-  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts;
+  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts;
+  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts;
 
   // --- Derived query period ---
   const periodQuery = useMemo(() => {
@@ -133,6 +153,13 @@ function App() {
 
   // --- Vegetable total costs (final) ---
   const [vegetableTotalCosts, setVegetableTotalCosts] = useState<Record<string, number>>({});
+
+
+  useEffect(() => {
+    const aucune = vegetableSoilProducts.find((item) => 'vegetable' in item && item.vegetable === "AUCUNE")?.total_cost || 0;
+    setAucuneSoilCost(aucune);
+
+  }, [vegetableSoilProducts]);
 
   // --- Fetch Revenues ---
   useEffect(() => {
@@ -477,9 +504,9 @@ function App() {
 
     // Sum the costs: No Culture Costs + Other Costs Total + No Packaging Cost
     setTotalCostsToRedistribute(
-      Number(noCultureCosts) + Number(otherCostsTotal) + Number(noPackagingCost)
+      Number(noCultureCosts) + Number(otherCostsTotal) + Number(noPackagingCost) + Number(aucuneSoilCost)
     );
-  }, [noCultureCosts, otherCostsTotal, packagingCosts]);
+  }, [noCultureCosts, otherCostsTotal, packagingCosts, aucuneSoilCost]);
 
 
   useEffect(() => {
@@ -560,6 +587,107 @@ function App() {
   }, [packagingCosts, revenues]);
 
 
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchSoilProducts = async () => {
+      setLoadingSoilProducts(true);
+      setErrorSoilProducts(null);
+
+      try {
+        const data = (await fetchWithAuth(
+          `${API_BASE_URL}/data/costs/soil_products/vegetable?${periodQuery}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )) as SoilProductCost[];
+
+        setVegetableSoilProducts(data);
+      } catch (err) {
+        setErrorSoilProducts((err as Error).message);
+      } finally {
+        setLoadingSoilProducts(false);
+      }
+    };
+
+    fetchSoilProducts();
+  }, [periodQuery, token]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchCategorySoilProducts = async () => {
+
+      setLoadingSoilProducts(true);
+      setErrorSoilProducts(null);
+
+      try {
+        const data = (await fetchWithAuth(
+          `${API_BASE_URL}/data/costs/soil_products/category?${periodQuery}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )) as SoilProductCost[];
+
+        setCategorySoilProducts(data);
+      } catch (err) {
+        setErrorSoilProducts((err as Error).message);
+      } finally {
+        setLoadingSoilProducts(false);
+      }
+    };
+
+    fetchCategorySoilProducts();
+  }, [periodQuery, token])
+
+
+  useEffect(() => {
+    if (!vegetableSoilProducts.length) {
+      setAdjustedSoilProducts([]);
+      return;
+    }
+
+    // 1️⃣ Build revenue map (for proportional redistribution)
+    const revenueMap: Record<string, number> = {};
+    revenues.forEach(r => revenueMap[r.vegetable] = Number(r.total_revenue || 0));
+
+    // 2️⃣ Initialize cost map for all leaf vegetables
+    const directCostsMap: Record<string, number> = {};
+    const chouChildren = ["CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE"];
+    chouChildren.forEach(v => directCostsMap[v] = 0);
+
+    // 3️⃣ Find CHOU cost (use a type guard to ensure 'vegetable' exists)
+    const chouEntry = vegetableSoilProducts.find(
+      (sp): sp is { vegetable: string; total_cost: number } =>
+        'vegetable' in sp && (sp as { vegetable: string }).vegetable === "CHOU"
+    );
+    const chouCost = chouEntry?.total_cost || 0;
+
+    // 4️⃣ Redistribute CHOU proportionally by revenue
+    const totalChouRevenue = chouChildren.reduce((sum, v) => sum + (revenueMap[v] || 0), 0);
+    if (chouCost > 0 && totalChouRevenue > 0) {
+      chouChildren.forEach(v => {
+        directCostsMap[v] = (revenueMap[v] || 0) / totalChouRevenue * chouCost;
+      });
+    }
+
+    // 5️⃣ Build final array from CHOU children
+    const adjustedList = chouChildren
+      .map(v => ({ vegetable: v, total_cost: directCostsMap[v] }))
+      .filter(item => item.total_cost > 0);
+
+    // 6️⃣ Add "AUCUNE" cost from the vegetable route (use a type guard as well)
+    const aucuneEntry = vegetableSoilProducts.find(
+      (sp): sp is { vegetable: string; total_cost: number } =>
+        'vegetable' in sp && (sp as { vegetable: string }).vegetable === "AUCUNE"
+    );
+    if (aucuneEntry !== undefined) {
+      adjustedList.push({ vegetable: "AUCUNE", total_cost: aucuneEntry.total_cost });
+    }
+
+    console.log("✅ FINAL ADJUSTED SOIL PRODUCTS:", adjustedList);
+    setAdjustedSoilProducts(adjustedList);
+
+  }, [vegetableSoilProducts, revenues]);
+
+
+
 
 
 
@@ -599,6 +727,10 @@ function App() {
       const seedCost = Number(seedCosts.find((s) => s.seed === item.vegetable)?.total_cost || 0);
       totalCost += seedCost;
 
+      // C. Add soil product cost
+      const soilProductCost = Number(adjustedSoilProducts.find((s) => s.vegetable === item.vegetable)?.total_cost || 0);
+      totalCost += soilProductCost;
+
       // D. Add redistributed generic costs (AUCUNE, Other, No-culture, No-packaging, etc.)
       const redistributed = totalCostsToRedistribute * (Number(percentages[item.vegetable] || 0) / 100);
       totalCost += redistributed;
@@ -608,7 +740,7 @@ function App() {
 
     setVegetableTotalCosts(finalTotals);
     // Dependency now includes adjustedPackagingCosts
-  }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute, adjustedPackagingCosts, revenues]);
+  }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute, adjustedPackagingCosts, adjustedSoilProducts, revenues]);
 
 
   if (loading) return <p>Loading...</p>;
@@ -642,8 +774,12 @@ function App() {
             setEndDate,
             vegetableTotalCosts,
             packagingCosts,
-            // 🌟 PASS THE ADJUSTED STATE 🌟
             adjustedPackagingCosts,
+            vegetableSoilProducts,
+            categorySoilProducts,
+            setSoilGroupBy,
+            soilGroupBy,
+            adjustedSoilProducts,
           }}
         />
       </div>

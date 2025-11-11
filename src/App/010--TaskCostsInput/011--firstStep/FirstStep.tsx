@@ -219,6 +219,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                 setSelectedVeggie("Poivron");
                 break;
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [task.Entrepôt, subCategory])
 
 

@@ -22,7 +22,14 @@ const Costs = () => {
         vegetableTotalCosts,
         adjustedPackagingCosts,
         adjustedVegetableCosts,
+        categorySoilProducts,
+        soilGroupBy,
+        setSoilGroupBy,
+        adjustedSoilProducts,
     } = useOutletContext<AppOutletContext>();
+
+
+
 
 
 
@@ -36,7 +43,7 @@ const Costs = () => {
     };
 
 
-    useEffect(() => { console.log("adjusted packaging costs COSTS PAGE   ", adjustedPackagingCosts) }, [adjustedPackagingCosts])
+    useEffect(() => { console.log("category SOIL products", categorySoilProducts) }, [categorySoilProducts])
 
 
     return (
@@ -225,6 +232,58 @@ const Costs = () => {
                 ) : (
                     <p className="text-gray-500 italic">
                         Aucun coût de packaging trouvé pour la période sélectionnée.
+                    </p>
+                )
+            ) : null}
+
+            {!mainLoading ? (
+                (soilGroupBy === "vegetable" ? adjustedSoilProducts.length : categorySoilProducts.length) > 0 ? (
+                    <section className="mb-8 mt-[1.5rem]">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-[1.7rem] font-bold text-gray-700 border-b pb-2">
+                                Coûts des produits du sol
+                            </h2>
+
+                            {/* --- Selector --- */}
+                            <select
+                                value={soilGroupBy}
+                                onChange={(e) =>
+                                    setSoilGroupBy(e.target.value as "vegetable" | "category")
+                                }
+                                className="p-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-[1rem]"
+                            >
+                                <option value="vegetable">Par culture</option>
+                                <option value="category">Par catégorie</option>
+                            </select>
+                        </div>
+
+                        <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+                            <thead className="bg-green-700 text-white">
+                                <tr>
+                                    <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
+                                        {soilGroupBy === "vegetable" ? "Culture" : "Catégorie"}
+                                    </th>
+                                    <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
+                                        Coûts Totaux ($)
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                {(soilGroupBy === "vegetable" ? adjustedSoilProducts : categorySoilProducts).map((item, idx) => {
+                                    const label = "vegetable" in item ? item.vegetable : item.category;
+                                    return (
+                                        <tr key={idx} className="border-b border-green-400 hover:bg-gray-50 transition duration-150">
+                                            <td className="py-3 px-4">{label}</td>
+                                            <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </section>
+                ) : (
+                    <p className="text-gray-500 italic">
+                        Aucun coût de produits du sol trouvé pour la période sélectionnée.
                     </p>
                 )
             ) : null}
