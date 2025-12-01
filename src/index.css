@@ -8,6 +8,10 @@
   --color-green-700: #4b7312;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 input:focus,
 input:active,
 input:focus-visible {

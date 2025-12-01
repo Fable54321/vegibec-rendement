@@ -3,9 +3,12 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import type { VegetableCosts } from "@/utils/types";
+import { useDate } from "@/context/date/DateContext";
 
 
 export type RevenuePercentage = Record<string, number>;
+
+type SeedCostItem = { seed: string; total_cost: number } | { vegetable: string; total_cost: number };
 
 export type AppOutletContext = {
   revenues: { vegetable: string; total_revenue: number }[];
@@ -15,7 +18,7 @@ export type AppOutletContext = {
   noCultureCosts: number;
   otherCostsTotal: number;
   totalCostsToRedistribute: number;
-  seedCosts: { seed: string; total_cost: number }[];
+  seedCosts: SeedCostItem[];
   mainLoading: boolean;
   mainError: string | null;
   otherCosts: [string, number][];
@@ -89,10 +92,10 @@ function App() {
   }, [token, login, logout]);
 
   // --- Filters ---
-  const [yearSelected, setYearSelected] = useState("2024");
-  const [monthSelected, setMonthSelected] = useState<string | undefined>();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const { yearSelected, setYearSelected, monthSelected, setMonthSelected, startDate, setStartDate, endDate, setEndDate } = useDate();
+
+
+
   const [soilGroupBy, setSoilGroupBy] = useState<"vegetable" | "category">("vegetable");
 
   // --- Data ---
@@ -103,7 +106,7 @@ function App() {
   const [otherCostsTotal, setOtherCostsTotal] = useState(0);
   const [totalCostsToRedistribute, setTotalCostsToRedistribute] = useState(0);
   const [otherCosts, setOtherCosts] = useState<[string, number][]>([]);
-  const [seedCosts, setSeedCosts] = useState<{ seed: string; total_cost: number }[]>([]);
+  const [seedCosts, setSeedCosts] = useState<SeedCostItem[]>([]);
   const [packagingCosts, setPackagingCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
   const [vegetableSoilProducts, setVegetableSoilProducts] = useState<SoilProductCost[]>([]);
   const [categorySoilProducts, setCategorySoilProducts] = useState<SoilProductCost[]>([]);
@@ -153,6 +156,105 @@ function App() {
 
   // --- Vegetable total costs (final) ---
   const [vegetableTotalCosts, setVegetableTotalCosts] = useState<Record<string, number>>({});
+
+
+
+
+  interface CostEntry {
+    vegetable: string;
+    total_cost: number;
+  }
+
+  const genericCostsRedistribution = (
+    data: CostEntry[],
+    revenues: Record<string, number>
+  ): CostEntry[] => {
+    let adjusted: CostEntry[] = [...data];
+
+    const redistributeGroup = (groupName: string, children: string[]) => {
+      const validChildren = children.filter((v) => revenues[v] && revenues[v] > 0);
+
+      if (!validChildren.length) return;
+
+      const groupEntry = adjusted.find((v) => v.vegetable === groupName);
+      const groupCost = groupEntry?.total_cost || 0;
+
+      const totalRevenue = validChildren.reduce(
+        (sum, v) => sum + (revenues[v] || 0),
+        0
+      );
+
+      validChildren.forEach((child) => {
+        const idx = adjusted.findIndex((v) => v.vegetable === child);
+        const revenueShare = (revenues[child] || 0) / totalRevenue;
+        const childCost = groupCost * revenueShare;
+
+        if (idx >= 0) {
+          adjusted[idx].total_cost += childCost;
+        } else {
+          adjusted.push({ vegetable: child, total_cost: childCost });
+        }
+      });
+
+      adjusted = adjusted.filter((v) => v.vegetable !== groupName);
+    };
+
+    // Step 1: Top-level redistribution
+    redistributeGroup("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"]);
+    redistributeGroup("POIVRON", ["POIVRON VERT", "POIVRON ROUGE", "POIVRON JAUNE", "POIVRON ORANGE", "POIVRON VERT/ROUGE"]);
+    redistributeGroup("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
+    redistributeGroup(
+      "LAITUE",
+      ["LAITUE POMMÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE", "LAITUE ROMAINE", "CŒUR DE ROMAINE"]
+    );
+
+    // Step 2: Nested redistribution for LAITUE ROMAINE group
+    const romaineChildren = ["LAITUE ROMAINE", "CŒUR DE ROMAINE"];
+    const romaineTotal = romaineChildren.reduce(
+      (sum, v) => sum + (adjusted.find((e) => e.vegetable === v)?.total_cost || 0),
+      0
+    );
+
+    const romaineRevenueTotal = romaineChildren.reduce(
+      (sum, v) => sum + (revenues[v] || 0),
+      0
+    );
+
+    if (romaineRevenueTotal > 0) {
+      romaineChildren.forEach((child) => {
+        const idx = adjusted.findIndex((v) => v.vegetable === child);
+        const share = (revenues[child] || 0) / romaineRevenueTotal;
+        if (idx >= 0) {
+          adjusted[idx].total_cost = romaineTotal * share;
+        } else {
+          adjusted.push({ vegetable: child, total_cost: romaineTotal * share });
+        }
+      });
+    }
+
+    const friseeCost = adjusted.find(v => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
+    if (friseeCost > 0) {
+      const friseeChildren = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
+      const totalFriseeRevenue = friseeChildren.reduce((sum, v) => sum + (revenues[v] || 0), 0);
+
+      friseeChildren.forEach((child) => {
+        const idx = adjusted.findIndex((v) => v.vegetable === child);
+        const share = (revenues[child] || 0) / totalFriseeRevenue;
+        const costShare = friseeCost * share;
+        if (idx >= 0) adjusted[idx].total_cost += costShare;
+        else adjusted.push({ vegetable: child, total_cost: costShare });
+      });
+
+      // Remove generic LAITUE FRISÉE
+      adjusted = adjusted.filter(v => v.vegetable !== "LAITUE FRISÉE");
+    }
+
+    return adjusted;
+  };
+
+
+
+
 
 
   useEffect(() => {
@@ -247,16 +349,9 @@ function App() {
     };
 
     fetchCosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [yearSelected, monthSelected, startDate, endDate, token]);
+  }, [token, periodQuery]);
 
 
-  // --- Fetch Vegetable Costs ---
-  useEffect(() => {
-    // ... (existing fetch logic for setVegetableCosts and setNoCultureCosts) ...
-  }, [/* ... dependencies ... */]);
-
-  // 🚀 🌟 RE-INSERT THE ORIGINAL ADJUSTED VEGETABLE COSTS LOGIC HERE 🌟 🚀
   useEffect(() => {
     if (!revenues.length) {
       setAdjustedVegetableCosts([]);
@@ -295,9 +390,9 @@ function App() {
     ];
 
     // 2️⃣ Initialize all vegetables with 0 cost
-    let newAdjusted = allVegetables.map((veg) => ({ vegetable: veg, total_cost: 0 }));
-
-
+    let newAdjusted: { vegetable: string; total_cost: number }[] = allVegetables.map(
+      (veg) => ({ vegetable: veg, total_cost: 0 })
+    );
 
     // 3️⃣ Merge in fetched costs (default to 0)
     vegetableCosts.forEach((item) => {
@@ -305,143 +400,22 @@ function App() {
       if (idx >= 0) newAdjusted[idx].total_cost = Number(item.total_cost || 0);
     });
 
-    // 4️⃣ Redistribution helpers
-    const redistributeGroupCost = (
-      groupName: string,
-      varieties: string[],
-      exclude: string[] = []
-    ) => {
-      const children = varieties.filter((v) => !exclude.includes(v));
-      const totalRevenue = children.reduce(
-        (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 0),
-        0
-      );
-
-      if (totalRevenue <= 0) return;
-
-      const groupCost = Number(newAdjusted.find((v) => v.vegetable === groupName)?.total_cost || 0);
-
-      children.forEach((name) => {
-        const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 0);
-        const idx = newAdjusted.findIndex((v) => v.vegetable === name);
-        if (idx >= 0) {
-          newAdjusted[idx].total_cost += (revenue / totalRevenue) * groupCost;
-        } else {
-          newAdjusted.push({ vegetable: name, total_cost: (revenue / totalRevenue) * groupCost });
-        }
-      });
-
-      // 🛑 CRITICAL: Remove the generic parent after redistribution
-      newAdjusted = newAdjusted.filter((v) => v.vegetable !== groupName);
-    };
-
-    // 5️⃣ Lettuce redistribution
-    const redistributeLettuce = () => {
-      let updated = [...newAdjusted];
-
-      // LAITUE FRISÉE → VERTE & ROUGE
-      const friseeCost = updated.find((v) => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
-      if (friseeCost > 0) {
-        const friseeVarieties = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
-        const friseeRevenueTotal = friseeVarieties.reduce(
-          (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1),
-          0
-        );
-
-        friseeVarieties.forEach((name) => {
-          const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1);
-          const idx = updated.findIndex((v) => v.vegetable === name);
-          const costShare = (revenue / friseeRevenueTotal) * friseeCost;
-          if (idx >= 0) updated[idx].total_cost += costShare;
-          else updated.push({ vegetable: name, total_cost: costShare });
-        });
-
-        updated = updated.filter((v) => v.vegetable !== "LAITUE FRISÉE");
-      }
-
-      // LAITUE ROMAINE + CŒUR DE ROMAINE
-      const romaineCost =
-        (updated.find((v) => v.vegetable === "LAITUE ROMAINE")?.total_cost || 0) +
-        (updated.find((v) => v.vegetable === "CŒUR DE ROMAINE")?.total_cost || 0);
-      const romaineVarieties = ["LAITUE ROMAINE", "CŒUR DE ROMAINE"];
-      const romaineRevenueTotal = romaineVarieties.reduce(
-        (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1),
-        0
-      );
-      romaineVarieties.forEach((name) => {
-        const idx = updated.findIndex((v) => v.vegetable === name);
-        const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1);
-        const costShare = (revenue / romaineRevenueTotal) * romaineCost;
-        if (idx >= 0) updated[idx].total_cost = costShare; // This seems to overwrite, not add, based on your original logic
-        else updated.push({ vegetable: name, total_cost: costShare });
-      });
-
-      // Remove the original LAITUE ROMAINE and CŒUR DE ROMAINE direct entries since their costs 
-      // were aggregated into romaineCost and redistributed (this is implicit in the logic above, 
-      // but explicit removal of the old items is safer if they were in the base data)
-      updated = updated.filter(v => !["LAITUE ROMAINE", "CŒUR DE ROMAINE"].includes(v.vegetable) || v.total_cost > 0);
-      // We ensure the redistributed values are present:
-      romaineVarieties.forEach(name => {
-        const cost = (romaineRevenueTotal > 0) ? (Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1) / romaineRevenueTotal) * romaineCost : 0;
-        if (cost > 0 && !updated.some(v => v.vegetable === name)) {
-          updated.push({ vegetable: name, total_cost: cost });
-        }
-      });
-
-
-      // Spread generic LAITUE across all lettuces
-      const genericLettuceCost = updated.find((v) => v.vegetable === "LAITUE")?.total_cost || 0;
-      if (genericLettuceCost > 0) {
-        const allLettuceVarieties = [
-          "LAITUE ROMAINE",
-          "CŒUR DE ROMAINE",
-          "LAITUE POMMÉE",
-          "LAITUE FRISÉE VERTE",
-          "LAITUE FRISÉE ROUGE",
-        ];
-        const totalLettuceRevenue = allLettuceVarieties.reduce(
-          (sum, name) => sum + Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1),
-          0
-        );
-
-        allLettuceVarieties.forEach((name) => {
-          const idx = updated.findIndex((v) => v.vegetable === name);
-          const revenue = Number(revenues.find((r) => r.vegetable === name)?.total_revenue || 1);
-          const costShare = (revenue / totalLettuceRevenue) * genericLettuceCost;
-          if (idx >= 0) updated[idx].total_cost += costShare;
-          else updated.push({ vegetable: name, total_cost: costShare });
-        });
-
-        updated = updated.filter((v) => v.vegetable !== "LAITUE");
-      }
-
-      return updated;
-    };
-
-    newAdjusted = redistributeLettuce();
-
-    // 6️⃣ Other groups
-    // Note: CHOU PLAT's direct costs will be absorbed into CHOU and redistributed here.
-    redistributeGroupCost("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"], [
-      "CHOU-FLEUR",
-      "CHOU DE BRUXELLES",
-    ]);
-    redistributeGroupCost("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
-    redistributeGroupCost("POIVRON", [
-      "POIVRON VERT",
-      "POIVRON ROUGE",
-      "POIVRON JAUNE",
-      "POIVRON ORANGE",
-      "POIVRON VERT/ROUGE",
-    ]);
-
+    // 4️⃣ Apply the generic redistribution
+    newAdjusted = genericCostsRedistribution(newAdjusted,
+      // Build a revenue map for faster lookup
+      revenues.reduce<Record<string, number>>((acc, r) => {
+        acc[r.vegetable] = Number(r.total_revenue || 0);
+        return acc;
+      }, {})
+    );
 
     setAdjustedVegetableCosts(newAdjusted);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate]);
 
-  // --- 🌟 NEW: ADJUST PACKAGING COSTS (Redistribute Generic Costs) 🌟 
-  // ... (The rest of your code follows)
+
+
 
   // --- Fetch Other Costs ---
   useEffect(() => {
@@ -495,7 +469,7 @@ function App() {
     fetchSeedCosts();
   }, [periodQuery, token]);
 
-  useEffect(() => { console.log("basic packaging costs", packagingCosts) }, [packagingCosts])
+
 
   // --- Compute total redistributable costs ---
   useEffect(() => {
@@ -515,14 +489,7 @@ function App() {
       return;
     }
 
-    // 1️⃣ Build quick lookup maps
-    const revenueMap: Record<string, number> = {};
-    revenues.forEach(r => revenueMap[r.vegetable] = Number(r.total_revenue || 0));
-
-    const directCostsMap: Record<string, number> = {};
-    let aucuneCost = 0;
-
-    // 2️⃣ Initialize all vegetables (with 0) to guarantee final existence
+    // 1️⃣ Full template of all vegetables
     const allVegetables = [
       "AUCUNE",
       "CHOU", "CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE",
@@ -535,56 +502,30 @@ function App() {
       "ZUCCHINI", "ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"
     ];
 
-    allVegetables.forEach(v => directCostsMap[v] = 0);
+    // 2️⃣ Initialize all vegetables with 0 cost
+    let newAdjusted = allVegetables.map(v => ({ vegetable: v, total_cost: 0 }));
 
-    // 3️⃣ Process direct packaging costs
+    // 3️⃣ Merge in fetched packaging costs
     packagingCosts.forEach(pc => {
-      const cost = Number(pc.total_cost || 0);
-      if (pc.vegetable === "AUCUNE") {
-        aucuneCost = cost;
-      } else if (pc.vegetable !== "CHOU" && pc.vegetable !== "LAITUE" && pc.vegetable !== "LAITUE FRISÉE" && pc.vegetable !== "POIVRON" && pc.vegetable !== "ZUCCHINI") {
-        directCostsMap[pc.vegetable] = cost;
-      }
+      const idx = newAdjusted.findIndex(v => v.vegetable === pc.vegetable);
+      if (idx >= 0) newAdjusted[idx].total_cost = Number(pc.total_cost || 0);
     });
 
-    // 4️⃣ Redistribute group costs helper
-    const redistribute = (parent: string, children: string[]) => {
-      const parentCost = packagingCosts.find(pc => pc.vegetable === parent)?.total_cost || 0;
-      if (parentCost <= 0) return;
+    // 4️⃣ Build revenue map
+    const revenueMap: Record<string, number> = revenues.reduce((acc, r) => {
+      acc[r.vegetable] = Number(r.total_revenue || 0);
+      return acc;
+    }, {} as Record<string, number>);
 
-      const totalRevenue = children.reduce((sum, v) => sum + (revenueMap[v] || 0), 0);
-      if (totalRevenue <= 0) return;
+    // 5️⃣ Apply the generic redistribution
+    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap);
 
-      children.forEach(child => {
-        directCostsMap[child] += (revenueMap[child] || 0) / totalRevenue * parentCost;
-      });
-    };
+    // 6️⃣ Set state
+    setAdjustedPackagingCosts(newAdjusted);
 
-    // 5️⃣ Redistribute CHOU
-    redistribute("CHOU", ["CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE"]);
-
-    // 6️⃣ Redistribute lettuce
-    redistribute("LAITUE FRISÉE", ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"]);
-    redistribute("LAITUE", ["LAITUE ROMAINE", "CŒUR DE ROMAINE", "LAITUE POMMÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"]);
-
-    // 7️⃣ Redistribute POIVRON and ZUCCHINI
-    redistribute("POIVRON", ["POIVRON VERT", "POIVRON ROUGE", "POIVRON JAUNE", "POIVRON ORANGE", "POIVRON VERT/ROUGE"]);
-    redistribute("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
-
-    // 8️⃣ Build final array
-    const adjustedList = Object.entries(directCostsMap)
-      .map(([vegetable, total_cost]) => ({ vegetable, total_cost }))
-      .filter(item => item.total_cost > 0); // optional: skip zero-cost veggies
-
-    if (aucuneCost > 0) adjustedList.push({ vegetable: "AUCUNE", total_cost: aucuneCost });
-
-    // Optional: sort alphabetically
-    adjustedList.sort((a, b) => a.vegetable.localeCompare(b.vegetable));
-
-    console.log("✅ FINAL ADJUSTED PACKAGING COSTS (MAP VERSION):", adjustedList);
-    setAdjustedPackagingCosts(adjustedList);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packagingCosts, revenues]);
+
 
 
   useEffect(() => {
@@ -643,47 +584,44 @@ function App() {
       return;
     }
 
-    // 1️⃣ Build revenue map (for proportional redistribution)
-    const revenueMap: Record<string, number> = {};
-    revenues.forEach(r => revenueMap[r.vegetable] = Number(r.total_revenue || 0));
+    // 1️⃣ Build revenue map
+    const revenueMap: Record<string, number> = revenues.reduce((acc, r) => {
+      acc[r.vegetable] = Number(r.total_revenue || 0);
+      return acc;
+    }, {} as Record<string, number>);
 
-    // 2️⃣ Initialize cost map for all leaf vegetables
-    const directCostsMap: Record<string, number> = {};
-    const chouChildren = ["CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE"];
-    chouChildren.forEach(v => directCostsMap[v] = 0);
+    // 2️⃣ Full template of all vegetables
+    const allVegetables = [
+      "AUCUNE",
+      "CHOU", "CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE",
+      "CHOU-FLEUR", "CHOU DE BRUXELLES",
+      "CÉLERI",
+      "CŒUR DE ROMAINE",
+      "ENDIVES",
+      "LAITUE", "LAITUE POMMÉE", "LAITUE FRISÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE", "LAITUE ROMAINE",
+      "POIVRON", "POIVRON VERT", "POIVRON ROUGE", "POIVRON JAUNE", "POIVRON ORANGE", "POIVRON VERT/ROUGE",
+      "ZUCCHINI", "ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"
+    ];
 
-    // 3️⃣ Find CHOU cost (use a type guard to ensure 'vegetable' exists)
-    const chouEntry = vegetableSoilProducts.find(
-      (sp): sp is { vegetable: string; total_cost: number } =>
-        'vegetable' in sp && (sp as { vegetable: string }).vegetable === "CHOU"
-    );
-    const chouCost = chouEntry?.total_cost || 0;
+    // 3️⃣ Initialize newAdjusted with 0 costs
+    let newAdjusted = allVegetables.map(v => ({ vegetable: v, total_cost: 0 }));
 
-    // 4️⃣ Redistribute CHOU proportionally by revenue
-    const totalChouRevenue = chouChildren.reduce((sum, v) => sum + (revenueMap[v] || 0), 0);
-    if (chouCost > 0 && totalChouRevenue > 0) {
-      chouChildren.forEach(v => {
-        directCostsMap[v] = (revenueMap[v] || 0) / totalChouRevenue * chouCost;
-      });
-    }
+    // 4️⃣ Merge in fetched vegetable soil products
+    vegetableSoilProducts.forEach(sp => {
+      if ('vegetable' in sp) {
+        const idx = newAdjusted.findIndex(v => v.vegetable === sp.vegetable);
+        if (idx >= 0) newAdjusted[idx].total_cost = Number(sp.total_cost || 0);
+      }
 
-    // 5️⃣ Build final array from CHOU children
-    const adjustedList = chouChildren
-      .map(v => ({ vegetable: v, total_cost: directCostsMap[v] }))
-      .filter(item => item.total_cost > 0);
+    });
 
-    // 6️⃣ Add "AUCUNE" cost from the vegetable route (use a type guard as well)
-    const aucuneEntry = vegetableSoilProducts.find(
-      (sp): sp is { vegetable: string; total_cost: number } =>
-        'vegetable' in sp && (sp as { vegetable: string }).vegetable === "AUCUNE"
-    );
-    if (aucuneEntry !== undefined) {
-      adjustedList.push({ vegetable: "AUCUNE", total_cost: aucuneEntry.total_cost });
-    }
+    // 5️⃣ Apply the generic redistribution
+    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap);
 
-    console.log("✅ FINAL ADJUSTED SOIL PRODUCTS:", adjustedList);
-    setAdjustedSoilProducts(adjustedList);
+    // 6️⃣ Set state
+    setAdjustedSoilProducts(newAdjusted);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vegetableSoilProducts, revenues]);
 
 
@@ -694,9 +632,8 @@ function App() {
 
 
 
-  useEffect(() => {
-    console.log("REVENUES", revenues);
-  }, [revenues])
+
+
 
 
   // --- Compute final total costs per vegetable (UPDATED DEPENDENCY) ---
@@ -724,7 +661,11 @@ function App() {
       totalCost += packagingCost;
 
       // C. Add seed cost
-      const seedCost = Number(seedCosts.find((s) => s.seed === item.vegetable)?.total_cost || 0);
+      const seedCost = Number(
+        seedCosts.find(
+          (s) => ("seed" in s ? s.seed : s.vegetable) === item.vegetable
+        )?.total_cost || 0
+      );
       totalCost += seedCost;
 
       // C. Add soil product cost

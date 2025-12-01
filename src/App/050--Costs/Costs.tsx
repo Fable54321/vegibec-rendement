@@ -1,18 +1,11 @@
 import { Link, useOutletContext } from "react-router-dom";
 import type { AppOutletContext } from "../000--App/App";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useDate } from "@/context/date/DateContext";
 
 const Costs = () => {
     const {
         seedCosts,
-        yearSelected,
-        setYearSelected,
-        monthSelected,
-        setMonthSelected,
-        startDate,
-        setStartDate,
-        endDate,
-        setEndDate,
         percentages,
         otherCostsTotal,
         totalCostsToRedistribute,
@@ -29,6 +22,24 @@ const Costs = () => {
     } = useOutletContext<AppOutletContext>();
 
 
+    const { yearSelected, setYearSelected,
+        monthSelected,
+        setMonthSelected,
+        startDate,
+        setStartDate,
+        endDate,
+        setEndDate, } = useDate();
+
+
+    // Checked States /////////////////////
+
+    const [workHoursChecked, setWorkHoursChecked] = useState<boolean>(true);
+    const [seedsChecked, setSeedsChecked] = useState<boolean>(true);
+    const [packagingChecked, setPackagingChecked] = useState<boolean>(true);
+    const [soilProductsChecked, setSoilProductsChecked] = useState<boolean>(true);
+    const [otherCostsChecked, setOtherCostsChecked] = useState<boolean>(true);
+    const [totalsChecked, setTotalsChecked] = useState<boolean>(true);
+
 
 
 
@@ -43,12 +54,12 @@ const Costs = () => {
     };
 
 
-    useEffect(() => { console.log("category SOIL products", categorySoilProducts) }, [categorySoilProducts])
+    useEffect(() => { console.log("seed costs", seedCosts) }, [seedCosts])
 
 
     return (
         <article
-            className="md:text-[1.4rem]"
+            className="md:text-[1.4rem] "
             style={{ padding: "1rem", maxWidth: "1200px", margin: "auto" }}
         >
             {/* Header */}
@@ -60,7 +71,7 @@ const Costs = () => {
             </div>
             {/* --- Date Controls --- */}
             <section
-                className="bg-gray-50 p-4 rounded-lg shadow-inner mb-8 mt-[1rem]"
+                className="bg-gray-50 p-4 rounded-lg shadow-inner mb-[1.5rem] mt-[1rem]"
                 style={{
                     display: "grid",
                     gap: "1rem",
@@ -68,13 +79,18 @@ const Costs = () => {
                 }}
             >
                 {/* Year input */}
-                <input
-                    type="number"
+                <select
                     className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                    placeholder="Année (ex: 2024)"
-                    value={yearSelected || ""}
-                    onChange={(e) => setYearSelected(e.target.value || "2024")}
-                />
+                    value={yearSelected}
+                    onChange={(e) => setYearSelected(e.target.value)}
+                >
+                    {Array.from({ length: 2055 - 2024 + 1 }, (_, i) => 2024 + i).map((year) => (
+                        <option key={year} value={year}>
+                            {year}
+                        </option>
+                    ))}
+                </select>
+
 
                 {/* Month selector */}
                 <select
@@ -117,52 +133,245 @@ const Costs = () => {
             {mainError && (
                 <p className="text-center text-red-600 my-4 font-bold"></p>
             )}
+            <div className="md:flex flex-col items-center">
+                <section className="grid grid-cols-2 gap-y-[0.25rem] mb-[1.5rem] md:w-[50%] md:margin-x-auto md:gap-x-[3rem]" >
+
+                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                        <a className="underline" href="#workHoursLink">Heures de travail</a>
+                        <input
+                            className="
+                                ml-auto
+                                relative
+                                appearance-none
+                                w-[15px] h-[15px]
+                                border border-black
+                                bg-white
+
+                                checked:bg-green-700
+                                checked:border-green-700
+
+                                checked:after:content-['✔']
+                                checked:after:text-white
+                                checked:after:text-[12px]
+                                checked:after:absolute
+                                checked:after:top-[50%]
+                                checked:after:left-[50%]
+                                checked:after:translate-x-[-50%]
+                                checked:after:translate-y-[-50%]
+                                "
+                            type="checkbox"
+                            id="workHours"
+                            name="workHours"
+                            checked={workHoursChecked}
+                            onChange={(e) => setWorkHoursChecked(e.target.checked)}
+                        />
+                    </div>
+
+                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                        <a className="underline" href="#seedsLink">Semences</a>
+                        <input
+                            className="
+                                ml-auto
+                                relative
+                                appearance-none
+                                w-[15px] h-[15px]
+                                border border-black
+                                bg-white
+
+                                checked:bg-green-700
+                                checked:border-green-700
+
+                                checked:after:content-['✔']
+                                checked:after:text-white
+                                checked:after:text-[12px]
+                                checked:after:absolute
+                                checked:after:top-[50%]
+                                checked:after:left-[50%]
+                                checked:after:translate-x-[-50%]
+                                checked:after:translate-y-[-50%]
+                                "
+                            type="checkbox"
+                            id="seeds"
+                            name="seeds"
+                            checked={seedsChecked}
+                            onChange={(e) => setSeedsChecked(e.target.checked)}
+                        />
+                    </div>
+
+                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                        <a className="underline" href="#packagingLink">Emballages</a>
+                        <input
+                            className="
+                                ml-auto
+                                relative
+                                appearance-none
+                                w-[15px] h-[15px]
+                                border border-black
+                                bg-white
+
+                                checked:bg-green-700
+                                checked:border-green-700
+
+                                checked:after:content-['✔']
+                                checked:after:text-white
+                                checked:after:text-[12px]
+                                checked:after:absolute
+                                checked:after:top-[50%]
+                                checked:after:left-[50%]
+                                checked:after:translate-x-[-50%]
+                                checked:after:translate-y-[-50%]
+                                "
+                            type="checkbox"
+                            id="packaging"
+                            name="packaging"
+                            checked={packagingChecked}
+                            onChange={(e) => setPackagingChecked(e.target.checked)}
+                        />
+                    </div>
+
+                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                        <a className="underline" href="#soilProductsLink">Produits du sol</a>
+                        <input
+                            className="
+                                ml-auto
+                                relative
+                                appearance-none
+                                w-[15px] h-[15px]
+                                border border-black
+                                bg-white
+
+                                checked:bg-green-700
+                                checked:border-green-700
+
+                                checked:after:content-['✔']
+                                checked:after:text-white
+                                checked:after:text-[12px]
+                                checked:after:absolute
+                                checked:after:top-[50%]
+                                checked:after:left-[50%]
+                                checked:after:translate-x-[-50%]
+                                checked:after:translate-y-[-50%]
+                                "
+                            type="checkbox"
+                            id="soilProducts"
+                            name="soilProducts"
+                            checked={soilProductsChecked}
+                            onChange={(e) => setSoilProductsChecked(e.target.checked)}
+                        />
+                    </div>
+
+                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                        <a className="underline" href="#otherLink">Coûts autres</a>
+                        <input
+                            className="
+                                ml-auto
+                                relative
+                                appearance-none
+                                w-[15px] h-[15px]
+                                border border-black
+                                bg-white
+
+                                checked:bg-green-700
+                                checked:border-green-700
+
+                                checked:after:content-['✔']
+                                checked:after:text-white
+                                checked:after:text-[12px]
+                                checked:after:absolute
+                                checked:after:top-[50%]
+                                checked:after:left-[50%]
+                                checked:after:translate-x-[-50%]
+                                checked:after:translate-y-[-50%]
+                                "
+                            type="checkbox"
+                            id="otherCosts"
+                            name="otherCosts"
+                            checked={otherCostsChecked}
+                            onChange={(e) => setOtherCostsChecked(e.target.checked)}
+                        />
+                    </div>
+
+                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                        <a className="underline" href="#totalsLink">Coûts totaux</a>
+                        <input
+                            className="
+                                ml-auto
+                                relative
+                                appearance-none
+                                w-[15px] h-[15px]
+                                border border-black
+                                bg-white
+
+                                checked:bg-green-700
+                                checked:border-green-700
+
+                                checked:after:content-['✔']
+                                checked:after:text-white
+                                checked:after:text-[12px]
+                                checked:after:absolute
+                                checked:after:top-[50%]
+                                checked:after:left-[50%]
+                                checked:after:translate-x-[-50%]
+                                checked:after:translate-y-[-50%]
+                                "
+                            type="checkbox"
+                            id="totals"
+                            name="totals"
+                            checked={totalsChecked}
+                            onChange={(e) => setTotalsChecked(e.target.checked)}
+                        />
+                    </div>
+
+                </section>
+            </div>
 
             {/* --- 1. Coûts provenant des heures de travail --- */}
-            <section className="mb-8">
-                <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
-                    Coûts provenant des heures de travail
-                </h2>
+            {workHoursChecked &&
+                <section className="mb-8">
+                    <h2 id="workHoursLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                        Coûts provenant des heures de travail
+                    </h2>
 
-                {!mainLoading && adjustedVegetableCosts.length > 0 ? (
-                    <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
-                        <thead className="bg-green-700 text-white">
-                            <tr>
-                                <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
-                                    Culture
-                                </th>
-                                <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
-                                    Coûts Totaux ($)
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-700">
-                            {adjustedVegetableCosts.map((item) => (
-                                <tr
-                                    key={item.vegetable}
-                                    className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
-                                >
-                                    <td className="py-3 px-4">{item.vegetable}</td>
-                                    <td className="py-3 px-4 text-right">
-                                        {formatCurrency(item.total_cost)}
-                                    </td>
+                    {!mainLoading && adjustedVegetableCosts.length > 0 ? (
+                        <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+                            <thead className="bg-green-700 text-white">
+                                <tr>
+                                    <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
+                                        Culture
+                                    </th>
+                                    <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
+                                        Coûts Totaux ($)
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    !mainLoading && (
-                        <p className="text-gray-500 italic">
-                            Aucune donnée trouvée pour la période sélectionnée.
-                        </p>
-                    )
-                )}
-            </section>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                {adjustedVegetableCosts.map((item) => (
+                                    <tr
+                                        key={item.vegetable}
+                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                    >
+                                        <td className="py-3 px-4">{item.vegetable}</td>
+                                        <td className="py-3 px-4 text-right">
+                                            {formatCurrency(item.total_cost)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        !mainLoading && (
+                            <p className="text-gray-500 italic">
+                                Aucune donnée trouvée pour la période sélectionnée.
+                            </p>
+                        )
+                    )}
+                </section>
+            }
             {/* --- 1.1 Coûts de semences --- */}
             {!mainLoading ? (
                 seedCosts.length > 0 ? (
                     <>
-                        <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                        <h2 id="seedsLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
                             Coûts des semences
                         </h2>
                         <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -177,15 +386,15 @@ const Costs = () => {
                                 </tr>
                             </thead>
                             <tbody className="text-gray-700">
-                                {seedCosts.map((item) => (
-                                    <tr
-                                        key={item.seed}
-                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
-                                    >
-                                        <td className="py-3 px-4">{item.seed}</td>
-                                        <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
-                                    </tr>
-                                ))}
+                                {seedCosts.map((item) => {
+                                    const name = "seed" in item ? item.seed : item.vegetable;
+                                    return (
+                                        <tr className="border-b border-green-400 hover:bg-gray-50 transition duration-150" key={name}>
+                                            <td className="py-3 px-4" >{name}</td>
+                                            <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </>
@@ -200,7 +409,7 @@ const Costs = () => {
             {!mainLoading ? (
                 adjustedPackagingCosts.length > 0 ? (
                     <section className="mb-8 mt-[1.5rem]">
-                        <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                        <h2 id="packagingLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
                             Coûts d'emballage
                         </h2>
                         <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
@@ -231,7 +440,7 @@ const Costs = () => {
                     </section>
                 ) : (
                     <p className="text-gray-500 italic">
-                        Aucun coût de packaging trouvé pour la période sélectionnée.
+                        Aucun coût d'emballage trouvé pour la période sélectionnée.
                     </p>
                 )
             ) : null}
@@ -240,7 +449,7 @@ const Costs = () => {
                 (soilGroupBy === "vegetable" ? adjustedSoilProducts.length : categorySoilProducts.length) > 0 ? (
                     <section className="mb-8 mt-[1.5rem]">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-[1.7rem] font-bold text-gray-700 border-b pb-2">
+                            <h2 id="soilLink" className="text-[1.7rem] font-bold text-gray-700 border-b pb-2">
                                 Coûts des produits du sol
                             </h2>
 
@@ -269,15 +478,16 @@ const Costs = () => {
                                 </tr>
                             </thead>
                             <tbody className="text-gray-700">
-                                {(soilGroupBy === "vegetable" ? adjustedSoilProducts : categorySoilProducts).map((item, idx) => {
-                                    const label = "vegetable" in item ? item.vegetable : item.category;
-                                    return (
-                                        <tr key={idx} className="border-b border-green-400 hover:bg-gray-50 transition duration-150">
-                                            <td className="py-3 px-4">{label}</td>
-                                            <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
-                                        </tr>
-                                    );
-                                })}
+                                {(soilGroupBy === "vegetable" ? adjustedSoilProducts : categorySoilProducts)
+                                    .filter((item) => item.total_cost > 0).map((item, idx) => {
+                                        const label = "vegetable" in item ? item.vegetable : item.category;
+                                        return (
+                                            <tr key={idx} className="border-b border-green-400 hover:bg-gray-50 transition duration-150">
+                                                <td className="py-3 px-4">{label}</td>
+                                                <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
+                                            </tr>
+                                        );
+                                    })}
                             </tbody>
                         </table>
                     </section>
@@ -293,7 +503,7 @@ const Costs = () => {
 
             {/* --- 2. Coûts autres --- */}
             <section className="mb-8">
-                <h2 className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                <h2 id="otherLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
                     Coûts autres
                 </h2>
 
@@ -315,7 +525,7 @@ const Costs = () => {
                                     key={category}
                                     className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
                                 >
-                                    <td className="py-3 px-4">{category}</td>
+                                    <td className="py-3 px-4">{category.toUpperCase()}</td>
                                     <td className="py-3 px-4 text-right">{formatCurrency(cost)}</td>
                                 </tr>
                             ))}
@@ -362,7 +572,7 @@ const Costs = () => {
             </section>
             {/* --- 4. Total costs per vegetable --- */}
             <section className="mb-8 mt-[2rem]">
-                <h2 className="text-[2em] font-bold text-gray-700 mb-4 border-b pb-2">
+                <h2 id="totalsLink" className="text-[2em] font-bold text-gray-700 mb-4 border-b pb-2">
                     Coûts totaux par culture
                 </h2>
 

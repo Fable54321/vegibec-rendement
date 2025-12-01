@@ -14,6 +14,12 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './components/login'
 import ChangePassword from './components/ChangePassword'
+import YearlyWages from './App/070--YearlyWages/YearlyWages'
+import FullYear from './App/070--YearlyWages/071--FullYear/FullYear'
+import EditWages from './App/070--YearlyWages/072--EditWages/EditWages'
+import { DateProvider } from './context/date/DateProvider'
+import ShowWages from './App/070--YearlyWages/073--ShowWages/ShowWages'
+import OtherCostsInput from './App/080--OtherCostsInput/OtherCostsInput'
 
 
 
@@ -40,6 +46,30 @@ const router = createBrowserRouter([
             <TaskCostsInput />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: '/entrer-salaires-annuels',
+        element: (
+          <ProtectedRoute>
+            <YearlyWages />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/entree-salaires-annee-complete',
+        element: (
+          <ProtectedRoute>
+            <FullYear />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: '/modifier-salaires-annuels',
+        element: (
+          <ProtectedRoute>
+            <EditWages />
+          </ProtectedRoute>
+        )
       },
       {
         path: '/couts-des-taches',
@@ -92,6 +122,22 @@ const router = createBrowserRouter([
             <ChangePassword />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: 'visualisation-des-salaires',
+        element: (
+          <ProtectedRoute>
+            <ShowWages />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: 'entrer-autres-couts',
+        element: (
+          <ProtectedRoute>
+            <OtherCostsInput />
+          </ProtectedRoute>
+        )
       }
     ],
   },
@@ -100,7 +146,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <DateProvider>
+        <RouterProvider router={router} />
+      </DateProvider>
     </AuthProvider>
   </StrictMode>,
 )
