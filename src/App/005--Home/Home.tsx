@@ -1,20 +1,50 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import vegibec from '../../assets/vegibec.png'
 import { useAuth } from '../../context/AuthContext';
 import Login from '@/components/login';
 
 const Home = () => {
 
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+
+    const navigate = useNavigate();
 
     if (!user) {
         return <Login />
     }
 
+    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
+    const handleLogout = async () => {
+
+        const confirmed = window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?");
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            const data = await res.json();
+
+            console.log(data.message); // "Vous êtes maintenant déconnecté"
+
+            logout();
+            navigate("/login");
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
+
     return (
-        <main className="relative flex flex-col item-center w-full md:text-[1.3em]">
-            <Link to="change-password" className='absolute top-[1rem] right-[1rem]'>Changer le mot de passe</Link>
-            <section className="flex flex-col items-center w-full mt-[2rem] text-[1.9em] gap-[1rem] md:gap-[1.5rem] font-bold text-center">
+        <main className="relative flex flex-col items-center w-full md:text-[1.3em]">
+            <div className='flex flex-col lg:flex-row lg:w-full lg:justify-between lg:px-[1rem] w-fit gap-[0.5rem] mt-[0.75rem]'>
+                <Link to="change-password" className='text-[0.7rem]  md:text-[0.8rem] button-generic'>Changer mot de passe</Link>
+
+                <button onClick={handleLogout} className='text-[0.7rem]  md:text-[0.8rem] button-generic'>Se déconnecter</button>
+            </div>
+            <section className="flex flex-col items-center w-full mt-[0.75rem] text-[1.9em] gap-[1rem] md:gap-[1.5rem] font-bold text-center">
                 <h1>Outil de rendement comparatif</h1>
                 <img src={vegibec} alt="le logo de Vegibec" className='w-[min(80%,_400px)]' />
             </section>
