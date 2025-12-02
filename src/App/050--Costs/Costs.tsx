@@ -133,10 +133,10 @@ const Costs = () => {
             {mainError && (
                 <p className="text-center text-red-600 my-4 font-bold"></p>
             )}
-            <div className="md:flex flex-col items-center">
-                <section className="grid grid-cols-2 gap-y-[0.25rem] mb-[1.5rem] md:w-[50%] md:margin-x-auto md:gap-x-[3rem]" >
+            <div className="md:flex flex-col items-center ">
+                <section className="grid grid-cols-2 gap-y-[0.25rem] mb-[1.5rem] md:w-[50%]  md:margin-x-auto md:gap-x-[3rem] " >
 
-                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                    <div className="pr-2 flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
                         <a className="underline" href="#workHoursLink">Heures de travail</a>
                         <input
                             className="
@@ -167,7 +167,7 @@ const Costs = () => {
                         />
                     </div>
 
-                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                    <div className="pr-2 flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
                         <a className="underline" href="#seedsLink">Semences</a>
                         <input
                             className="
@@ -198,7 +198,7 @@ const Costs = () => {
                         />
                     </div>
 
-                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                    <div className="pr-2 flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
                         <a className="underline" href="#packagingLink">Emballages</a>
                         <input
                             className="
@@ -229,7 +229,7 @@ const Costs = () => {
                         />
                     </div>
 
-                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                    <div className="pr-2 flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
                         <a className="underline" href="#soilProductsLink">Produits du sol</a>
                         <input
                             className="
@@ -260,7 +260,7 @@ const Costs = () => {
                         />
                     </div>
 
-                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                    <div className="pr-2 flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
                         <a className="underline" href="#otherLink">Coûts autres</a>
                         <input
                             className="
@@ -291,7 +291,7 @@ const Costs = () => {
                         />
                     </div>
 
-                    <div className="flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
+                    <div className="pr-2 flex flex-row gap-[0.55rem] justify-end items-center md:justify-center">
                         <a className="underline" href="#totalsLink">Coûts totaux</a>
                         <input
                             className="
@@ -525,7 +525,7 @@ const Costs = () => {
                                     key={category}
                                     className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
                                 >
-                                    <td className="py-3 px-4">{category.toUpperCase()}</td>
+                                    <td className="py-3 px-4">{category.toUpperCase().split("_").join(" ")}</td>
                                     <td className="py-3 px-4 text-right">{formatCurrency(cost)}</td>
                                 </tr>
                             ))}
