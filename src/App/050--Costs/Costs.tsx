@@ -1,7 +1,8 @@
 import { Link, useOutletContext } from "react-router-dom";
 import type { AppOutletContext } from "../000--App/App";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useDate } from "@/context/date/DateContext";
+import { UnitsContext } from "@/context/units/UnitsContext";
 
 const Costs = () => {
     const {
@@ -22,6 +23,13 @@ const Costs = () => {
     } = useOutletContext<AppOutletContext>();
 
 
+    type TotalsTab = "costs" | "units" | "price";
+
+    const [totalsTab, setTotalsTab] = useState<TotalsTab>("costs");
+
+
+
+
     const { yearSelected, setYearSelected,
         monthSelected,
         setMonthSelected,
@@ -40,8 +48,38 @@ const Costs = () => {
     const [otherCostsChecked, setOtherCostsChecked] = useState<boolean>(true);
     const [totalsChecked, setTotalsChecked] = useState<boolean>(true);
 
+    const { totals } = useContext(UnitsContext);
+
+    const unitsByVegetable: Record<
+        string,
+        { total: number; unitLabel: "kg" | "unités" }
+    > = {};
+
+    totals.forEach((row) => {
+        const kg = Number(row.total_kg);
+        const units = Number(row.total_units);
+
+        if (kg > 0) {
+            unitsByVegetable[row.vegetable] = {
+                total: kg,
+                unitLabel: "kg",
+            };
+        } else {
+            unitsByVegetable[row.vegetable] = {
+                total: units,
+                unitLabel: "unités",
+            };
+        }
+    });
+
+    const vegetableTotals = Object.keys(vegetableTotalCosts).filter(
+        (veg) => veg !== "AUCUNE"
+    );
 
 
+    useEffect(() => {
+        console.log("units totals from context", totals);
+    }, [totals, yearSelected, monthSelected, startDate, endDate]);
 
 
 
@@ -571,39 +609,111 @@ const Costs = () => {
                 </div>
             </section>
             {/* --- 4. Total costs per vegetable --- */}
-            <section className="mb-8 mt-[2rem]">
-                <h2 id="totalsLink" className="text-[2em] font-bold text-gray-700 mb-4 border-b pb-2">
-                    Coûts totaux par culture
+
+            {/* --- Totals tabs selector --- */}
+            <div className="mt-[2.5rem] flex justify-center gap-2 ">
+                <button
+                    onClick={() => setTotalsTab("costs")}
+                    className={`px-4 py-2 rounded font-semibold ${totalsTab === "costs"
+                        ? "bg-green-700 text-white"
+                        : "bg-gray-200 text-gray-700"
+                        }`}
+                >
+                    Coûts totaux
+                </button>
+
+                <button
+                    onClick={() => setTotalsTab("units")}
+                    className={`px-4 py-2 rounded font-semibold ${totalsTab === "units"
+                        ? "bg-green-700 text-white"
+                        : "bg-gray-200 text-gray-700"
+                        }`}
+                >
+                    Unités / kg vendus
+                </button>
+
+                <button
+                    onClick={() => setTotalsTab("price")}
+                    className={`px-4 py-2 rounded font-semibold ${totalsTab === "price"
+                        ? "bg-green-700 text-white"
+                        : "bg-gray-200 text-gray-700"
+                        }`}
+                >
+                    Prix par unité
+                </button>
+            </div>
+
+
+            <section className="mb-8 mt-[1rem]">
+                <h2
+                    id="totalsLink"
+                    className="text-[2em] text-center font-bold text-gray-700 mb-4 border-b pb-2"
+                >
+                    {totalsTab === "costs" && "Coûts totaux par culture"}
+                    {totalsTab === "units" && "Unités / kg vendus par culture"}
+                    {totalsTab === "price" && "Prix par unité / kg"}
                 </h2>
 
-                {!mainLoading && Object.keys(vegetableTotalCosts).length > 0 ? (
+                {!mainLoading && vegetableTotals.length > 0 ? (
                     <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
                         <thead className="bg-green-700 text-white">
                             <tr>
                                 <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
                                     Culture
                                 </th>
-                                <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
-                                    Coût total ($)
+
+                                <th className="py-2 text-right pr-6 uppercase font-semibold text-[1.1em]">
+                                    {totalsTab === "costs" && "Coût total ($)"}
+                                    {totalsTab === "units" && "Quantité totale"}
+                                    {totalsTab === "price" && "Prix"}
                                 </th>
                             </tr>
                         </thead>
+
                         <tbody className="text-gray-700">
-                            {Object.entries(vegetableTotalCosts).filter(([veg]) => veg !== "AUCUNE").map(([veg, cost]) => (
-                                <tr
-                                    key={veg}
-                                    className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
-                                >
-                                    <td className="py-3 px-4">{veg}</td>
-                                    <td className="py-3 px-4 text-right">{formatCurrency(cost)}</td>
-                                </tr>
-                            ))}
+                            {vegetableTotals.map((veg) => {
+                                const cost = vegetableTotalCosts[veg as keyof typeof vegetableTotalCosts] || 0;
+                                const unitsData = unitsByVegetable[veg];
+
+                                let displayValue: React.ReactNode = "—";
+
+                                if (totalsTab === "costs") {
+                                    displayValue = formatCurrency(cost);
+                                }
+
+                                if (totalsTab === "units" && unitsData) {
+                                    displayValue = `${unitsData.total.toLocaleString("fr-CA")} ${unitsData.unitLabel}`;
+                                }
+
+                                if (totalsTab === "price" && unitsData && unitsData.total > 0) {
+                                    displayValue = formatCurrency(cost / unitsData.total);
+                                }
+
+                                return (
+                                    <tr
+                                        key={veg}
+                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                    >
+                                        <td className="py-3 px-4">
+                                            {veg}
+                                            {totalsTab === "price" && unitsData?.unitLabel === "kg" && (
+                                                <span className="ml-2 text-sm italic text-gray-500">
+                                                    (au kilo)
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium">
+                                            {displayValue}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 ) : (
                     !mainLoading && (
                         <p className="text-gray-500 italic">
-                            Aucun coût total trouvé pour la période sélectionnée.
+                            Aucune donnée trouvée pour la période sélectionnée.
                         </p>
                     )
                 )}

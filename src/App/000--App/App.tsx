@@ -1,9 +1,10 @@
 import { Outlet } from "react-router-dom";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useContext } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import type { VegetableCosts } from "@/utils/types";
 import { useDate } from "@/context/date/DateContext";
+import { UnitsContext } from "@/context/units/UnitsContext";
 
 
 export type RevenuePercentage = Record<string, number>;
@@ -38,6 +39,8 @@ export type AppOutletContext = {
   soilGroupBy: "vegetable" | "category";
   setSoilGroupBy: (groupBy: "vegetable" | "category") => void;
   adjustedSoilProducts: { vegetable: string; total_cost: number }[];
+  revenuesSelectedYear: string;
+  setRevenuesSelectedYear: (year: string) => void;
 
 };
 
@@ -100,6 +103,9 @@ function App() {
 
   // --- Data ---
   const [revenues, setRevenues] = useState<{ vegetable: string; total_revenue: number }[]>([]);
+  const [revenuesSelectedYear, setRevenuesSelectedYear] = useState("2024");
+
+
   const [percentages, setPercentages] = useState<RevenuePercentage>({});
   const [vegetableCosts, setVegetableCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
   const [noCultureCosts, setNoCultureCosts] = useState(0);
@@ -129,12 +135,15 @@ function App() {
   const [errorOtherCosts, setErrorOtherCosts] = useState<string | null>(null);
   const [errorSeedCosts, setErrorSeedCosts] = useState<string | null>(null);
   const [errorSoilProducts, setErrorSoilProducts] = useState<string | null>(null);
+  const { unitsError, unitsLoading } = useContext(UnitsContext);
 
 
   const [adjustedVegetableCosts, setAdjustedVegetableCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
 
-  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts;
-  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts;
+
+
+  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts || unitsLoading;
+  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts || unitsError;
 
   // --- Derived query period ---
   const periodQuery = useMemo(() => {
@@ -273,7 +282,7 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/revenues/by-year?year_from=2024`,
+          `${API_BASE_URL}/revenues/by-year?year_from=${revenuesSelectedYear}`,
           { headers: { Authorization: `Bearer ${token}` } }
         )) as { vegetable: string; total_revenue: number }[];
 
@@ -297,7 +306,7 @@ function App() {
     };
 
     fetchRevenues();
-  }, [yearSelected, token]);
+  }, [revenuesSelectedYear, token]);
 
 
   useEffect(() => {
@@ -721,6 +730,8 @@ function App() {
             setSoilGroupBy,
             soilGroupBy,
             adjustedSoilProducts,
+            revenuesSelectedYear,
+            setRevenuesSelectedYear,
           }}
         />
       </div>

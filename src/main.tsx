@@ -20,6 +20,8 @@ import EditWages from './App/070--YearlyWages/072--EditWages/EditWages'
 import { DateProvider } from './context/date/DateProvider'
 import ShowWages from './App/070--YearlyWages/073--ShowWages/ShowWages'
 import OtherCostsInput from './App/080--OtherCostsInput/OtherCostsInput'
+import UnitsSoldInput from './App/090--UnitsSoldInput/UnitsSoldInput'
+import { UnitsProvider } from './context/units/UnitsProvider'
 
 
 
@@ -138,6 +140,14 @@ const router = createBrowserRouter([
             <OtherCostsInput />
           </ProtectedRoute>
         )
+      },
+      {
+        path: '/entrer-unites-vendues',
+        element: (
+          <ProtectedRoute>
+            <UnitsSoldInput />
+          </ProtectedRoute>
+        )
       }
     ],
   },
@@ -147,7 +157,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <DateProvider>
-        <RouterProvider router={router} />
+        <UnitsProvider>
+          <RouterProvider router={router} />
+        </UnitsProvider>
       </DateProvider>
     </AuthProvider>
   </StrictMode>,
