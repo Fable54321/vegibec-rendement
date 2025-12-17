@@ -22,6 +22,7 @@ import ShowWages from './App/070--YearlyWages/073--ShowWages/ShowWages'
 import OtherCostsInput from './App/080--OtherCostsInput/OtherCostsInput'
 import UnitsSoldInput from './App/090--UnitsSoldInput/UnitsSoldInput'
 import { UnitsProvider } from './context/units/UnitsProvider'
+import { UnspecifiedProvider } from './context/unspecified/UnspecifiedProvider'
 
 
 
@@ -158,7 +159,9 @@ createRoot(document.getElementById('root')!).render(
     <AuthProvider>
       <DateProvider>
         <UnitsProvider>
-          <RouterProvider router={router} />
+          <UnspecifiedProvider>
+            <RouterProvider router={router} />
+          </UnspecifiedProvider>
         </UnitsProvider>
       </DateProvider>
     </AuthProvider>

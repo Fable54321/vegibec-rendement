@@ -3,6 +3,7 @@ import type { AppOutletContext } from "../000--App/App";
 import { useEffect, useState, useContext } from "react";
 import { useDate } from "@/context/date/DateContext";
 import { UnitsContext } from "@/context/units/UnitsContext";
+import { UnspecifiedContext } from "@/context/unspecified/UnspecifiedContext";
 
 const Costs = () => {
     const {
@@ -20,6 +21,7 @@ const Costs = () => {
         soilGroupBy,
         setSoilGroupBy,
         adjustedSoilProducts,
+        adjustedUnspecifiedCosts,
     } = useOutletContext<AppOutletContext>();
 
 
@@ -49,6 +51,10 @@ const Costs = () => {
     const [totalsChecked, setTotalsChecked] = useState<boolean>(true);
 
     const { totals } = useContext(UnitsContext);
+
+    const { data } = useContext(UnspecifiedContext);
+
+    console.log("unspecified costs data from context", data);
 
     const unitsByVegetable: Record<
         string,
@@ -428,7 +434,7 @@ const Costs = () => {
                                     const name = "seed" in item ? item.seed : item.vegetable;
                                     return (
                                         <tr className="border-b border-green-400 hover:bg-gray-50 transition duration-150" key={name}>
-                                            <td className="py-3 px-4" >{name}</td>
+                                            <td className="py-3 px-4" >{name === "AUCUNE" ? "NON SPÉCIFIÉE" : name}</td>
                                             <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
                                         </tr>
                                     );
@@ -443,7 +449,7 @@ const Costs = () => {
                 )
             ) : null}
 
-            {/* --- 1.2 Coûts de packaging --- */}
+
             {!mainLoading ? (
                 adjustedPackagingCosts.length > 0 ? (
                     <section className="mb-8 mt-[1.5rem]">
@@ -467,7 +473,7 @@ const Costs = () => {
                                         key={item.vegetable}
                                         className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
                                     >
-                                        <td className="py-3 px-4">{item.vegetable}</td>
+                                        <td className="py-3 px-4">{item.vegetable === "AUCUNE" ? "NON SPÉCIFIÉE" : item.vegetable}</td>
                                         <td className="py-3 px-4 text-right">
                                             {formatCurrency(item.total_cost)}
                                         </td>
@@ -521,7 +527,7 @@ const Costs = () => {
                                         const label = "vegetable" in item ? item.vegetable : item.category;
                                         return (
                                             <tr key={idx} className="border-b border-green-400 hover:bg-gray-50 transition duration-150">
-                                                <td className="py-3 px-4">{label}</td>
+                                                <td className="py-3 px-4">{label === "AUCUNE" ? "NON SPÉCIFIÉE" : label}</td>
                                                 <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
                                             </tr>
                                         );
@@ -536,7 +542,46 @@ const Costs = () => {
                 )
             ) : null}
 
+            {/* --- 1.5 coûts non classés */}
 
+            {!mainLoading ? (
+                adjustedUnspecifiedCosts.length > 0 ? (
+                    <section className="mb-8 mt-[1.5rem]">
+                        <h2 id="packagingLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                            Coûts non classés
+                        </h2>
+                        <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+                            <thead className="bg-green-700 text-white">
+                                <tr>
+                                    <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
+                                        Culture
+                                    </th>
+                                    <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
+                                        Coûts Totaux ($)
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                {adjustedUnspecifiedCosts.map((item) => (
+                                    <tr
+                                        key={item.vegetable}
+                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                    >
+                                        <td className="py-3 px-4">{item.vegetable === null || item.vegetable === undefined || item.vegetable === "" || !item.vegetable || item.vegetable === "null" ? "NON SPÉCIFIÉE" : item.vegetable}</td>
+                                        <td className="py-3 px-4 text-right">
+                                            {formatCurrency(item.total_cost)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </section>
+                ) : (
+                    <p className="text-gray-500 italic">
+                        Aucun coût non classé trouvé pour la période sélectionnée.
+                    </p>
+                )
+            ) : null}
 
 
             {/* --- 2. Coûts autres --- */}
@@ -614,7 +659,7 @@ const Costs = () => {
             <div className="mt-[2.5rem] flex justify-center gap-2 ">
                 <button
                     onClick={() => setTotalsTab("costs")}
-                    className={`px-4 py-2 rounded font-semibold ${totalsTab === "costs"
+                    className={`px-4 py-2 rounded font-semibold hover:cursor-pointer ${totalsTab === "costs"
                         ? "bg-green-700 text-white"
                         : "bg-gray-200 text-gray-700"
                         }`}
@@ -624,7 +669,7 @@ const Costs = () => {
 
                 <button
                     onClick={() => setTotalsTab("units")}
-                    className={`px-4 py-2 rounded font-semibold ${totalsTab === "units"
+                    className={`px-4 py-2 rounded font-semibold hover:cursor-pointer ${totalsTab === "units"
                         ? "bg-green-700 text-white"
                         : "bg-gray-200 text-gray-700"
                         }`}
@@ -634,7 +679,7 @@ const Costs = () => {
 
                 <button
                     onClick={() => setTotalsTab("price")}
-                    className={`px-4 py-2 rounded font-semibold ${totalsTab === "price"
+                    className={`px-4 py-2 rounded font-semibold hover:cursor-pointer ${totalsTab === "price"
                         ? "bg-green-700 text-white"
                         : "bg-gray-200 text-gray-700"
                         }`}
@@ -695,7 +740,7 @@ const Costs = () => {
                                         className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
                                     >
                                         <td className="py-3 px-4">
-                                            {veg}
+                                            {veg === "AUCUNE" ? "NON SPÉCIFIÉE" : veg}
                                             {totalsTab === "price" && unitsData?.unitLabel === "kg" && (
                                                 <span className="ml-2 text-sm italic text-gray-500">
                                                     (au kilo)

@@ -5,6 +5,7 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import type { VegetableCosts } from "@/utils/types";
 import { useDate } from "@/context/date/DateContext";
 import { UnitsContext } from "@/context/units/UnitsContext";
+import { UnspecifiedContext } from "@/context/unspecified/UnspecifiedContext";
 
 
 export type RevenuePercentage = Record<string, number>;
@@ -41,7 +42,7 @@ export type AppOutletContext = {
   adjustedSoilProducts: { vegetable: string; total_cost: number }[];
   revenuesSelectedYear: string;
   setRevenuesSelectedYear: (year: string) => void;
-
+  adjustedUnspecifiedCosts: { vegetable: string; total_cost: number }[];
 };
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
@@ -137,13 +138,26 @@ function App() {
   const [errorSoilProducts, setErrorSoilProducts] = useState<string | null>(null);
   const { unitsError, unitsLoading } = useContext(UnitsContext);
 
+  //Unspecified Context
+
+
+  type UnspecifiedCost = {
+    vegetable: string;
+    total_cost: number;
+  };
+
+
+  const [adjustedUnspecifiedCosts, setAdjustedUnspecifiedCosts] = useState<UnspecifiedCost[]>([]);
+
+  const { unspecifiedError, unspecifiedLoading, data } = useContext(UnspecifiedContext);
+
 
   const [adjustedVegetableCosts, setAdjustedVegetableCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
 
 
 
-  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts || unitsLoading;
-  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts || unitsError;
+  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts || unitsLoading || unspecifiedLoading;
+  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts || unitsError || unspecifiedError;
 
   // --- Derived query period ---
   const periodQuery = useMemo(() => {
@@ -480,16 +494,20 @@ function App() {
 
 
 
+
+
   // --- Compute total redistributable costs ---
   useEffect(() => {
     // Find the "AUCUNE" cost in the packagingCosts array
     const noPackagingCost = packagingCosts.find((item) => item.vegetable === "AUCUNE")?.total_cost || 0;
 
+    const noCultureUnspecifiedCost = adjustedUnspecifiedCosts.find((item) => item.vegetable === "AUCUNE" || null)?.total_cost || 0;
+
     // Sum the costs: No Culture Costs + Other Costs Total + No Packaging Cost
     setTotalCostsToRedistribute(
-      Number(noCultureCosts) + Number(otherCostsTotal) + Number(noPackagingCost) + Number(aucuneSoilCost)
+      Number(noCultureCosts) + Number(otherCostsTotal) + Number(noPackagingCost) + Number(aucuneSoilCost) + Number(noCultureUnspecifiedCost)
     );
-  }, [noCultureCosts, otherCostsTotal, packagingCosts, aucuneSoilCost]);
+  }, [noCultureCosts, otherCostsTotal, packagingCosts, aucuneSoilCost, adjustedUnspecifiedCosts]);
 
 
   useEffect(() => {
@@ -636,6 +654,35 @@ function App() {
 
 
 
+  // Adjusted Unspeciefied Costs Effect
+
+
+  useEffect(() => {
+    if (!data?.length || !revenues.length) {
+      setAdjustedUnspecifiedCosts([]);
+      return;
+    }
+
+    // 1️⃣ Base costs already match CostEntry
+    const baseCosts: CostEntry[] = data.map((d) => ({
+      vegetable: d.vegetable,
+      total_cost: Number(d.total_cost || 0),
+    }));
+
+    // 2️⃣ Revenue map
+    const revenueMap = revenues.reduce<Record<string, number>>((acc, r) => {
+      acc[r.vegetable] = Number(r.total_revenue || 0);
+      return acc;
+    }, {});
+
+    // 3️⃣ Redistribution
+    const redistributed = genericCostsRedistribution(baseCosts, revenueMap);
+
+    // 4️⃣ No remapping needed
+    setAdjustedUnspecifiedCosts(redistributed);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, revenues, yearSelected, monthSelected, startDate, endDate]);
 
 
 
@@ -681,6 +728,10 @@ function App() {
       const soilProductCost = Number(adjustedSoilProducts.find((s) => s.vegetable === item.vegetable)?.total_cost || 0);
       totalCost += soilProductCost;
 
+      // C. Add unspecified cost
+      const unspecifiedCost = Number(adjustedUnspecifiedCosts.find((s) => s.vegetable === item.vegetable)?.total_cost || 0);
+      totalCost += unspecifiedCost;
+
       // D. Add redistributed generic costs (AUCUNE, Other, No-culture, No-packaging, etc.)
       const redistributed = totalCostsToRedistribute * (Number(percentages[item.vegetable] || 0) / 100);
       totalCost += redistributed;
@@ -690,7 +741,7 @@ function App() {
 
     setVegetableTotalCosts(finalTotals);
     // Dependency now includes adjustedPackagingCosts
-  }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute, adjustedPackagingCosts, adjustedSoilProducts, revenues]);
+  }, [adjustedVegetableCosts, seedCosts, percentages, totalCostsToRedistribute, adjustedPackagingCosts, adjustedSoilProducts, adjustedUnspecifiedCosts, revenues]);
 
 
   if (loading) return <p>Loading...</p>;
@@ -732,6 +783,7 @@ function App() {
             adjustedSoilProducts,
             revenuesSelectedYear,
             setRevenuesSelectedYear,
+            adjustedUnspecifiedCosts,
           }}
         />
       </div>
