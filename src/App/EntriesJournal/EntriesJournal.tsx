@@ -19,6 +19,15 @@ const soilProducts = [
     "Terre et Terreaux",
 ];
 
+interface JournalResponse {
+    entries: JournalEntry[];
+    pagination: {
+        totalPages: number;
+        currentPage: number;
+    };
+}
+
+
 interface JournalEntry {
     id: number;
     cost_domain: string;
@@ -98,7 +107,7 @@ const EntriesJournal = () => {
             const res = await fetchWithAuth(
                 `${API_BASE_URL}/journal?domain=${backendDomain}&page=${page}&limit=20`,
                 { headers: { Authorization: `Bearer ${token}` } }
-            );
+            ) as JournalResponse;
 
             setEntries(res.entries || []);
             setTotalPages(res.pagination?.totalPages || 1);
