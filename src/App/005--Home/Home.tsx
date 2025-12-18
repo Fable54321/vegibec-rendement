@@ -50,8 +50,8 @@ const Home = () => {
             </section>
             {/* *****Peut-être ajouter tendance générale acutelle vegibec vs usda******* */}
 
-            <section className='flex flex-col items-center w-full mt-[2.5rem] gap-[2.5rem] md:gap-[3rem]'>
-                <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[1.5rem] '>
+            <section className='flex flex-col items-center w-full mt-[2rem] gap-[2rem] md:gap-[2rem]'>
+                <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[0.75rem] md:gap-[1rem] '>
                     <h2 className='text-[1.7em] font-extrabold text-center'>Nouvelle entrée</h2>
                     <Link to="entrer-couts-des-taches" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
@@ -105,8 +105,9 @@ const Home = () => {
                                 font-bold
                                 touch-manipulation
                                 ltr  w-full' >Entrée des unités vendues (ventes)</Link>
+
                 </div>
-                <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[0.75rem] lg:gap-[1.5rem] '>
+                <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[0.75rem] lg:gap-[1rem] '>
                     <h2 className='text-[1.7em] font-extrabold text-center'>Visualisation des coûts et revenus</h2>
                     <Link to="#" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
@@ -147,6 +148,19 @@ const Home = () => {
                                 font-bold
                                 touch-manipulation
                                 ltr  w-full'>Revenus</Link>
+                    <Link to="/journal-des-entrees" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                                border border-black rounded-[4px]
+                                box-border text-white
+                                cursor-pointer
+                                tracking-[-0.022em] leading-[1.47059]
+                                shadow-[-2px_4px_6px_hsl(0_0%_0%_/_0.5)]
+                                overflow-visible
+                                px-[0.25rem] py-[0.25rem]
+                                text-center select-none
+                                text-[1.2em]
+                                font-bold
+                                touch-manipulation
+                                ltr  w-full' >Journal des entrées (correction)</Link>
                 </div>
             </section>
         </main>

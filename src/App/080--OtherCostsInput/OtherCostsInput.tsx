@@ -59,21 +59,29 @@ const OtherCostsInput = () => {
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
     type UnspecifiedCostPayload = {
-        description: string;
+        category: string; // keep category for consistency
         amount: number;
-        cost_year: number;
-        cost_type: "annual" | "seasonal";
         vegetable: string | null;
+        year: number;
+        cost_domain: "UNSPECIFIED";
+        employee_name: string;
+        description: string;
+        is_seasonal: boolean;
     };
 
-    type OtherCostPayload = {
+    type RegularCostPayload = {
         category: string;
         amount: number;
         vegetable: string;
         year: number;
+        cost_domain: string; // same as category for regular costs
+        employee_name: string;
+        description?: never;
+        is_seasonal?: never;
     };
 
-    type SubmitPayload = UnspecifiedCostPayload | OtherCostPayload;
+    type SubmitPayload = UnspecifiedCostPayload | RegularCostPayload;
+
 
 
 
@@ -95,40 +103,31 @@ const OtherCostsInput = () => {
             return;
         }
 
-        // const year = entryDate
-        //     ? new Date(entryDate).getFullYear()
-        //     : new Date().getFullYear();
-
         try {
-            let endpoint = "";
+            const endpoint = `${API_BASE_URL}/other-costs-entry`;
+
             let payload: SubmitPayload;
 
-            /* ---------------------------------
-               UNSPECIFIED COSTS
-            --------------------------------- */
+            // Build payload
             if (isUnspecified) {
-                endpoint = `${API_BASE_URL}/unspecified`;
-
-                payload = {
-                    description,
-                    amount: Number(amount),
-                    cost_year: costYear,
-                    cost_type: isSeasonal ? "seasonal" : "annual",
-                    vegetable: cultureSpecified ? culture : "AUCUNE",
-                };
-            }
-
-            /* ---------------------------------
-               REGULAR OTHER COSTS
-            --------------------------------- */
-            else {
-                endpoint = `${API_BASE_URL}/other-costs-entry`;
-
                 payload = {
                     category,
                     amount: Number(amount),
                     vegetable: cultureSpecified ? culture : "AUCUNE",
                     year: costYear,
+                    cost_domain: "UNSPECIFIED",
+                    employee_name: "John Doe", // or from auth
+                    description,
+                    is_seasonal: isSeasonal ?? false
+                };
+            } else {
+                payload = {
+                    category,
+                    amount: Number(amount),
+                    vegetable: cultureSpecified ? culture : "AUCUNE",
+                    year: costYear,
+                    cost_domain: category,
+                    employee_name: "John Doe"
                 };
             }
 
@@ -141,19 +140,15 @@ const OtherCostsInput = () => {
                 body: JSON.stringify(payload),
             }) as { success?: boolean };
 
-            // Some of your routes return the inserted row instead of { success: true }
             if (data?.success === false) {
                 throw new Error("Échec côté serveur");
             }
 
-            /* ---------------------------------
-               RESET FORM
-            --------------------------------- */
+            // Reset form
             setAmount("");
             setCultureSpecified(false);
             setCulture("CHOU");
             setCategory("SEMENCE");
-            // setEntryDate("");
             setIsSeasonal(false);
             setDescription("");
 
@@ -164,6 +159,7 @@ const OtherCostsInput = () => {
             alert("Erreur serveur ❌");
         }
     };
+
 
     useEffect(() => {
         if (category === "HORS CATÉGORIE") {
