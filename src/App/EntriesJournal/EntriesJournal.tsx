@@ -35,8 +35,9 @@ interface JournalEntry {
     vegetable: string | null;
     amount: number;
     year: number;
-    entry_type: "addition" | "correction" | "deletion";
+    entry_type: "addition" | "correction" | "suppression";
     description: string | null;
+    business_description: string | null;
     employee_name: string | null;
     created_at: string;
 }
@@ -64,25 +65,25 @@ const EntriesJournal = () => {
     }, [activeTab, selectedSoilProduct]);
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this entry?")) return;
+        if (!confirm("Êtes vous certain de vouloir supprimer cette entrée?")) return;
         try {
             await fetchWithAuth(`${API_BASE_URL}/journal/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
-            fetchJournal(); // refresh after delete
+            fetchJournal();
         } catch (err) {
-            console.error("Failed to delete entry", err);
-            alert("Delete failed ❌");
+            console.error("Échec de suppression", err);
+            alert("Échec de la suppression ");
         }
     };
 
     const handleCorrection = async (id: number) => {
-        const newAmount = prompt("Enter corrected amount:"); // simple example
+        const newAmount = prompt("Entrez le nouveau montant:"); // simple example
         if (!newAmount) return;
 
         try {
-            await fetchWithAuth(`${API_BASE_URL}/journal/correct/${id}`, {
+            await fetchWithAuth(`${API_BASE_URL}/journal/${id}/correct`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -90,6 +91,7 @@ const EntriesJournal = () => {
                 },
                 body: JSON.stringify({ amount: Number(newAmount) }),
             });
+
             fetchJournal(); // refresh after correction
         } catch (err) {
             console.error("Failed to correct entry", err);
@@ -126,18 +128,20 @@ const EntriesJournal = () => {
     }, [domain, page]); // Use actual domain instead of mainCategories
 
 
+
+
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">Journal des coûts</h1>
 
             {/* Domain selector */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 items-center h-10">
                 {mainCategories.map((cat) => (
                     activeTab !== "PRODUITS DU SOL" || cat !== "PRODUITS DU SOL") && (
                         <button
                             key={cat}
                             onClick={() => setActiveTab(cat)}
-                            className={`px-4 py-2 rounded hover:cursor-pointer ${activeTab === cat ? "bg-green-500 text-white" : "bg-gray-200 text-black"
+                            className={`px-4 py-2 rounded hover:cursor-pointer ${activeTab === cat ? "bg-white border-green-400 border-2 text-black" : "bg-green-700 text-white"
                                 }`}
                         >
                             {cat}
@@ -148,7 +152,7 @@ const EntriesJournal = () => {
                         <select
                             value={selectedSoilProduct}
                             onChange={(e) => setSelectedSoilProduct(e.target.value)}
-                            className="border border-gray-400 rounded px-2 py-1"
+                            className=" border-2 border-green-400 rounded px-2 py-1 "
                         >
                             {soilProducts.map((soil) => (
                                 <option key={soil} value={soil}>
@@ -165,12 +169,13 @@ const EntriesJournal = () => {
                 <table className="w-full border border-gray-300 text-sm">
                     <thead className="bg-gray-100">
                         <tr>
+                            <th className="border px-2 py-1"># ID</th>
                             <th className="border px-2 py-1">Date</th>
                             <th className="border px-2 py-1">Type</th>
                             <th className="border px-2 py-1">Catégorie</th>
                             <th className="border px-2 py-1">Culture</th>
                             <th className="border px-2 py-1">Montant</th>
-                            <th className="border px-2 py-1">Employé</th>
+                            <th className="border px-2 py-1">Description</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -194,13 +199,20 @@ const EntriesJournal = () => {
                                         ? "bg-gray-50 italic"
                                         : ""
                                         }`}
+
+
+
                                 >
+
+                                    <td className="border px-2 py-1">{entry.id}</td>
                                     <td className="border px-2 py-1">
-                                        {new Date(entry.created_at).toLocaleDateString()}
+                                        {new Date(entry.created_at).toLocaleDateString("fr-CA", {
+                                            timeZone: "UTC",
+                                        })}
                                     </td>
                                     <td className="border px-2 py-1">{entry.entry_type}</td>
                                     <td className="border px-2 py-1">
-                                        {entry.category ?? "—"}
+                                        {entry.category === "HORS CATÉGORIE" ? entry.business_description : entry.category ?? "—"}
                                     </td>
                                     <td className="border px-2 py-1">
                                         {entry.vegetable ?? "—"}
@@ -214,19 +226,22 @@ const EntriesJournal = () => {
                                             : "-"}
                                         $
                                     </td>
-                                    <td className="border px-2 py-1">
+                                    {/* <td className="border px-2 py-1">
                                         {entry.employee_name ?? "—"}
+                                    </td> */}
+                                    <td className="border px-2 py-1">
+                                        {entry.description ?? "—"}
                                     </td>
                                     <td>
                                         <button
                                             onClick={() => handleDelete(entry.id)}
-                                            className="bg-red-500 text-white px-2 py-1 rounded mr-2"
+                                            className="bg-red-500 text-white px-2 py-1 rounded mr-2 hover:cursor-pointer"
                                         >
                                             Supprimer
                                         </button>
                                         <button
                                             onClick={() => handleCorrection(entry.id)}
-                                            className="bg-yellow-500 text-white px-2 py-1 rounded"
+                                            className="bg-yellow-500 text-white px-2 py-1 rounded hover:cursor-pointer"
                                         >
                                             Corriger
                                         </button>

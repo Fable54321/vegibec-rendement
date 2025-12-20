@@ -57,6 +57,16 @@ const Revenues = () => {
     //     fetchRevenues();
     // }, [selectedYear, token]);
 
+
+    const formatCurrency = (amount: number) => {
+        return amount.toLocaleString("fr-CA", {
+            style: "currency",
+            currency: "CAD",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    };
+
     const getConicGradient = (revenues: Revenue[]) => {
         if (revenues.length === 0) return "radial-gradient(circle, #ccc 0%, #999 100%)";
 
@@ -141,12 +151,12 @@ const Revenues = () => {
                                     style={{ backgroundColor: colors[index % colors.length] }}
                                     className="w-[0.8rem] h-[0.8rem]"
                                 ></div>{" "}
-                                <div className="w-[70%]">
+                                <div className="w-[70%] flex">
                                     <span className="font-bold">{item.vegetable}</span>:{" "}
-                                    <span className="text-[0.9em] text-nowrap">
-                                        {Number(item.total_revenue).toFixed(2)} $
+                                    <span className="text-[1em]  text-nowrap mr-[2rem] ml-auto font-bold">
+                                        {formatCurrency(Number(item.total_revenue))}
                                     </span>
-                                    ,
+
                                 </div>{" "}
                                 <p className="text-[1.1em] font-bold">
                                     {((Number(item.total_revenue) /

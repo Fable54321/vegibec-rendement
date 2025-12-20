@@ -116,7 +116,7 @@ const OtherCostsInput = () => {
                     vegetable: cultureSpecified ? culture : "AUCUNE",
                     year: costYear,
                     cost_domain: "UNSPECIFIED",
-                    employee_name: "John Doe", // or from auth
+                    employee_name: "-", // or from auth
                     description,
                     is_seasonal: isSeasonal ?? false
                 };
@@ -127,7 +127,7 @@ const OtherCostsInput = () => {
                     vegetable: cultureSpecified ? culture : "AUCUNE",
                     year: costYear,
                     cost_domain: category,
-                    employee_name: "John Doe"
+                    employee_name: "-"
                 };
             }
 
