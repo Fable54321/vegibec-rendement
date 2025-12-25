@@ -23,7 +23,7 @@ import OtherCostsInput from './App/080--OtherCostsInput/OtherCostsInput'
 import UnitsSoldInput from './App/090--UnitsSoldInput/UnitsSoldInput'
 import { UnitsProvider } from './context/units/UnitsProvider'
 import { UnspecifiedProvider } from './context/unspecified/UnspecifiedProvider'
-import EntriesJournal from './App/EntriesJournal/EntriesJournal'
+import EntriesJournal from './App/100-EntriesJournal/EntriesJournal'
 
 
 

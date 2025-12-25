@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
@@ -9,6 +10,7 @@ const mainCategories = [
     "EMBALLAGE",
     "HORS CATÉGORIE",
     "PRODUITS DU SOL",
+    "UNITÉS VENDUES",
 ];
 
 const soilProducts = [
@@ -42,6 +44,14 @@ interface JournalEntry {
     created_at: string;
 }
 
+interface UnitsSoldEntry {
+    id: number;
+    vegetable: string;
+    units_sold: number;
+    date_of_sale: string; // or Date if you convert it when fetching
+    is_kg: boolean;
+}
+
 const EntriesJournal = () => {
     const { token } = useAuth();
 
@@ -50,10 +60,34 @@ const EntriesJournal = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [unitsSoldEntries, setUnitsSoldEntries] = useState<UnitsSoldEntry[]>([]);
+    const [loadingUnitsSold, setLoadingUnitsSold] = useState(false);
 
 
     const [activeTab, setActiveTab] = useState<string>(mainCategories[0]);
     const [selectedSoilProduct, setSelectedSoilProduct] = useState<string>(soilProducts[0]);
+
+    const fetchUnitsSold = async () => {
+        setLoadingUnitsSold(true);
+        try {
+            // Tell TypeScript the type of the returned JSON
+            const data = await fetchWithAuth<UnitsSoldEntry[]>(
+                `${API_BASE_URL}/units-sold-entries`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            setUnitsSoldEntries(data);
+        } catch (err) {
+            console.error("Failed to fetch units sold", err);
+            setUnitsSoldEntries([]);
+        } finally {
+            setLoadingUnitsSold(false);
+        }
+    };
+
+
 
 
     useEffect(() => {
@@ -99,6 +133,49 @@ const EntriesJournal = () => {
         }
     };
 
+    const handleDeleteUnit = async (id: number) => {
+        if (!confirm("Êtes-vous certain de vouloir supprimer cette entrée ?")) return;
+
+        try {
+            await fetchWithAuth(`${API_BASE_URL}/units-sold-entries/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            fetchUnitsSold(); // refresh table
+        } catch (err) {
+            console.error("Échec de suppression des unités vendues", err);
+            alert("Échec de la suppression");
+        }
+    };
+
+
+    const handleCorrectionUnit = async (id: number) => {
+        const newAmountStr = prompt("Entrez le nouveau nombre d'unités vendues:");
+        if (!newAmountStr) return;
+
+        const newAmount = Number(newAmountStr);
+        if (isNaN(newAmount)) {
+            alert("Veuillez entrer un nombre valide");
+            return;
+        }
+
+        try {
+            await fetchWithAuth(`${API_BASE_URL}/units-sold-entries/${id}/correct`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ units_sold: newAmount }),
+            });
+            fetchUnitsSold(); // refresh table
+        } catch (err) {
+            console.error("Échec de correction des unités vendues", err);
+            alert("Échec de la correction");
+        }
+    };
 
 
     const fetchJournal = async () => {
@@ -123,7 +200,12 @@ const EntriesJournal = () => {
     };
 
     useEffect(() => {
-        fetchJournal();
+        if (activeTab === "UNITÉS VENDUES") {
+            fetchUnitsSold();
+        }
+        else {
+            fetchJournal();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [domain, page]); // Use actual domain instead of mainCategories
 
@@ -131,11 +213,14 @@ const EntriesJournal = () => {
 
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
+        <div className="p-6 max-w-6xl mx-auto flex flex-col items-center">
+            <Link to="/" className="button-generic mb-[1rem]">
+                Accueil
+            </Link>
             <h1 className="text-2xl font-bold mb-4">Journal des coûts</h1>
 
             {/* Domain selector */}
-            <div className="flex gap-2 mb-4 items-center h-10">
+            <div className="flex gap-2 mb-4 items-center h-10 w-full">
                 {mainCategories.map((cat) => (
                     activeTab !== "PRODUITS DU SOL" || cat !== "PRODUITS DU SOL") && (
                         <button
@@ -165,7 +250,7 @@ const EntriesJournal = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto w-full">
                 <table className="w-full border border-gray-300 text-sm">
                     <thead className="bg-gray-100">
                         <tr>
@@ -179,59 +264,72 @@ const EntriesJournal = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
+                        {activeTab === "UNITÉS VENDUES" ? (
+                            loadingUnitsSold ? (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-6">Chargement...</td>
+                                </tr>
+                            ) : unitsSoldEntries.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-6">Aucune entrée</td>
+                                </tr>
+                            ) : (
+                                unitsSoldEntries.map((entry: UnitsSoldEntry) => (
+                                    <tr key={entry.id}>
+                                        <td className="border px-2 py-1">{entry.id}</td>
+                                        <td className="border px-2 py-1">{entry.vegetable}</td>
+                                        <td className="border px-2 py-1">{entry.units_sold}</td>
+                                        <td className="border px-2 py-1">{entry.is_kg ? "kg" : "unités"}</td>
+                                        <td className="border px-2 py-1">
+                                            {new Date(entry.date_of_sale).toLocaleDateString("fr-CA")}
+                                        </td>
+                                        <td>
+                                            <button
+                                                onClick={() => handleDeleteUnit(entry.id)}
+                                                className="bg-red-500 text-white px-2 py-1 rounded mr-2 hover:cursor-pointer"
+                                            >
+                                                Supprimer
+                                            </button>
+                                            <button
+                                                onClick={() => handleCorrectionUnit(entry.id)}
+                                                className="bg-yellow-500 text-white px-2 py-1 rounded hover:cursor-pointer"
+                                            >
+                                                Corriger
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+
+                            )
+                        ) : loading ? (
                             <tr>
-                                <td colSpan={6} className="text-center py-6">
-                                    Chargement...
-                                </td>
+                                <td colSpan={8} className="text-center py-6">Chargement...</td>
                             </tr>
                         ) : entries.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="text-center py-6">
-                                    Aucune entrée
-                                </td>
+                                <td colSpan={8} className="text-center py-6">Aucune entrée</td>
                             </tr>
                         ) : (
                             entries.map((entry) => (
                                 <tr
                                     key={entry.id}
-                                    className={`$${entry.entry_type !== "addition"
-                                        ? "bg-gray-50 italic"
-                                        : ""
-                                        }`}
-
-
-
+                                    className={`${entry.entry_type !== "addition" ? "bg-gray-50 italic" : ""}`}
                                 >
-
                                     <td className="border px-2 py-1">{entry.id}</td>
                                     <td className="border px-2 py-1">
-                                        {new Date(entry.created_at).toLocaleDateString("fr-CA", {
-                                            timeZone: "UTC",
-                                        })}
+                                        {new Date(entry.created_at).toLocaleDateString("fr-CA", { timeZone: "UTC" })}
                                     </td>
                                     <td className="border px-2 py-1">{entry.entry_type}</td>
                                     <td className="border px-2 py-1">
-                                        {entry.category === "HORS CATÉGORIE" ? entry.business_description : entry.category ?? "—"}
+                                        {entry.category === "HORS CATÉGORIE"
+                                            ? entry.business_description
+                                            : entry.category ?? "—"}
                                     </td>
-                                    <td className="border px-2 py-1">
-                                        {entry.vegetable ?? "—"}
+                                    <td className="border px-2 py-1">{entry.vegetable ?? "—"}</td>
+                                    <td className={`border px-2 py-1 font-bold ${entry.amount >= 0 ? "text-green-600" : "text-red-600"}`}>
+                                        {entry.amount !== null && entry.amount !== undefined ? Number(entry.amount).toFixed(2) : "-"}$
                                     </td>
-                                    <td
-                                        className={`border px-2 py-1 font-bold $${entry.amount >= 0 ? "text-green-600" : "text-red-600"
-                                            }`}
-                                    >
-                                        {entry.amount !== null && entry.amount !== undefined
-                                            ? Number(entry.amount).toFixed(2)
-                                            : "-"}
-                                        $
-                                    </td>
-                                    {/* <td className="border px-2 py-1">
-                                        {entry.employee_name ?? "—"}
-                                    </td> */}
-                                    <td className="border px-2 py-1">
-                                        {entry.description ?? "—"}
-                                    </td>
+                                    <td className="border px-2 py-1">{entry.description ?? "—"}</td>
                                     <td>
                                         <button
                                             onClick={() => handleDelete(entry.id)}
@@ -250,6 +348,7 @@ const EntriesJournal = () => {
                             ))
                         )}
                     </tbody>
+
                 </table>
             </div>
 

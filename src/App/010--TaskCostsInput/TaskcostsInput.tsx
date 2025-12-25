@@ -15,6 +15,28 @@ const TaskCostsInput = () => {
         Autre: false,
     });
 
+
+    interface TaskCostEntry {
+        id: number;
+        vegetable: string;
+        category: string;
+        sub_category: string;
+        total_hours: number;
+        supervisor: string;
+        total_cost: number;
+        created_at: string;
+    }
+
+    interface PaginatedTaskCostResponse {
+        entries: TaskCostEntry[];
+        pagination: {
+            page: number;
+            totalPages: number;
+        };
+    }
+
+
+
     const vegetables = [
         "Céleri",
         "Chou",
@@ -49,8 +71,11 @@ const TaskCostsInput = () => {
 
     // --- New states for overlay ---
     const [showOverlay, setShowOverlay] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [latestEntries, setLatestEntries] = useState<any[]>([]);
+
+    const [latestEntries, setLatestEntries] = useState<TaskCostEntry[]>([]);
+    const [overlayPage, setOverlayPage] = useState(1);
+    const [overlayTotalPages, setOverlayTotalPages] = useState(1);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -62,21 +87,13 @@ const TaskCostsInput = () => {
             setError(null);
 
             try {
-                const data = (await fetchWithAuth(
-                    `${API_BASE_URL}/data/costs/latest`,
+                const res = await fetchWithAuth<PaginatedTaskCostResponse>(
+                    `${API_BASE_URL}/data/costs?page=${overlayPage}&limit=10`,
                     { headers: { Authorization: `Bearer ${token}` } }
-                )) as {
-                    id: number;
-                    vegetable: string;
-                    category: string;
-                    sub_category: string;
-                    total_hours: number;
-                    supervisor: string;
-                    total_cost: number;
-                    created_at: string;
-                }[];
+                );
 
-                setLatestEntries(data);
+                setLatestEntries(res.entries);
+                setOverlayTotalPages(res.pagination.totalPages);
             } catch (err) {
                 setError((err as Error).message);
             } finally {
@@ -84,11 +101,13 @@ const TaskCostsInput = () => {
             }
         };
 
+
         fetchLatestEntries();
 
-    }, [showOverlay, token]);
+    }, [showOverlay, token, overlayPage]);
 
     const openOverlay = () => {
+        setOverlayPage(1);
         setShowOverlay(true);
 
     };
@@ -105,13 +124,13 @@ const TaskCostsInput = () => {
                 Enregistrement des tâches effectuées
             </h1>
 
-            <div className="flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full gap-[1rem]">
                 <Link className="button-generic mt-[1.2rem]" to="/">
                     Accueil
                 </Link>
                 <Link
                     to="/couts-des-taches"
-                    className="lg:text-[1.2rem] lg:mt-[0.9rem] text-green-700 underline block text-center mt-[0.5rem] mb-[-1rem] w-[50%] font-bold text-[1.1rem]"
+                    className="button-generic"
                 >
                     Voir les rapports de coûts des tâches
                 </Link>
@@ -119,7 +138,7 @@ const TaskCostsInput = () => {
                 {/* --- New Button for Overlay --- */}
                 <button
                     onClick={openOverlay}
-                    className="button-generic mt-[1rem]"
+                    className="button-generic"
                 >
                     Voir les dix dernières entrées
                 </button>
@@ -131,7 +150,7 @@ const TaskCostsInput = () => {
                     <div className="bg-white w-[90%] max-w-4xl rounded-2xl p-6 relative shadow-xl overflow-y-auto max-h-[90vh]">
                         <button
                             onClick={closeOverlay}
-                            className="absolute top-3 right-4 text-2xl font-bold text-gray-600 hover:text-gray-900"
+                            className="absolute top-3 right-4 text-2xl font-bold text-gray-600 hover:text-gray-900 hover:cursor-pointer"
                         >
                             ✕
                         </button>
@@ -148,66 +167,89 @@ const TaskCostsInput = () => {
                         )}
 
                         {!loading && !error && latestEntries.length > 0 && (
-                            <table className="w-full border-collapse text-sm lg:text-base">
-                                <thead>
-                                    <tr className="bg-green-700 text-white">
-                                        <th className="p-2 border">Culture</th>
-                                        <th className="p-2 border">Catégorie</th>
-                                        <th className="p-2 border">Sous Catégorie</th>
-                                        <th className="p-2 border">Heures Totales</th>
-                                        <th className="p-2 border">Superviseur</th>
-                                        <th className="p-2 border">Coût Total</th>
-                                        <th className="p-2 border">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {latestEntries.map((entry) => (
-                                        <tr
-                                            key={entry.id}
-                                            className="odd:bg-gray-100 even:bg-white text-center"
-                                        >
-                                            <td className="p-2 border">{entry.vegetable}</td>
-                                            <td className="p-2 border">{entry.category}</td>
-                                            <td className="p-2 border">{entry.sub_category}</td>
-                                            <td className="p-2 border">{entry.total_hours}</td>
-                                            <td className="p-2 border">{entry.supervisor}</td>
-                                            <td className="p-2 border">
-                                                {Number(entry.total_cost).toFixed(2)} $
-                                            </td>
-                                            <td className="p-2 border">
-                                                {new Date(entry.created_at).toLocaleDateString("fr-CA")}
-                                            </td>
-                                            <td className="p-2 border">
-                                                <button
-                                                    onClick={async () => {
-                                                        const confirmDelete = window.confirm(
-                                                            "Confirmez-vous que vous voulez supprimer l'entrée sélectionnée ?"
-                                                        );
-                                                        if (!confirmDelete) return;
-
-                                                        try {
-                                                            await fetchWithAuth(`${API_BASE_URL}/data/costs/${entry.id}`, {
-                                                                method: "DELETE",
-                                                                headers: { Authorization: `Bearer ${token}` },
-                                                            });
-
-                                                            // remove the entry locally after deletion
-                                                            setLatestEntries((prev) =>
-                                                                prev.filter((e) => e.id !== entry.id)
-                                                            );
-                                                        } catch (err) {
-                                                            alert("Erreur lors de la suppression : " + (err as Error).message);
-                                                        }
-                                                    }}
-                                                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm"
-                                                >
-                                                    Supprimer
-                                                </button>
-                                            </td>
+                            <>
+                                <table className="w-full border-collapse text-sm lg:text-base">
+                                    <thead>
+                                        <tr className="bg-green-700 text-white">
+                                            <th className="p-2 border">Culture</th>
+                                            <th className="p-2 border">Catégorie</th>
+                                            <th className="p-2 border">Sous Catégorie</th>
+                                            <th className="p-2 border">Heures Totales</th>
+                                            <th className="p-2 border">Superviseur</th>
+                                            <th className="p-2 border">Coût Total</th>
+                                            <th className="p-2 border">Date</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {latestEntries.map((entry) => (
+                                            <tr
+                                                key={entry.id}
+                                                className="odd:bg-gray-100 even:bg-white text-center"
+                                            >
+                                                <td className="p-2 border">{entry.vegetable}</td>
+                                                <td className="p-2 border">{entry.category}</td>
+                                                <td className="p-2 border">{entry.sub_category}</td>
+                                                <td className="p-2 border">{entry.total_hours}</td>
+                                                <td className="p-2 border">{entry.supervisor}</td>
+                                                <td className="p-2 border">
+                                                    {Number(entry.total_cost).toFixed(2)} $
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {new Date(entry.created_at).toLocaleDateString("fr-CA")}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <button
+                                                        onClick={async () => {
+                                                            const confirmDelete = window.confirm(
+                                                                "Confirmez-vous que vous voulez supprimer l'entrée sélectionnée ?"
+                                                            );
+                                                            if (!confirmDelete) return;
+
+                                                            try {
+                                                                await fetchWithAuth(`${API_BASE_URL}/data/costs/${entry.id}`, {
+                                                                    method: "DELETE",
+                                                                    headers: { Authorization: `Bearer ${token}` },
+                                                                });
+
+                                                                // remove the entry locally after deletion
+                                                                setLatestEntries((prev) =>
+                                                                    prev.filter((e) => e.id !== entry.id)
+                                                                );
+                                                            } catch (err) {
+                                                                alert("Erreur lors de la suppression : " + (err as Error).message);
+                                                            }
+                                                        }}
+                                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm hover:cursor-pointer"
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <div className="flex justify-between items-center mt-4">
+                                    <button
+                                        disabled={overlayPage <= 1}
+                                        onClick={() => setOverlayPage((p) => p - 1)}
+                                        className="px-4 py-2 rounded border disabled:opacity-50"
+                                    >
+                                        ← Précédent
+                                    </button>
+
+                                    <span>
+                                        Page {overlayPage} / {overlayTotalPages}
+                                    </span>
+
+                                    <button
+                                        disabled={overlayPage >= overlayTotalPages}
+                                        onClick={() => setOverlayPage((p) => p + 1)}
+                                        className="px-4 py-2 rounded border disabled:opacity-50"
+                                    >
+                                        Suivant →
+                                    </button>
+                                </div>
+                            </>
                         )}
 
                         {!loading && !error && latestEntries.length === 0 && (

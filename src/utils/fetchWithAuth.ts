@@ -41,7 +41,9 @@ export async function fetchWithAuth<T>(
       console.error("Refresh token invalid or expired — logging out");
       localStorage.removeItem("token");
       window.location.href = "/login";
-      return Promise.reject(new Error("Session expired"));
+      return Promise.reject(
+        new Error("Session expirée, veuillez vous connecter à nouveau.")
+      );
     }
   }
 
