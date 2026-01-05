@@ -109,7 +109,7 @@ const Home = () => {
                 </div>
                 <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[0.75rem] lg:gap-[1rem] '>
                     <h2 className='text-[1.7em] font-extrabold text-center'>Visualisation des coûts et revenus</h2>
-                    <Link to="#" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                    <Link to="/comparatif-usda" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
                                 cursor-pointer

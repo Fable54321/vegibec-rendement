@@ -30,6 +30,7 @@ import EntriesJournal from './App/100-EntriesJournal/EntriesJournal'
 
 
 
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -159,6 +160,14 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         )
       },
+      {
+        path: '/comparatif-usda',
+        element: (
+          <ProtectedRoute>
+            <USDA />
+          </ProtectedRoute>
+        ),
+      }
     ],
   },
 ]);

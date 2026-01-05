@@ -10,6 +10,8 @@ interface FirstStepProps {
         Entrepôt: boolean;
         Agronomie: boolean;
         Pompage: boolean;
+        Transport: boolean;
+        Opérations: boolean;
         Autre: boolean;
     };
     setTask: Dispatch<SetStateAction<{
@@ -17,6 +19,8 @@ interface FirstStepProps {
         Entrepôt: boolean;
         Agronomie: boolean;
         Pompage: boolean;
+        Transport: boolean;
+        Opérations: boolean;
         Autre: boolean;
     }>>;
     subCategories: string[];
@@ -168,6 +172,29 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                 "Autre"
             ])
         }
+        else if (task.Transport) {
+            setSubcategories([
+                "Livraison",
+                "Transport machinerie",
+                "Transport de matériel",
+                "Transport de pierres",
+                "Transport de plants",
+                "Transport de plastique",
+                "Transport de support métallique",
+                "Transport de terre",
+                "Transport de toile",
+                "Transport matériel",
+                "Transport récolte",
+                "Autre"
+            ])
+        }
+        else if (task.Opérations) {
+            setSubcategories([
+                "Supervision",
+                "Autre"
+            ])
+        }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [task])
 
@@ -282,23 +309,31 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
             <div className="mt-[1rem] grid grid-cols-2 w-[95%] gap-[0.5rem]">
                 <div className="mx-auto flex w-[70%] justify-center">
                     <label htmlFor="entretien">Entretien</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Entretien} onChange={(e) => setTask({ ...task, Entretien: e.target.checked, Entrepôt: false, Agronomie: false, Pompage: false, Autre: false })} type="checkbox" id="entretien" name="entretien" />
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Entretien} onChange={(e) => setTask({ ...task, Entretien: e.target.checked, Entrepôt: false, Agronomie: false, Pompage: false, Transport: false, Opérations: false, Autre: false })} type="checkbox" id="entretien" name="entretien" />
                 </div>
                 <div className="mx-auto flex w-[70%] justify-center">
                     <label htmlFor="entrepot">Entrepôt</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Entrepôt} onChange={(e) => setTask({ ...task, Entrepôt: e.target.checked, Entretien: false, Agronomie: false, Pompage: false, Autre: false })} id="entrepot" name="entrepot" type="checkbox" />
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Entrepôt} onChange={(e) => setTask({ ...task, Entrepôt: e.target.checked, Entretien: false, Agronomie: false, Pompage: false, Transport: false, Opérations: false, Autre: false })} id="entrepot" name="entrepot" type="checkbox" />
                 </div>
                 <div className="mx-auto flex w-[70%] justify-center">
                     <label htmlFor="agronomie">Agronomie</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Agronomie} onChange={(e) => setTask({ ...task, Agronomie: e.target.checked, Entretien: false, Entrepôt: false, Pompage: false, Autre: false })} type="checkbox" id="agronomie" name="agronomie" />
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Agronomie} onChange={(e) => setTask({ ...task, Agronomie: e.target.checked, Entretien: false, Entrepôt: false, Pompage: false, Transport: false, Opérations: false, Autre: false })} type="checkbox" id="agronomie" name="agronomie" />
                 </div>
                 <div className="mx-auto flex w-[70%] justify-center">
                     <label htmlFor="pompage">Pompage</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Pompage} onChange={(e) => setTask({ ...task, Pompage: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Autre: false })} type="checkbox" id="pompage" name="pompage" />
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Pompage} onChange={(e) => setTask({ ...task, Pompage: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Transport: false, Opérations: false, Autre: false })} type="checkbox" id="pompage" name="pompage" />
                 </div>
                 <div className="mx-auto flex w-[70%] justify-center">
                     <label htmlFor="autre">Autre</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Autre} onChange={(e) => setTask({ ...task, Autre: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false })} type="checkbox" id="autre" name="autre" />
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Autre} onChange={(e) => setTask({ ...task, Autre: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false, Transport: false, Opérations: false })} type="checkbox" id="autre" name="autre" />
+                </div>
+                <div className="mx-auto flex w-[70%] justify-center">
+                    <label htmlFor="transport">Transport</label>
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Transport} onChange={(e) => setTask({ ...task, Transport: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false, Opérations: false, Autre: false })} type="checkbox" id="transport" name="transport" />
+                </div>
+                <div className="mx-auto flex w-[70%] justify-center">
+                    <label htmlFor="operations">Opérations</label>
+                    <input className=" ml-auto w-[1.1rem]" checked={task.Opérations} onChange={(e) => setTask({ ...task, Opérations: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false, Transport: false, Autre: false })} type="checkbox" id="operations" name="operations" />
                 </div>
             </div>
 
@@ -317,7 +352,10 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                                     />
                                 </span>
                             </Listbox.Button>
-                            <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
+                            <Listbox.Options
+                                className="absolute bottom-full mb-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50"
+                            >
+
                                 {subCategories.map((cat, index) => (
                                     <Listbox.Option
                                         key={index}

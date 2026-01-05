@@ -12,6 +12,8 @@ const TaskCostsInput = () => {
         Entrepôt: false,
         Agronomie: false,
         Pompage: false,
+        Transport: false,
+        Opérations: false,
         Autre: false,
     });
 
