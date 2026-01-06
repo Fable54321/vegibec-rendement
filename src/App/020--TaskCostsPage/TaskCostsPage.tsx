@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { fr } from "date-fns/locale";
 import FormatCost from "../../assets/Functions/formatcost";
 import FormatHours from "../../assets/Functions/FormatHours";
+import capitalizeName from "@/assets/Functions/capitalizeName";
 import {
     Select,
     SelectTrigger,
@@ -205,9 +206,11 @@ const TaskCostsPage = () => {
                             {data.map((row, i) => (
                                 <tr key={i}>
                                     <td className="border-1 border-green-400 p-2">
-                                        {groupBy === "sub_category"
-                                            ? `${row.sub_category} (${row.category})`
-                                            : getGroupValue(row, groupBy)}
+                                        {(() => {
+                                            if (groupBy === "sub_category") return `${row.sub_category} (${row.category})`;
+                                            if (groupBy === "supervisor") return capitalizeName(row.supervisor);
+                                            return getGroupValue(row, groupBy);
+                                        })()}
                                     </td>
                                     <td className="border-1 border-green-400 p-2">
                                         <FormatHours hours={row.total_hours} />

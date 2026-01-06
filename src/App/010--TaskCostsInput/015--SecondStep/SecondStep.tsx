@@ -4,14 +4,14 @@ import DatePicker from '../../Components/DatePicker';
 import { fetchWithAuth } from '@/utils/fetchWithAuth';
 
 interface SecondStepProps {
-    numberOfWages: number;
-    setNumberOfWages: React.Dispatch<React.SetStateAction<number>>;
+    numberOfWages: number | "";
+    setNumberOfWages: React.Dispatch<React.SetStateAction<number | "">>;
     hoursInput: string;
     setHoursInput: React.Dispatch<React.SetStateAction<string>>;
-    wages: number[];
-    setWages: React.Dispatch<React.SetStateAction<number[]>>;
-    multiplier: number[];
-    setMultiplier: React.Dispatch<React.SetStateAction<number[]>>;
+    wages: (number | "")[];
+    setWages: React.Dispatch<React.SetStateAction<(number | "")[]>>;
+    multiplier: (number | "")[];
+    setMultiplier: React.Dispatch<React.SetStateAction<(number | "")[]>>;
     isFirstStepCompleted: boolean;
     setIsFirstStepCompleted: React.Dispatch<React.SetStateAction<boolean>>;
     task: object;
@@ -42,12 +42,16 @@ const SecondStep: React.FC<SecondStepProps> = ({
     const numericHours = hoursInput === "" ? null : Number(hoursInput.replace(",", "."));
     const total = numericHours === null
         ? 0
-        : wages.reduce((acc, cur, i) => acc + cur * multiplier[i] * numericHours, 0);
+        : wages.reduce<number>((acc, cur, i) => {
+            const c = Number(cur); // in case somehow a string slipped in
+            const m = multiplier[i] === "" ? 1 : Number(multiplier[i]);
+            return acc + c * m;
+        }, 0);
 
     useEffect(() => {
         let employees = 0;
         for (let i = 0; i < multiplier.length; i++) {
-            employees += multiplier[i];
+            employees += multiplier[i] === "" ? 1 : (multiplier[i] as number);
         }
         setTotalHours(numericHours !== null ? employees * numericHours : 0);
     }, [numericHours, multiplier, numberOfWages]);
@@ -60,19 +64,38 @@ const SecondStep: React.FC<SecondStepProps> = ({
     }
 
     useEffect(() => {
+
+        const normalized = numberOfWages === "" ? 1 : numberOfWages;
+
         setWages((prev) => {
             const newArr = [...prev];
-            while (newArr.length < numberOfWages) newArr.push(0);
-            return newArr.slice(0, numberOfWages);
+            while (newArr.length < normalized) newArr.push(0);
+            return newArr.slice(0, normalized);
         });
 
         setMultiplier((prev) => {
             const newArr = [...prev];
-            while (newArr.length < numberOfWages) newArr.push(1);
-            return newArr.slice(0, numberOfWages);
+            while (newArr.length < normalized) newArr.push(1);
+            return newArr.slice(0, normalized);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numberOfWages]);
+
+    const normalizeSupervisor = (name: string) => {
+        if (!name) return "";
+
+        // 1️⃣ Trim spaces and collapse multiple spaces
+        let cleaned = name.trim().replace(/\s+/g, " ");
+
+        // 2️⃣ Remove accents
+        cleaned = cleaned.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        // 3️⃣ Lowercase everything to match the DB
+        cleaned = cleaned.toLowerCase();
+
+        return cleaned;
+    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -81,7 +104,8 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
         // Validate wages
         wages.forEach((w, i) => {
-            if (isNaN(w) || w <= 0) {
+            const num = w === "" ? 0 : w;
+            if (isNaN(num) || num <= 0) {
                 errors.push(`Salaire #${i + 1} est invalide (valeur: ${w}).`);
             }
         });
@@ -98,14 +122,18 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
         const totalCost = numericHours === null
             ? 0
-            : wages.reduce((acc, cur, i) => acc + cur * multiplier[i] * numericHours, 0);
+            : wages.reduce<number>((acc, cur, i) => {
+                const w = cur === "" ? 0 : cur;
+                const m = multiplier[i] === "" ? 1 : multiplier[i];
+                return acc + w * m * numericHours;
+            }, 0);
 
         const payload = {
             vegetable: cultureDefined ? selectedVeggie.toUpperCase() : "AUCUNE",
             category: Object.keys(task).find((k) => task[k as keyof typeof task]) || "Autre",
             sub_category: subCategory,
             total_hours: totalHours,
-            supervisor: supervisor === "Aucun" ? null : supervisor,
+            supervisor: supervisor === "Aucun" ? null : normalizeSupervisor(supervisor),
             total_cost: totalCost,
             created_at: useCustomDate && selectedDate ? selectedDate.toISOString() : undefined
         };
@@ -151,19 +179,34 @@ const SecondStep: React.FC<SecondStepProps> = ({
                     <label className="font-bold text-center text-[1.1rem] lg:text-[1.35rem]" htmlFor="differentWages">
                         Sélectionner le nombre de salaires différents :
                     </label>
-                    <select
+                    <label htmlFor="differentWages">Nombre de salaires différents :</label>
+                    <input
+                        type="number"
+                        list="numberOfWages-list"
                         className="border-2 border-green-400 px-[0.5rem]"
-                        onChange={(e) => setNumberOfWages(Number(e.target.value))}
-                        name="differentWages"
-                        id="differentWages"
                         value={numberOfWages}
-                    >
-                        {Array.from({ length: 10 }, (_, i) => (
-                            <option key={i} value={i + 1}>
-                                {i + 1}
-                            </option>
+                        onChange={(e) => {
+                            const raw = e.target.value;
+
+                            // allow empty string temporarily
+                            if (raw === "") {
+                                setNumberOfWages("");
+                                return;
+                            }
+
+                            const value = Number(raw);
+                            if (Number.isNaN(value) || value < 1) return;
+
+                            setNumberOfWages(value);
+                        }}
+                    />
+
+                    <datalist id="numberOfWages-list">
+                        {Array.from({ length: 20 }, (_, i) => (
+                            <option key={i} value={i + 1} />
                         ))}
-                    </select>
+                    </datalist>
+
 
                     <section className="mt-[0.75rem] lg:mt-[1.25rem] flex flex-col w-[99%] gap-[1rem] border-b-2 border-green-400 border-dotted pb-[1.75rem]">
                         <div className="flex mb-[0.5rem] border-b-2 border-green-400 border-dotted">
@@ -172,7 +215,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
                             <h3 className="flex-1 font-bold text-center border-l-2 border-green-400">Sous-totaux</h3>
                         </div>
 
-                        {Array.from({ length: numberOfWages }, (_, index) => (
+                        {Array.from({ length: numberOfWages === "" ? 1 : numberOfWages }, (_, index) => (
                             <div className="w-full flex" key={index}>
                                 <div className="flex flex-1 justify-center gap-[0.2rem] border-green-400">
                                     <input
@@ -210,28 +253,44 @@ const SecondStep: React.FC<SecondStepProps> = ({
                                     <p className="inline">X</p>
                                 </div>
                                 <div className="flex flex-1 justify-center ">
-                                    <select
+                                    <input
+                                        type="number"
+                                        list={`multiplier-list-${index}`}
                                         className="border-2 border-green-400 w-[80%]"
-                                        onChange={(e) =>
-                                            setMultiplier(
-                                                multiplier.map((m, i) =>
-                                                    i === index ? Number(e.target.value) : m
-                                                )
-                                            )
-                                        }
-                                        name="multiplier"
-                                        id="multiplier"
                                         value={multiplier[index]}
-                                    >
-                                        {Array.from({ length: 10 }, (_, i) => (
-                                            <option key={i} value={i + 1}>
-                                                {i + 1}
-                                            </option>
+                                        onChange={(e) => {
+                                            const raw = e.target.value;
+
+                                            // allow user to erase
+                                            if (raw === "") {
+                                                setMultiplier(
+                                                    multiplier.map((m, i) => (i === index ? "" : m))
+                                                );
+                                                return;
+                                            }
+
+                                            const value = Number(raw);
+                                            if (Number.isNaN(value) || value < 1) return;
+
+                                            setMultiplier(
+                                                multiplier.map((m, i) => (i === index ? value : m))
+                                            );
+                                        }}
+                                    />
+
+
+                                    <datalist id={`multiplier-list-${index}`}>
+                                        {Array.from({ length: 20 }, (_, i) => (
+                                            <option key={i} value={i + 1} />
                                         ))}
-                                    </select>
+                                    </datalist>
+
                                 </div>
-                                <p className="flex-1 text-center ">
-                                    {(wages[index] * multiplier[index]).toFixed(2)}$
+                                <p className="flex-1 text-center">
+                                    {(
+                                        (wages[index] === "" ? 0 : wages[index]) *
+                                        (multiplier[index] === "" ? 1 : multiplier[index])
+                                    ).toFixed(2)}$
                                 </p>
                             </div>
                         ))}

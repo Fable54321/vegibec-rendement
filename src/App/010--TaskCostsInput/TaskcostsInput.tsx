@@ -42,16 +42,30 @@ const TaskCostsInput = () => {
     const vegetables = [
         "Céleri",
         "Chou",
+        "Chou plat",
+        "Chou vert",
+        "Chou rouge",
+        "Chou de Savoie",
         "Chou de Bruxelles",
         "Chou-fleur",
-        "Coeur de romaine",
+        "Cœur de romaine",
         "Endives",
         "Laitue",
         "Laitue frisée",
+        "Laitue frisée verte",
+        "Laitue frisée rouge",
         "Laitue pommée",
         "Laitue romaine",
         "Poivron",
+        "Poivron vert",
+        "Poivron rouge",
+        "Poivron jaune",
+        "Poivron orange",
+        "Poivron vert/rouge",
         "Zucchini",
+        "Zucchini vert",
+        "Zucchini jaune",
+        "Zucchini libanais",
     ];
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
@@ -64,9 +78,9 @@ const TaskCostsInput = () => {
     const [selectedVeggie, setSelectedVeggie] = useState(vegetables[0]);
     const [supervisor, setSupervisor] = useState("");
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [numberOfWages, setNumberOfWages] = useState(1);
-    const [wages, setWages] = useState(new Array(numberOfWages).fill(0));
-    const [multiplier, setMultiplier] = useState(new Array(numberOfWages).fill(1));
+    const [numberOfWages, setNumberOfWages] = useState<number | "">("");
+    const [wages, setWages] = useState<(number | "")[]>(new Array(numberOfWages).fill(0));
+    const [multiplier, setMultiplier] = useState<(number | "")[]>(new Array(numberOfWages).fill(1));
     const [hoursInput, setHoursInput] = useState<string>("");
     const [isFirstStepCompleted, setIsFirstStepCompleted] = useState(false);
 

@@ -37,6 +37,7 @@ const OtherCostsInput = () => {
         "CHOU DE SAVOIE",
         "CÉLERI",
         "CŒUR DE ROMAINE",
+        "CULTIVAR",
         "ENDIVES",
         "LAITUE",
         "LAITUE POMMÉE",

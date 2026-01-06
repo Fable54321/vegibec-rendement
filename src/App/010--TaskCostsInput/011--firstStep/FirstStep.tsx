@@ -190,7 +190,33 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
         }
         else if (task.Opérations) {
             setSubcategories([
+                "Ajustement de plastique",
+                "Ajustement de toile",
+                "Attache",
+                "Conditionnement",
+                "Désherbage",
+                "Épierrage",
+                "Fauchage",
+                "Perforage de plastique",
+                "Plantation",
+                "Pose de plastique",
+                "Pose de support métallique",
+                "Pose de toile",
+                "Rangement de matériel",
+                "Récolte",
+                "Réparation de plastique",
+                "Réparation de toile",
+                "Repiquage",
+                "Retrait de plastique",
+                "Retrait de support métallique",
+                "Retrait de toile",
+                "Rotoculteur",
+                "Sarcleur",
                 "Supervision",
+                "Taille",
+                "Traçage de canaux d’eau",
+                "Traçage de rangs",
+                "Tri",
                 "Autre"
             ])
         }
@@ -265,13 +291,13 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                 </label>
                 <Listbox value={supervisor} onChange={setSupervisor} >
                     <div className="relative mt-1 w-full">
-                        <Listbox.Button className="flex items-center h-[1.9rem] relative w-full cursor-default rounded-lg border border-green-400 bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none">
+                        <Listbox.Button className="flex items-center h-[1.9rem] relative w-full cursor-default rounded-lg border border-green-400 bg-white py-2 pl-3 pr-10  text-left shadow-md focus:outline-none">
                             <span className="block truncate">{supervisor}</span>
                             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                 <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                             </span>
                         </Listbox.Button>
-                        <Listbox.Options className="absolute mt-1 max-h-120 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
+                        <Listbox.Options className="absolute top-full max-h-90 mt-1  w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
                             {supervisors
                                 .sort((a, b) => a.localeCompare(b))
                                 .map((person, personIdx) => (
@@ -410,7 +436,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                                             />
                                         </span>
                                     </Listbox.Button>
-                                    <Listbox.Options className="absolute mt-1 max-h-90 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
+                                    <Listbox.Options className="absolute bottom-full mt-1 max-h-90 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
                                         {vegetables && vegetables.map((veg, index) => (
                                             <Listbox.Option
                                                 key={index}
