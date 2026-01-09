@@ -8,7 +8,7 @@ const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 export const FieldsProvider = ({ children }: { children: ReactNode }) => {
     const { token } = useAuth();
 
-    const [fields, setFields] = useState<string[]>([]);
+    const [fields, setFields] = useState<({ field: string })[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export const FieldsProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
 
         try {
-            const res = await fetchWithAuth<string[]>(
+            const res = await fetchWithAuth<({ field: string })[]>(
                 `${API_BASE_URL}/getFields`,
                 {
                     headers: {
