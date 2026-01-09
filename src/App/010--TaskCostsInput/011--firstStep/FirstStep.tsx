@@ -1,6 +1,8 @@
 import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { Listbox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { useFields } from "@/context/fields/FieldsContext";
+import SearchableFieldListbox from "@/components/SearchableListBox";
 
 
 
@@ -36,10 +38,19 @@ interface FirstStepProps {
     setIsFirstStepCompleted: Dispatch<SetStateAction<boolean>>;
     supervisor: string;
     setSupervisor: Dispatch<SetStateAction<string>>;
+    field: string | null;
+    setField: Dispatch<SetStateAction<string | null>>;
+    isFieldDefined: boolean;
+    setIsFieldDefined: Dispatch<SetStateAction<boolean>>;
 }
 
 
-const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, setSubcategories, subCategory, setSubCategory, cultureDefined, setCultureDefined, selectedVeggie, setSelectedVeggie, vegetables, setIsFirstStepCompleted, supervisor, setSupervisor }) => {
+const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, setSubcategories, subCategory, setSubCategory, cultureDefined, setCultureDefined, selectedVeggie, setSelectedVeggie, vegetables, setIsFirstStepCompleted, supervisor, setSupervisor, field, setField, isFieldDefined, setIsFieldDefined }) => {
+
+    const { fields } = useFields();
+
+
+    console.log("fields from context", fields);
 
 
     const supervisors =
@@ -92,6 +103,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
             "Megly Belen Mendoza Figueroa",
             "Raffaella Carvalho"
         ]
+
 
 
     useEffect(() => {
@@ -414,6 +426,19 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                         </div>
                     </Listbox>
                 </div>
+            </section>
+
+            <section className="flex flex-col mt-[0.5rem] items-center">
+                <div className="flex justify-center w-full gap-[0.5rem]">
+                    <label htmlFor="cultureDefined">Champ spécifié :</label>
+                    <input onChange={(e) => setIsFieldDefined(e.target.checked)} type="checkbox" id="cultureDefined" name="cultureDefined" checked={isFieldDefined} />
+                </div>
+                {isFieldDefined && (
+                    <div className="flex gap-[1rem] justify-center w-[80%]">
+                        <label className="text-[1.1rem] font-bold">Champ:</label>
+                        <SearchableFieldListbox fields={fields} field={field} setField={setField} />
+                    </div>
+                )}
             </section>
 
             <section className="flex flex-col mt-[0.5rem] items-center">

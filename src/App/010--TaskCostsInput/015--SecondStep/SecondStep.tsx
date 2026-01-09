@@ -21,6 +21,7 @@ interface SecondStepProps {
     supervisor: string;
     selectedDate: Date | null;
     setSelectedDate: React.Dispatch<React.SetStateAction<Date | null>>;
+    field: string | null;
 }
 
 const SecondStep: React.FC<SecondStepProps> = ({
@@ -31,22 +32,38 @@ const SecondStep: React.FC<SecondStepProps> = ({
     task, subCategory,
     cultureDefined, selectedVeggie,
     supervisor,
-    selectedDate, setSelectedDate
+    selectedDate, setSelectedDate,
+    field
 }) => {
 
 
 
     const [useCustomDate, setUseCustomDate] = useState(false);
     const [totalHours, setTotalHours] = useState(0);
+    const [displayTotal, setDisplayTotal] = useState(0);
 
     const numericHours = hoursInput === "" ? null : Number(hoursInput.replace(",", "."));
-    const total = numericHours === null
-        ? 0
-        : wages.reduce<number>((acc, cur, i) => {
-            const c = Number(cur); // in case somehow a string slipped in
+    // const total = numericHours === null
+    //     ? 0
+    //     : wages.reduce<number>((acc, cur, i) => {
+    //         const c = Number(cur); // in case somehow a string slipped in
+    //         const m = multiplier[i] === "" ? 1 : Number(multiplier[i]);
+    //         return acc + c * m;
+    //     }, 0);
+
+
+    useEffect(() => {
+        const numeric = numericHours === null ? 0 : numericHours;
+
+        const newTotal = wages.reduce<number>((acc, cur, i) => {
+            const w = cur === "" ? 0 : Number(cur);
             const m = multiplier[i] === "" ? 1 : Number(multiplier[i]);
-            return acc + c * m;
+            return acc + w * m * numeric;
         }, 0);
+
+        setDisplayTotal(newTotal);
+    }, [wages, multiplier, numericHours]);
+
 
     useEffect(() => {
         let employees = 0;
@@ -135,7 +152,8 @@ const SecondStep: React.FC<SecondStepProps> = ({
             total_hours: totalHours,
             supervisor: supervisor === "Aucun" ? null : normalizeSupervisor(supervisor),
             total_cost: totalCost,
-            created_at: useCustomDate && selectedDate ? selectedDate.toISOString() : undefined
+            created_at: useCustomDate && selectedDate ? selectedDate.toISOString() : undefined,
+            field: field || null // <-- send field state here
         };
 
         try {
@@ -158,6 +176,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
         setTimeout(() => window.location.reload(), 200);
     };
+
 
     // 🔹 Helper to format 3.5 → 3h30
     const formatHours = (decimalHours: number) => {
@@ -335,7 +354,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
                             <div className="sm:flex sm:flex-col">
                                 <p className="mr-2">= Total:</p>
-                                <p>{total.toFixed(2)} $</p>
+                                <p>{displayTotal.toFixed(2)} $</p>
                             </div>
                         </div>
 

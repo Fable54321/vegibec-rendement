@@ -24,6 +24,7 @@ import UnitsSoldInput from './App/090--UnitsSoldInput/UnitsSoldInput'
 import { UnitsProvider } from './context/units/UnitsProvider'
 import { UnspecifiedProvider } from './context/unspecified/UnspecifiedProvider'
 import EntriesJournal from './App/100-EntriesJournal/EntriesJournal'
+import { FieldsProvider } from './context/fields/FieldsContextProvider'
 
 
 
@@ -178,7 +179,9 @@ createRoot(document.getElementById('root')!).render(
       <DateProvider>
         <UnitsProvider>
           <UnspecifiedProvider>
-            <RouterProvider router={router} />
+            <FieldsProvider>
+              <RouterProvider router={router} />
+            </FieldsProvider>
           </UnspecifiedProvider>
         </UnitsProvider>
       </DateProvider>

@@ -4,6 +4,7 @@ import FirstStep from "./011--firstStep/FirstStep";
 import { Link } from "react-router-dom";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
+import { useFields } from "@/context/fields/FieldsContext";
 
 
 const TaskCostsInput = () => {
@@ -27,6 +28,7 @@ const TaskCostsInput = () => {
         supervisor: string;
         total_cost: number;
         created_at: string;
+        field: string | null;
     }
 
     interface PaginatedTaskCostResponse {
@@ -82,7 +84,11 @@ const TaskCostsInput = () => {
     const [wages, setWages] = useState<(number | "")[]>(new Array(numberOfWages).fill(0));
     const [multiplier, setMultiplier] = useState<(number | "")[]>(new Array(numberOfWages).fill(1));
     const [hoursInput, setHoursInput] = useState<string>("");
+    const [field, setField] = useState<string | null>(null);
+    const [isFieldDefined, setIsFieldDefined] = useState(false);
     const [isFirstStepCompleted, setIsFirstStepCompleted] = useState(false);
+
+
 
 
     // --- New states for overlay ---
@@ -94,6 +100,18 @@ const TaskCostsInput = () => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const { fields } = useFields();
+
+
+    useEffect(() => {
+        if (isFieldDefined) {
+            setField(fields[0]?.field || null);
+        }
+        else {
+            setField(null);
+        }
+    }, [fields, isFieldDefined]);
 
     useEffect(() => {
         if (!token || !showOverlay) return;
@@ -156,14 +174,14 @@ const TaskCostsInput = () => {
                     onClick={openOverlay}
                     className="button-generic"
                 >
-                    Voir les dix dernières entrées
+                    Voir les dernières entrées
                 </button>
             </div>
 
             {/* --- Overlay --- */}
             {showOverlay && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                    <div className="bg-white w-[90%] max-w-4xl rounded-2xl p-6 relative shadow-xl overflow-y-auto max-h-[90vh]">
+                    <div className="bg-white w-[90%] max-w-[80vw] rounded-2xl p-6 relative shadow-xl overflow-y-auto max-h-[90vh]">
                         <button
                             onClick={closeOverlay}
                             className="absolute top-3 right-4 text-2xl font-bold text-gray-600 hover:text-gray-900 hover:cursor-pointer"
@@ -194,6 +212,7 @@ const TaskCostsInput = () => {
                                             <th className="p-2 border">Superviseur</th>
                                             <th className="p-2 border">Coût Total</th>
                                             <th className="p-2 border">Date</th>
+                                            <th className="p-2 border">Champ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -205,7 +224,7 @@ const TaskCostsInput = () => {
                                                 <td className="p-2 border">{entry.vegetable}</td>
                                                 <td className="p-2 border">{entry.category}</td>
                                                 <td className="p-2 border">{entry.sub_category}</td>
-                                                <td className="p-2 border">{entry.total_hours}</td>
+                                                <td className="p-2 border">{Number(entry.total_hours).toFixed(2)}</td>
                                                 <td className="p-2 border">{entry.supervisor}</td>
                                                 <td className="p-2 border">
                                                     {Number(entry.total_cost).toFixed(2)} $
@@ -213,6 +232,7 @@ const TaskCostsInput = () => {
                                                 <td className="p-2 border">
                                                     {new Date(entry.created_at).toLocaleDateString("fr-CA")}
                                                 </td>
+                                                <td className="p-2 border">{entry.field}</td>
                                                 <td className="p-2 border">
                                                     <button
                                                         onClick={async () => {
@@ -293,6 +313,11 @@ const TaskCostsInput = () => {
                         setIsFirstStepCompleted={setIsFirstStepCompleted}
                         supervisor={supervisor}
                         setSupervisor={setSupervisor}
+                        field={field}
+                        setField={setField}
+                        isFieldDefined={isFieldDefined}
+                        setIsFieldDefined={setIsFieldDefined}
+
                     />
                 )}
 
@@ -315,6 +340,7 @@ const TaskCostsInput = () => {
                         supervisor={supervisor}
                         selectedDate={selectedDate}
                         setSelectedDate={setSelectedDate}
+                        field={field}
                     />
                 )}
             </article>
