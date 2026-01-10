@@ -194,7 +194,7 @@ const OtherCostsInput = () => {
             <Link to="/" className="button-generic absolute left-[50%] translate-x-[-50%] top-[5.5rem] text-[1.1rem]"> Accueil</Link>
             <article className="flex flex-col items-center md:text-[1.5em] mt-[9rem]">
                 <h2 className="text-center text-[1.5em]">Entrée des autres coûts</h2>
-                <form className="mt-[1rem] flex flex-col items-center w-[min(90%,_400px)] md:w-[600px] gap-[1.7rem] rounded-[0.75rem] border-4 border-green-400 border-solid py-[1rem] px-[0.5rem]" onSubmit={handleSubmit}>
+                <form className="mb-[2rem] mt-[1rem] flex flex-col items-center w-[min(90%,_400px)] md:w-[600px] gap-[1.7rem] rounded-[0.75rem] border-4 border-green-400 border-solid py-[1rem] px-[0.5rem]" onSubmit={handleSubmit}>
                     <label className="flex flex-col w-full gap-[0.5rem] px-[1rem]" htmlFor="cost-category">
                         Catégorie :
                         <select value={category} onChange={(e) => setCategory(e.target.value)} className="border border-gray-400 rounded-[0.25rem] px-[0.5rem] py-[0.25rem] text-[1em]" name="cost-category" id="cost-category">
