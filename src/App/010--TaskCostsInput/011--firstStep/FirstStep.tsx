@@ -2,6 +2,7 @@ import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { Listbox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { useFields } from "@/context/fields/FieldsContext";
+import { useSupervisors } from "@/context/supervisors/SupervisorContext";
 import SearchableFieldListbox from "@/components/SearchableListBox";
 
 
@@ -50,59 +51,61 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
     const { fields } = useFields();
 
 
-    console.log("fields from context", fields);
+    const { supervisors } = useSupervisors();
+
+    const supervisorsNames = supervisors.map((sup) => sup.supervisor);
 
 
-    const supervisors =
-        [
-            "Aucun",
-            "Reginaldo Patzan Pantzay",
-            "Abelain Maximiliano Velasquez Morales",
-            "Armando Xico Miculax",
-            "Carlos Daniel Oxi Chacach",
-            "Cleyder Edberto Arreaga Velasquez",
-            "Eddy Jonas Canac Ajbal",
-            "Efrain Bolivar Oxi Cuxil",
-            "Elmer Roblero Escalante",
-            "Ever Florencio Barrios Garcia",
-            "Hugo Nery Soloman Cali",
-            "Irad Miculax Sanum",
-            "Israel Miculax Xicay",
-            "Jerson Camey Sian",
-            "Jorge Ottoniel Jop Ixcajoc",
-            "Juan Carlos Reyes Tapia",
-            "Mario Felipe Arreaga Roblero",
-            "Oscar Daniel Arreaga Velasquez",
-            "Oscar Noé Pérez Capir",
-            "Pascal Lecault",
-            "Pedro Tzay Sincal",
-            "Yorwin Marino Arreaga Velasquez",
-            "Armando Roel Roblero Lopez",
-            "Jose Luis Tapia Martinez",
-            "Luis Eduardo Xicay Guch",
-            "Moïse Lecault-Hernandez",
-            "Rodolfo Ixen Sitan",
-            "Alvaro Miculax Pichiya",
-            "Berchmans Lecault",
-            "Carlos Ediberto Ajozal",
-            "Carlos Enrique Oxi Cuxil",
-            "Celestino Coy Can",
-            "Danielle O'Sullivan",
-            "Eder Mauricio Barrios Fuentes",
-            "Edwin Orlando Sian Miculax",
-            "Elsias Leonel Canac Sitan",
-            "Felipe Miculax Sitan",
-            "Francisco Miculax Miculax",
-            "Jairo Ananias Miculax Sanum",
-            "Jairo Gabriel Sian Aju",
-            "Jose Catalino Ajuchan",
-            "Jose Ricardo Xico Sanum",
-            "Mourad El Alaoui",
-            "Fabiola Lecault-Hernandez",
-            "Fabrice Lecault-Hernandez",
-            "Megly Belen Mendoza Figueroa",
-            "Raffaella Carvalho"
-        ]
+    // const supervisors =
+    //     [
+    //         "Aucun",
+    //         "Reginaldo Patzan Pantzay",
+    //         "Abelain Maximiliano Velasquez Morales",
+    //         "Armando Xico Miculax",
+    //         "Carlos Daniel Oxi Chacach",
+    //         "Cleyder Edberto Arreaga Velasquez",
+    //         "Eddy Jonas Canac Ajbal",
+    //         "Efrain Bolivar Oxi Cuxil",
+    //         "Elmer Roblero Escalante",
+    //         "Ever Florencio Barrios Garcia",
+    //         "Hugo Nery Soloman Cali",
+    //         "Irad Miculax Sanum",
+    //         "Israel Miculax Xicay",
+    //         "Jerson Camey Sian",
+    //         "Jorge Ottoniel Jop Ixcajoc",
+    //         "Juan Carlos Reyes Tapia",
+    //         "Mario Felipe Arreaga Roblero",
+    //         "Oscar Daniel Arreaga Velasquez",
+    //         "Oscar Noé Pérez Capir",
+    //         "Pascal Lecault",
+    //         "Pedro Tzay Sincal",
+    //         "Yorwin Marino Arreaga Velasquez",
+    //         "Armando Roel Roblero Lopez",
+    //         "Jose Luis Tapia Martinez",
+    //         "Luis Eduardo Xicay Guch",
+    //         "Moïse Lecault-Hernandez",
+    //         "Rodolfo Ixen Sitan",
+    //         "Alvaro Miculax Pichiya",
+    //         "Berchmans Lecault",
+    //         "Carlos Ediberto Ajozal",
+    //         "Carlos Enrique Oxi Cuxil",
+    //         "Celestino Coy Can",
+    //         "Danielle O'Sullivan",
+    //         "Eder Mauricio Barrios Fuentes",
+    //         "Edwin Orlando Sian Miculax",
+    //         "Elsias Leonel Canac Sitan",
+    //         "Felipe Miculax Sitan",
+    //         "Francisco Miculax Miculax",
+    //         "Jairo Ananias Miculax Sanum",
+    //         "Jairo Gabriel Sian Aju",
+    //         "Jose Catalino Ajuchan",
+    //         "Jose Ricardo Xico Sanum",
+    //         "Mourad El Alaoui",
+    //         "Fabiola Lecault-Hernandez",
+    //         "Fabrice Lecault-Hernandez",
+    //         "Megly Belen Mendoza Figueroa",
+    //         "Raffaella Carvalho"
+    //     ]
 
 
 
@@ -149,6 +152,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                 "Retrait de système d'irrigation",
                 "Semage",
                 "Sortie de plateaux",
+                "Tâches générales en serre",
                 "Transfert de plants",
                 "Vérification goutte-à-goutte",
                 "Vidage des pompes d'irrigation",
@@ -181,6 +185,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                 "Réunion",
                 "Sous-contrat voisin",
                 "Varié",
+                "Maintenance de bâtiment - ménage",
                 "Autre"
             ])
         }
@@ -310,7 +315,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                             </span>
                         </Listbox.Button>
                         <Listbox.Options className="absolute top-full max-h-90 mt-1  w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
-                            {supervisors
+                            {supervisorsNames
                                 .sort((a, b) => a.localeCompare(b))
                                 .map((person, personIdx) => (
                                     <Listbox.Option
@@ -394,34 +399,36 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                                 className="absolute bottom-full mb-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50"
                             >
 
-                                {subCategories.map((cat, index) => (
-                                    <Listbox.Option
-                                        key={index}
-                                        className={({ active }) =>
-                                            `relative cursor-default select-none py-2 pl-10 pr-4 ${active
-                                                ? "bg-green-100 text-green-900"
-                                                : "text-gray-900"
-                                            }`
-                                        }
-                                        value={cat}
-                                    >
-                                        {({ selected }) => (
-                                            <>
-                                                <span
-                                                    className={`block truncate ${selected ? "font-medium" : "font-normal"
-                                                        } sm:text-[1.1rem]`}
-                                                >
-                                                    {cat}
-                                                </span>
-                                                {selected ? (
-                                                    <span className=" absolute inset-y-0 left-0 flex items-center pl-3 text-green-600">
-                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                {subCategories
+                                    .sort((a, b) => a.localeCompare(b))
+                                    .map((cat, index) => (
+                                        <Listbox.Option
+                                            key={index}
+                                            className={({ active }) =>
+                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${active
+                                                    ? "bg-green-100 text-green-900"
+                                                    : "text-gray-900"
+                                                }`
+                                            }
+                                            value={cat}
+                                        >
+                                            {({ selected }) => (
+                                                <>
+                                                    <span
+                                                        className={`block truncate ${selected ? "font-medium" : "font-normal"
+                                                            } sm:text-[1.1rem]`}
+                                                    >
+                                                        {cat}
                                                     </span>
-                                                ) : null}
-                                            </>
-                                        )}
-                                    </Listbox.Option>
-                                ))}
+                                                    {selected ? (
+                                                        <span className=" absolute inset-y-0 left-0 flex items-center pl-3 text-green-600">
+                                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                        </span>
+                                                    ) : null}
+                                                </>
+                                            )}
+                                        </Listbox.Option>
+                                    ))}
                             </Listbox.Options>
                         </div>
                     </Listbox>

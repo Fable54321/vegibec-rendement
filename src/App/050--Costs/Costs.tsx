@@ -29,7 +29,11 @@ const Costs = () => {
 
     const [totalsTab, setTotalsTab] = useState<TotalsTab>("costs");
 
-
+    type SeedCostItem = {
+        vegetable: string;
+        cultivar?: string;
+        total_cost: number;
+    };
 
 
     const { yearSelected, setYearSelected,
@@ -49,6 +53,11 @@ const Costs = () => {
     const [soilProductsChecked, setSoilProductsChecked] = useState<boolean>(true);
     const [otherCostsChecked, setOtherCostsChecked] = useState<boolean>(true);
     const [totalsChecked, setTotalsChecked] = useState<boolean>(true);
+
+    const [seedCostsGlobal, setSeedCostsGlobal] = useState<Record<string, number>>({});
+    const [seedCostsPerCultivar, setSeedCostsPerCultivar] = useState<SeedCostItem[]>([]);
+    const [normalizedSeedCosts, setNormalizedSeedCosts] = useState<SeedCostItem[]>([]);
+    const [showPerCultivar, setShowPerCultivar] = useState<boolean>(false);
 
     const { totals } = useContext(UnitsContext);
 
@@ -86,6 +95,44 @@ const Costs = () => {
     useEffect(() => {
         console.log("units totals from context", totals);
     }, [totals, yearSelected, monthSelected, startDate, endDate]);
+
+    useEffect(() => {
+        const normalized: SeedCostItem[] = seedCosts.map((item) => {
+            if ("seed" in item) {
+                // 2024 shape
+                return {
+                    vegetable: item.seed as string,
+                    total_cost: item.total_cost,
+                };
+            } else {
+                // 2025+ shape
+                return {
+                    vegetable: item.vegetable,
+                    cultivar: item.cultivar,
+                    total_cost: item.total_cost,
+                };
+            }
+        });
+
+        setNormalizedSeedCosts(normalized);
+
+
+        const global = normalized.reduce<Record<string, number>>((acc, item) => {
+            if (!acc[item.vegetable]) acc[item.vegetable] = 0;
+            acc[item.vegetable] += item.total_cost;
+            return acc;
+        }, {});
+
+        setSeedCostsGlobal(global);
+
+
+
+        setSeedCostsPerCultivar(normalized);
+
+    }, [seedCosts]);
+
+
+    useEffect(() => { console.log("seed costs per cultivar", seedCostsPerCultivar) }, [seedCostsPerCultivar])
 
 
 
@@ -412,42 +459,81 @@ const Costs = () => {
                 </section>
             }
             {/* --- 1.1 Coûts de semences --- */}
-            {!mainLoading ? (
-                seedCosts.length > 0 ? (
-                    <>
-                        <h2 id="seedsLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
-                            Coûts des semences
-                        </h2>
-                        <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
-                            <thead className="bg-green-700 text-white">
-                                <tr>
-                                    <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
-                                        Semence
-                                    </th>
-                                    <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
-                                        Coûts Totaux ($)
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-gray-700">
-                                {seedCosts.map((item) => {
-                                    const name = "seed" in item ? item.seed : item.vegetable;
+            {/* --- Seed Costs Table --- */}
+            <section className="mb-8">
+                <h2 id="seedsLink" className="text-[1.7rem] font-bold text-gray-700 mb-4 border-b pb-2">
+                    Coûts des semences
+                </h2>
+
+                {/* Optional tab to switch between global / per-cultivar */}
+                <div className="mb-4 flex gap-2">
+                    <button
+                        className={`px-4 py-2 rounded font-semibold ${showPerCultivar ? "bg-gray-200 text-gray-700" : "bg-green-700 text-white"}`}
+                        onClick={() => setShowPerCultivar(false)}
+                    >
+                        Totaux globaux
+                    </button>
+                    <button
+                        className={`px-4 py-2 rounded font-semibold ${showPerCultivar ? "bg-green-700 text-white" : "bg-gray-200 text-gray-700"}`}
+                        onClick={() => setShowPerCultivar(true)}
+                    >
+                        Par cultivar
+                    </button>
+                </div>
+
+                {!mainLoading && normalizedSeedCosts.length > 0 ? (
+                    <table className="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+                        <thead className="bg-green-700 text-white">
+                            <tr>
+                                <th className="py-2 text-left pl-4 uppercase font-semibold text-[1.1em]">
+                                    Semence
+                                </th>
+                                <th className="py-2 text-left pl-6 uppercase font-semibold text-[1.1em]">
+                                    Coûts Totaux ($)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-gray-700">
+                            {showPerCultivar
+                                ? seedCostsPerCultivar.map((item) => {
+
+
+
                                     return (
-                                        <tr className="border-b border-green-400 hover:bg-gray-50 transition duration-150" key={name}>
-                                            <td className="py-3 px-4" >{name === "AUCUNE" ? "NON SPÉCIFIÉE" : name}</td>
+                                        <tr
+                                            key={item.cultivar ? `${item.vegetable}-${item.cultivar}` : item.vegetable}
+                                            className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                        >
+                                            <td className="py-3 px-4">
+                                                {item.cultivar ? `${item.vegetable} (${item.cultivar})` : item.vegetable}
+                                            </td>
                                             <td className="py-3 px-4 text-right">{formatCurrency(item.total_cost)}</td>
                                         </tr>
                                     );
-                                })}
-                            </tbody>
-                        </table>
-                    </>
+                                })
+                                : Object.entries(seedCostsGlobal).map(([veg, total_cost]) => (
+                                    <tr
+                                        key={veg}
+                                        className="border-b border-green-400 hover:bg-gray-50 transition duration-150"
+                                    >
+                                        <td className="py-3 px-4">
+                                            {veg === "AUCUNE" ? "NON SPÉCIFIÉE" : veg}
+                                        </td>
+                                        <td className="py-3 px-4 text-right">{formatCurrency(total_cost)}</td>
+                                    </tr>
+                                ))}
+                        </tbody>
+
+                    </table>
                 ) : (
-                    <p className="text-gray-500 italic">
-                        Aucun coût de semences trouvé pour la période sélectionnée.
-                    </p>
-                )
-            ) : null}
+                    !mainLoading && (
+                        <p className="text-gray-500 italic">
+                            Aucun coût de semences trouvé pour la période sélectionnée.
+                        </p>
+                    )
+                )}
+            </section>
+
 
 
             {!mainLoading ? (

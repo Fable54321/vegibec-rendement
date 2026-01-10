@@ -9,9 +9,14 @@ import { UnspecifiedContext } from "@/context/unspecified/UnspecifiedContext";
 import { genericCostsRedistribution } from "../../utils/genericCostsRedistribution";
 
 
+
 export type RevenuePercentage = Record<string, number>;
 
-type SeedCostItem = { seed: string; total_cost: number } | { vegetable: string; total_cost: number };
+type SeedCostAPI = {
+  vegetable: string;
+  cultivar?: string; // optional, can be undefined for older data
+  total_cost: number;
+};
 
 export type AppOutletContext = {
   revenues: { vegetable: string; total_revenue: number }[];
@@ -21,7 +26,7 @@ export type AppOutletContext = {
   noCultureCosts: number;
   otherCostsTotal: number;
   totalCostsToRedistribute: number;
-  seedCosts: SeedCostItem[];
+  seedCosts: SeedCostAPI[];
   mainLoading: boolean;
   mainError: string | null;
   otherCosts: [string, number][];
@@ -114,7 +119,7 @@ function App() {
   const [otherCostsTotal, setOtherCostsTotal] = useState(0);
   const [totalCostsToRedistribute, setTotalCostsToRedistribute] = useState(0);
   const [otherCosts, setOtherCosts] = useState<[string, number][]>([]);
-  const [seedCosts, setSeedCosts] = useState<SeedCostItem[]>([]);
+  const [seedCosts, setSeedCosts] = useState<SeedCostAPI[]>([]);
   const [packagingCosts, setPackagingCosts] = useState<{ vegetable: string; total_cost: number }[]>([]);
   const [vegetableSoilProducts, setVegetableSoilProducts] = useState<SoilProductCost[]>([]);
   const [categorySoilProducts, setCategorySoilProducts] = useState<SoilProductCost[]>([]);
@@ -138,6 +143,12 @@ function App() {
   const [errorSeedCosts, setErrorSeedCosts] = useState<string | null>(null);
   const [errorSoilProducts, setErrorSoilProducts] = useState<string | null>(null);
   const { unitsError, unitsLoading } = useContext(UnitsContext);
+
+
+
+
+
+
 
   //Unspecified Context
 
@@ -275,7 +286,6 @@ function App() {
 
   //   return adjusted;
   // };
-
 
 
 
@@ -480,9 +490,14 @@ function App() {
         const data = (await fetchWithAuth(
           `${API_BASE_URL}/data/costs/seed_costs?${periodQuery}`,
           { headers: { Authorization: `Bearer ${token}` } }
-        )) as { seed: string; total_cost: number }[];
+        )) as SeedCostAPI[];
 
+        // Store raw API data
         setSeedCosts(data);
+
+        // Log to see cultivars
+        console.log("Seed costs fetched:", data);
+
       } catch (err) {
         setErrorSeedCosts((err as Error).message);
       } finally {
@@ -500,7 +515,9 @@ function App() {
   // --- Compute total redistributable costs ---
   useEffect(() => {
     // Find the "AUCUNE" cost in the packagingCosts array
-    const noPackagingCost = packagingCosts.find((item) => item.vegetable === "AUCUNE")?.total_cost || 0;
+    const noPackagingCost = Array.isArray(packagingCosts)
+      ? packagingCosts.find(item => item.vegetable === "AUCUNE")?.total_cost || 0
+      : 0;
 
     const noCultureUnspecifiedCost = adjustedUnspecifiedCosts.find((item) => item.vegetable === "AUCUNE" || null)?.total_cost || 0;
 

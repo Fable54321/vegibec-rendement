@@ -10,13 +10,16 @@ const OtherCostsInput = () => {
     const [amount, setAmount] = useState<number | "">("");
     const [cultureSpecified, setCultureSpecified] = useState<boolean>(false);
     const [culture, setCulture] = useState<string>("CHOU");
-    // const [entryDate, setEntryDate] = useState<string>("");
     const [isUnspecified, setIsUnspecified] = useState<boolean>(false);
     const [isSeasonal, setIsSeasonal] = useState<boolean>(false);
+    const [showCultivar, setShowCultivar] = useState<boolean>(false);
     const [description, setDescription] = useState<string>("");
+    const [cultivar, setCultivar] = useState<string>("");
 
     const currentYear = new Date().getFullYear();
     const [costYear, setCostYear] = useState<number>(currentYear);
+
+
 
     const { token } = useAuth();
 
@@ -37,7 +40,6 @@ const OtherCostsInput = () => {
         "CHOU DE SAVOIE",
         "CÉLERI",
         "CŒUR DE ROMAINE",
-        "CULTIVAR",
         "ENDIVES",
         "LAITUE",
         "LAITUE POMMÉE",
@@ -68,6 +70,7 @@ const OtherCostsInput = () => {
         employee_name: string;
         description: string;
         is_seasonal: boolean;
+        cultivar?: string | null;
     };
 
     type RegularCostPayload = {
@@ -79,6 +82,7 @@ const OtherCostsInput = () => {
         employee_name: string;
         description?: never;
         is_seasonal?: never;
+        cultivar?: string | null;
     };
 
     type SubmitPayload = UnspecifiedCostPayload | RegularCostPayload;
@@ -119,7 +123,8 @@ const OtherCostsInput = () => {
                     cost_domain: "UNSPECIFIED",
                     employee_name: "-", // or from auth
                     description,
-                    is_seasonal: isSeasonal ?? false
+                    is_seasonal: isSeasonal ?? false,
+                    cultivar: cultivar?.trim() ? cultivar : null,
                 };
             } else {
                 payload = {
@@ -128,7 +133,8 @@ const OtherCostsInput = () => {
                     vegetable: cultureSpecified ? culture : "AUCUNE",
                     year: costYear,
                     cost_domain: category,
-                    employee_name: "-"
+                    employee_name: "-",
+                    cultivar: cultivar?.trim() ? cultivar : null,
                 };
             }
 
@@ -147,11 +153,12 @@ const OtherCostsInput = () => {
 
             // Reset form
             setAmount("");
-            setCultureSpecified(false);
+            setCultureSpecified(true);
             setCulture("CHOU");
             setCategory("SEMENCE");
             setIsSeasonal(false);
             setDescription("");
+            setCultivar("");
 
             alert("Coût ajouté avec succès ✅");
 
@@ -169,6 +176,17 @@ const OtherCostsInput = () => {
             setIsUnspecified(false);
         }
     }, [category]);
+
+    useEffect(() => {
+        if (category === "SEMENCE") {
+            setCultureSpecified(true);
+            setShowCultivar(true);
+        }
+        else {
+            setCultureSpecified(false);
+            setShowCultivar(false);
+        }
+    }, [category])
 
 
     return (
@@ -212,6 +230,14 @@ const OtherCostsInput = () => {
                             </select>
                         </label>
 
+                    }
+                    {
+                        showCultivar && cultureSpecified &&
+                        category === "SEMENCE" &&
+                        <label className="flex flex-col w-full gap-[0.5rem] px-[1rem]" htmlFor="cultivar-input">
+                            Cultivar :
+                            <input value={cultivar} onChange={(e) => setCultivar(e.target.value)} type="text" name="cultivar-input" id="cultivar-input" className="border border-gray-400 rounded-[0.25rem] px-[0.5rem] py-[0.25rem] text-[1em]" />
+                        </label>
                     }
                     {
                         isUnspecified &&

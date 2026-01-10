@@ -91,17 +91,26 @@ const TaskCostsInput = () => {
 
 
 
+
     // --- New states for overlay ---
     const [showOverlay, setShowOverlay] = useState(false);
 
+
     const [latestEntries, setLatestEntries] = useState<TaskCostEntry[]>([]);
     const [overlayPage, setOverlayPage] = useState(1);
+    const [pageInput, setPageInput] = useState<string>("1");
     const [overlayTotalPages, setOverlayTotalPages] = useState(1);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const { fields } = useFields();
+
+
+    useEffect(() => {
+
+        setPageInput(overlayPage.toString());
+    }, [overlayPage]);
 
 
     useEffect(() => {
@@ -232,7 +241,48 @@ const TaskCostsInput = () => {
                                                 <td className="p-2 border">
                                                     {new Date(entry.created_at).toLocaleDateString("fr-CA")}
                                                 </td>
-                                                <td className="p-2 border">{entry.field}</td>
+                                                <td className="p-2 border flex items-center justify-center">
+                                                    {entry.field ? (
+                                                        entry.field
+                                                    ) : (
+                                                        <button
+                                                            onClick={async () => {
+                                                                // 1️⃣ Ask user to select a field
+                                                                const selectedField = prompt("Entrez le champ pour cette entrée :");
+                                                                if (!selectedField) return;
+
+                                                                try {
+                                                                    // 2️⃣ Call fix-field route
+                                                                    const result = await fetchWithAuth(
+                                                                        `${API_BASE_URL}/fix-field`,
+                                                                        {
+                                                                            method: "PATCH",
+                                                                            headers: { "Content-Type": "application/json" },
+                                                                            body: JSON.stringify({ ids: [entry.id], field: selectedField.toUpperCase() }),
+                                                                        }
+                                                                    );
+
+
+                                                                    console.log("Patch result:", result);
+
+                                                                    // 3️⃣ Update local state
+                                                                    setLatestEntries((prev) =>
+                                                                        prev.map((e) =>
+                                                                            e.id === entry.id ? { ...e, field: selectedField.toUpperCase() } : e
+                                                                        )
+                                                                    );
+
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    alert("Erreur lors de la correction du champ.");
+                                                                }
+                                                            }}
+                                                            className="bg-yellow-400 hover:bg-yellow-500 hover:cursor-pointer text-white px-2 py-1 rounded text-sm"
+                                                        >
+                                                            Ajouter
+                                                        </button>
+                                                    )}
+                                                </td>
                                                 <td className="p-2 border">
                                                     <button
                                                         onClick={async () => {
@@ -268,19 +318,44 @@ const TaskCostsInput = () => {
                                     <button
                                         disabled={overlayPage <= 1}
                                         onClick={() => setOverlayPage((p) => p - 1)}
-                                        className="px-4 py-2 rounded border disabled:opacity-50"
+                                        className="px-4 py-2 rounded border disabled:opacity-50 hover:cursor-pointer"
                                     >
                                         ← Précédent
                                     </button>
 
                                     <span>
-                                        Page {overlayPage} / {overlayTotalPages}
+                                        Page{" "}
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={overlayTotalPages}
+                                            value={pageInput}
+                                            onChange={(e) => setPageInput(e.target.value)} // just update local state
+                                            onBlur={() => {
+                                                const val = Number(pageInput);
+                                                if (!Number.isNaN(val) && val >= 1 && val <= overlayTotalPages) {
+                                                    setOverlayPage(val); // update actual page
+                                                } else {
+                                                    setPageInput(overlayPage.toString()); // revert if invalid
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.currentTarget.blur(); // trigger onBlur logic
+                                                }
+                                            }}
+                                            className="w-12 text-center border rounded px-1"
+                                        />{" "}
+                                        / {overlayTotalPages}
+                                        <button className="block mx-auto rounded border-2 border-green-700 px-1  mt-[0.5rem] hover:cursor-pointer">
+                                            go
+                                        </button>
                                     </span>
 
                                     <button
                                         disabled={overlayPage >= overlayTotalPages}
                                         onClick={() => setOverlayPage((p) => p + 1)}
-                                        className="px-4 py-2 rounded border disabled:opacity-50"
+                                        className="px-4 py-2 rounded border disabled:opacity-50 hover:cursor-pointer"
                                     >
                                         Suivant →
                                     </button>

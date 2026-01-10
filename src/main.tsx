@@ -25,6 +25,7 @@ import { UnitsProvider } from './context/units/UnitsProvider'
 import { UnspecifiedProvider } from './context/unspecified/UnspecifiedProvider'
 import EntriesJournal from './App/100-EntriesJournal/EntriesJournal'
 import { FieldsProvider } from './context/fields/FieldsContextProvider'
+import { SupervisorsProvider } from './context/supervisors/SupervisorsProvider'
 
 
 
@@ -179,9 +180,11 @@ createRoot(document.getElementById('root')!).render(
       <DateProvider>
         <UnitsProvider>
           <UnspecifiedProvider>
-            <FieldsProvider>
-              <RouterProvider router={router} />
-            </FieldsProvider>
+            <SupervisorsProvider>
+              <FieldsProvider>
+                <RouterProvider router={router} />
+              </FieldsProvider>
+            </SupervisorsProvider>
           </UnspecifiedProvider>
         </UnitsProvider>
       </DateProvider>
