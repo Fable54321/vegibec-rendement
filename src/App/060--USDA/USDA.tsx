@@ -96,7 +96,7 @@ const USDA = () => {
                 if (typeof data?.rate === "number") {
                     setUsdToCadRate(data.rate);
 
-                    console.log("FX rate:", data.rate);
+
                 } else {
                     throw new Error("Invalid FX response shape");
                 }
@@ -199,7 +199,7 @@ const USDA = () => {
         [filteredVegReports]
     );
 
-    useEffect(() => { console.log(vegReports) }, [vegReports]);
+
 
     ////////////////////////////////////////////////////WEIGHT INFO////////////  
 

@@ -38,7 +38,7 @@ const VisualTaskCosts = () => {
             })) as CostRow[];
 
             if (Array.isArray(data)) {
-                console.log("Yearly summary for", year, data);
+
                 setYearlyData(data);
             } else {
                 console.error("Unexpected yearly response:", data);

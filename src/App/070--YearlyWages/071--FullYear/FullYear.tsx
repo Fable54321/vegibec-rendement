@@ -55,9 +55,7 @@ const FullYear = () => {
 
     }, [token]);
 
-    useEffect(() => {
-        console.log("Employees fetched:", employees);
-    }, [employees]);
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -100,7 +98,7 @@ const FullYear = () => {
 
             setAnnualSalary(data.yearly_amount.toString());
 
-            console.log(`Salaire ajouté pour ${data.employee_name} : ${data.yearly_amount}$`);
+
             alert(`Salaire ajouté pour ${data.employee_name} : ${data.yearly_amount}$ pour l'année ${year}.`);
 
             setTimeout(() => {

@@ -26,6 +26,7 @@ import { UnspecifiedProvider } from './context/unspecified/UnspecifiedProvider'
 import EntriesJournal from './App/100-EntriesJournal/EntriesJournal'
 import { FieldsProvider } from './context/fields/FieldsContextProvider'
 import { SupervisorsProvider } from './context/supervisors/SupervisorsProvider'
+import { VegetablesProvider } from './context/vegetables/VegetablesContextProvider'
 
 
 
@@ -181,9 +182,11 @@ createRoot(document.getElementById('root')!).render(
         <UnitsProvider>
           <UnspecifiedProvider>
             <SupervisorsProvider>
-              <FieldsProvider>
-                <RouterProvider router={router} />
-              </FieldsProvider>
+              <VegetablesProvider>
+                <FieldsProvider>
+                  <RouterProvider router={router} />
+                </FieldsProvider>
+              </VegetablesProvider>
             </SupervisorsProvider>
           </UnspecifiedProvider>
         </UnitsProvider>

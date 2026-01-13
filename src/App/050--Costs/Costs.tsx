@@ -92,9 +92,7 @@ const Costs = () => {
     );
 
 
-    useEffect(() => {
-        console.log("units totals from context", totals);
-    }, [totals, yearSelected, monthSelected, startDate, endDate]);
+
 
     useEffect(() => {
         const normalized: SeedCostItem[] = seedCosts.map((item) => {
@@ -132,7 +130,7 @@ const Costs = () => {
     }, [seedCosts]);
 
 
-    useEffect(() => { console.log("seed costs per cultivar", seedCostsPerCultivar) }, [seedCostsPerCultivar])
+
 
 
 
@@ -145,7 +143,7 @@ const Costs = () => {
     };
 
 
-    useEffect(() => { console.log("seed costs", seedCosts) }, [seedCosts])
+
 
 
     return (

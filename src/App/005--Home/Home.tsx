@@ -28,7 +28,7 @@ const Home = () => {
 
             const data = await res.json();
 
-            console.log(data.message); // "Vous êtes maintenant déconnecté"
+            console.log(data.message);
 
             logout();
             navigate("/login");

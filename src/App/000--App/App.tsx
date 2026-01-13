@@ -7,6 +7,7 @@ import { useDate } from "@/context/date/DateContext";
 import { UnitsContext } from "@/context/units/UnitsContext";
 import { UnspecifiedContext } from "@/context/unspecified/UnspecifiedContext";
 import { genericCostsRedistribution } from "../../utils/genericCostsRedistribution";
+import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
 
 
@@ -143,11 +144,19 @@ function App() {
   const [errorSeedCosts, setErrorSeedCosts] = useState<string | null>(null);
   const [errorSoilProducts, setErrorSoilProducts] = useState<string | null>(null);
   const { unitsError, unitsLoading } = useContext(UnitsContext);
+  const [allVegetables, setAllVegetables] = useState<string[]>([]);
 
 
 
 
+  const { vegetables, loading: vegetablesLoading, error: vegetablesError } = useVegetables();
 
+
+  useEffect(() => {
+    const vegNames = vegetables.map(v => v.vegetable);
+    setAllVegetables(vegNames);
+
+  }, [vegetables])
 
 
   //Unspecified Context
@@ -168,8 +177,8 @@ function App() {
 
 
 
-  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts || unitsLoading || unspecifiedLoading;
-  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts || unitsError || unspecifiedError;
+  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts || unitsLoading || unspecifiedLoading || vegetablesLoading;
+  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts || unitsError || unspecifiedError || vegetablesError;
 
   // --- Derived query period ---
   const periodQuery = useMemo(() => {
@@ -392,36 +401,36 @@ function App() {
       return;
     }
 
-    // 1️⃣ Full template of all vegetables
-    const allVegetables = [
-      "AUCUNE",
-      "CHOU",
-      "CHOU DE BRUXELLES",
-      "CHOU-FLEUR",
-      "CHOU VERT",
-      "CHOU PLAT",
-      "CHOU ROUGE",
-      "CHOU DE SAVOIE",
-      "CÉLERI",
-      "CŒUR DE ROMAINE",
-      "ENDIVES",
-      "LAITUE",
-      "LAITUE POMMÉE",
-      "LAITUE FRISÉE",
-      "LAITUE FRISÉE VERTE",
-      "LAITUE FRISÉE ROUGE",
-      "LAITUE ROMAINE",
-      "POIVRON",
-      "POIVRON VERT",
-      "POIVRON ROUGE",
-      "POIVRON JAUNE",
-      "POIVRON ORANGE",
-      "POIVRON VERT/ROUGE",
-      "ZUCCHINI",
-      "ZUCCHINI VERT",
-      "ZUCCHINI JAUNE",
-      "ZUCCHINI LIBANAIS",
-    ];
+    // // 1️⃣ Full template of all vegetables
+    // const allVegetables = [
+    //   "AUCUNE",
+    //   "CHOU",
+    //   "CHOU DE BRUXELLES",
+    //   "CHOU-FLEUR",
+    //   "CHOU VERT",
+    //   "CHOU PLAT",
+    //   "CHOU ROUGE",
+    //   "CHOU DE SAVOIE",
+    //   "CÉLERI",
+    //   "CŒUR DE ROMAINE",
+    //   "ENDIVES",
+    //   "LAITUE",
+    //   "LAITUE POMMÉE",
+    //   "LAITUE FRISÉE",
+    //   "LAITUE FRISÉE VERTE",
+    //   "LAITUE FRISÉE ROUGE",
+    //   "LAITUE ROMAINE",
+    //   "POIVRON",
+    //   "POIVRON VERT",
+    //   "POIVRON ROUGE",
+    //   "POIVRON JAUNE",
+    //   "POIVRON ORANGE",
+    //   "POIVRON VERT/ROUGE",
+    //   "ZUCCHINI",
+    //   "ZUCCHINI VERT",
+    //   "ZUCCHINI JAUNE",
+    //   "ZUCCHINI LIBANAIS",
+    // ];
 
     // 2️⃣ Initialize all vegetables with 0 cost
     let newAdjusted: { vegetable: string; total_cost: number }[] = allVegetables.map(
@@ -446,7 +455,7 @@ function App() {
     setAdjustedVegetableCosts(newAdjusted);
 
 
-  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate]);
+  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate, allVegetables]);
 
 
 
@@ -496,7 +505,7 @@ function App() {
         setSeedCosts(data);
 
         // Log to see cultivars
-        console.log("Seed costs fetched:", data);
+
 
       } catch (err) {
         setErrorSeedCosts((err as Error).message);
@@ -534,7 +543,7 @@ function App() {
       return;
     }
 
-    // 1️⃣ Full template of all vegetables
+
     const allVegetables = [
       "AUCUNE",
       "CHOU", "CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE",

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
+import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
 const OtherCostsInput = () => {
 
@@ -15,6 +16,7 @@ const OtherCostsInput = () => {
     const [showCultivar, setShowCultivar] = useState<boolean>(false);
     const [description, setDescription] = useState<string>("");
     const [cultivar, setCultivar] = useState<string>("");
+    const [allVegetables, setAllVegetables] = useState<string[]>([]);
 
     const currentYear = new Date().getFullYear();
     const [costYear, setCostYear] = useState<number>(currentYear);
@@ -23,6 +25,13 @@ const OtherCostsInput = () => {
 
     const { token } = useAuth();
 
+    const { vegetables } = useVegetables();
+
+    useEffect(() => {
+        const vegNames = vegetables.map(veg => veg.vegetable);
+        setAllVegetables(vegNames);
+    }, [vegetables]);
+
 
     const categories = ["SEMENCE",
         "EMBALLAGE",
@@ -30,34 +39,7 @@ const OtherCostsInput = () => {
         "Chaux calcique", "Engrais chimiques", "Engrais verts", "Fumier", "Terre et Terreaux", "HORS CATÉGORIE"];
 
 
-    const allVegetables = [
-        "CHOU",
-        "CHOU DE BRUXELLES",
-        "CHOU-FLEUR",
-        "CHOU VERT",
-        "CHOU PLAT",
-        "CHOU ROUGE",
-        "CHOU DE SAVOIE",
-        "CÉLERI",
-        "CŒUR DE ROMAINE",
-        "ENDIVES",
-        "LAITUE",
-        "LAITUE POMMÉE",
-        "LAITUE FRISÉE",
-        "LAITUE FRISÉE VERTE",
-        "LAITUE FRISÉE ROUGE",
-        "LAITUE ROMAINE",
-        "POIVRON",
-        "POIVRON VERT",
-        "POIVRON ROUGE",
-        "POIVRON JAUNE",
-        "POIVRON ORANGE",
-        "POIVRON VERT/ROUGE",
-        "ZUCCHINI",
-        "ZUCCHINI VERT",
-        "ZUCCHINI JAUNE",
-        "ZUCCHINI LIBANAIS",
-    ];
+
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 

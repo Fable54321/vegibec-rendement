@@ -80,9 +80,7 @@ const ShowWages = () => {
 
     }, [token, year])
 
-    useEffect(() => {
-        console.log("Salaries fetched:", salaries);
-    }, [salaries]);
+
 
     const formatDate = (dateString: string) => {
         // ✅ Forces date to be treated as plain YYYY-MM-DD with NO timezone shift

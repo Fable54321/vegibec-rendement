@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
 import { useFields } from "@/context/fields/FieldsContext";
+import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
 
 const TaskCostsInput = () => {
@@ -39,36 +40,16 @@ const TaskCostsInput = () => {
         };
     }
 
+    const { vegetables: vegList } = useVegetables();
 
+    const [vegetables, setVegetables] = useState<string[]>([]);
 
-    const vegetables = [
-        "Céleri",
-        "Chou",
-        "Chou plat",
-        "Chou vert",
-        "Chou rouge",
-        "Chou de Savoie",
-        "Chou de Bruxelles",
-        "Chou-fleur",
-        "Cœur de romaine",
-        "Endives",
-        "Laitue",
-        "Laitue frisée",
-        "Laitue frisée verte",
-        "Laitue frisée rouge",
-        "Laitue pommée",
-        "Laitue romaine",
-        "Poivron",
-        "Poivron vert",
-        "Poivron rouge",
-        "Poivron jaune",
-        "Poivron orange",
-        "Poivron vert/rouge",
-        "Zucchini",
-        "Zucchini vert",
-        "Zucchini jaune",
-        "Zucchini libanais",
-    ];
+    useEffect(() => {
+        const vegNames = vegList.map((veg) => veg.vegetable);
+        setVegetables(vegNames);
+        setSelectedVeggie(vegNames[1] || "");
+    }, [vegList]);
+
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
@@ -89,7 +70,8 @@ const TaskCostsInput = () => {
     const [isFirstStepCompleted, setIsFirstStepCompleted] = useState(false);
 
 
-
+    const [fromDate, setFromDate] = useState<string>("");
+    const [toDate, setToDate] = useState<string>("");
 
 
     // --- New states for overlay ---
@@ -130,11 +112,18 @@ const TaskCostsInput = () => {
             setError(null);
 
             try {
+                const params = new URLSearchParams({
+                    page: overlayPage.toString(),
+                    limit: "10",
+                });
+
+                if (fromDate) params.append("from", fromDate);
+                if (toDate) params.append("to", toDate);
+
                 const res = await fetchWithAuth<PaginatedTaskCostResponse>(
-                    `${API_BASE_URL}/data/costs?page=${overlayPage}&limit=10`,
+                    `${API_BASE_URL}/data/costs?${params.toString()}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-
                 setLatestEntries(res.entries);
                 setOverlayTotalPages(res.pagination.totalPages);
             } catch (err) {
@@ -147,7 +136,7 @@ const TaskCostsInput = () => {
 
         fetchLatestEntries();
 
-    }, [showOverlay, token, overlayPage]);
+    }, [showOverlay, token, overlayPage, fromDate, toDate]);
 
     const openOverlay = () => {
         setOverlayPage(1);
@@ -159,6 +148,13 @@ const TaskCostsInput = () => {
         setShowOverlay(false);
     };
 
+    useEffect(() => {
+        if (showOverlay) {
+            setOverlayPage(1);
+            setPageInput("1");
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fromDate, toDate]);
 
 
     return (
@@ -201,6 +197,37 @@ const TaskCostsInput = () => {
                         <h2 className="text-2xl font-semibold mb-4 text-center">
                             Dernières entrées
                         </h2>
+                        <div className="flex flex-wrap justify-center gap-4 mb-4">
+                            <div className="flex flex-col">
+                                <label className="text-sm text-gray-600">Du</label>
+                                <input
+                                    type="date"
+                                    value={fromDate}
+                                    onChange={(e) => setFromDate(e.target.value)}
+                                    className="border rounded px-2 py-1"
+                                />
+                            </div>
+
+                            <div className="flex flex-col">
+                                <label className="text-sm text-gray-600">Au</label>
+                                <input
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => setToDate(e.target.value)}
+                                    className="border rounded px-2 py-1"
+                                />
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setFromDate("");
+                                    setToDate("");
+                                }}
+                                className="self-end px-3 py-1 border rounded hover:bg-gray-100"
+                            >
+                                Réinitialiser
+                            </button>
+                        </div>
 
                         {loading && <p className="text-center">Chargement...</p>}
                         {error && (
@@ -314,14 +341,8 @@ const TaskCostsInput = () => {
                                         ))}
                                     </tbody>
                                 </table>
-                                <div className="flex justify-between items-center mt-4">
-                                    <button
-                                        disabled={overlayPage <= 1}
-                                        onClick={() => setOverlayPage((p) => p - 1)}
-                                        className="px-4 py-2 rounded border disabled:opacity-50 hover:cursor-pointer"
-                                    >
-                                        ← Précédent
-                                    </button>
+                                <div className="flex flex-col justify-center items-center mt-4">
+
 
                                     <span>
                                         Page{" "}
@@ -347,18 +368,33 @@ const TaskCostsInput = () => {
                                             className="w-12 text-center border rounded px-1"
                                         />{" "}
                                         / {overlayTotalPages}
-                                        <button className="block mx-auto rounded border-2 border-green-700 px-1  mt-[0.5rem] hover:cursor-pointer">
+
+                                    </span>
+                                    <div className="flex gap-[2rem] items-center h-[3rem]">
+                                        <button
+                                            disabled={overlayPage <= 1}
+                                            onClick={() => setOverlayPage((p) => p - 1)}
+                                            className="flex items-center px-4 py-2 rounded border-2 h-[2.25rem] border-green-700 disabled:opacity-50 hover:cursor-pointer"
+                                        >
+                                            ← Précédent
+                                        </button>
+
+
+
+                                        <button className="block mx-auto rounded border-2 border-green-700 px-1   hover:cursor-pointer">
                                             go
                                         </button>
-                                    </span>
 
-                                    <button
-                                        disabled={overlayPage >= overlayTotalPages}
-                                        onClick={() => setOverlayPage((p) => p + 1)}
-                                        className="px-4 py-2 rounded border disabled:opacity-50 hover:cursor-pointer"
-                                    >
-                                        Suivant →
-                                    </button>
+                                        <button
+                                            disabled={overlayPage >= overlayTotalPages}
+                                            onClick={() => setOverlayPage((p) => p + 1)}
+                                            className="flex items-center px-4 py-2 h-[2.25rem] rounded border-2 border-green-700 disabled:opacity-50 hover:cursor-pointer"
+                                        >
+                                            Suivant →
+                                        </button>
+
+                                    </div>
+
                                 </div>
                             </>
                         )}

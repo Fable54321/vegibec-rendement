@@ -3,44 +3,31 @@ import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
+import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
-const allVegetables = [
-    "CHOU",
-    "CHOU DE BRUXELLES",
-    "CHOU-FLEUR",
-    "CHOU VERT",
-    "CHOU PLAT",
-    "CHOU ROUGE",
-    "CHOU DE SAVOIE",
-    "CÉLERI",
-    "CŒUR DE ROMAINE",
-    "ENDIVES",
-    "LAITUE",
-    "LAITUE POMMÉE",
-    "LAITUE FRISÉE",
-    "LAITUE FRISÉE VERTE",
-    "LAITUE FRISÉE ROUGE",
-    "LAITUE ROMAINE",
-    "POIVRON",
-    "POIVRON VERT",
-    "POIVRON ROUGE",
-    "POIVRON JAUNE",
-    "POIVRON ORANGE",
-    "POIVRON VERT/ROUGE",
-    "ZUCCHINI",
-    "ZUCCHINI VERT",
-    "ZUCCHINI JAUNE",
-    "ZUCCHINI LIBANAIS",
-];
+
+
+
+
 
 const UnitsSoldInput = () => {
     const { token } = useAuth();
+
+    const { vegetables } = useVegetables();
+
+
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
     const [culture, setCulture] = useState("CHOU VERT");
     const [value, setValue] = useState<number | "">("");
     const [entryDate, setEntryDate] = useState<string>("");
+    const [allVegetables, setAllVegetables] = useState<string[]>([]);
+
+    useEffect(() => {
+        const vegNames = vegetables.map(veg => veg.vegetable);
+        setAllVegetables(vegNames);
+    }, [vegetables]);
 
     const isKg = culture === "CHOU DE BRUXELLES"; // check for special vegetable
 
