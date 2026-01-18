@@ -6,6 +6,8 @@
 @theme {
   --color-green-400: #96c61c;
   --color-green-700: #4b7312;
+
+  --breakpoint-xs: 325px;
 }
 
 html {

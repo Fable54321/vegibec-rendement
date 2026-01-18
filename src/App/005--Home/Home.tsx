@@ -41,7 +41,7 @@ const Home = () => {
         <main className="relative flex flex-col items-center w-full md:text-[1.2em] pb-[0.5rem]">
             <div className='flex flex-col lg:flex-row lg:w-full lg:justify-between lg:px-[1rem] w-fit gap-[0.5rem] mt-[0.75rem]'>
                 <Link to="change-password" className='text-[0.7rem]  md:text-[0.8rem] button-generic'>Changer mot de passe</Link>
-
+                <Link to="gestion-administrative" className='text-[0.7rem]  md:text-[0.8rem] button-generic'>Gestion Administrative +</Link>
                 <button onClick={handleLogout} className='text-[0.7rem]  md:text-[0.8rem] button-generic'>Se déconnecter</button>
             </div>
             <section className="flex flex-col items-center w-full mt-[0.75rem] text-[1.9em] gap-[1rem] md:gap-[1.2rem] font-bold text-center">

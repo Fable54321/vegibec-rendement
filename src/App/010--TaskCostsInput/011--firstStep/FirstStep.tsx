@@ -56,57 +56,6 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
     const supervisorsNames = supervisors.map((sup) => sup.supervisor);
 
 
-    // const supervisors =
-    //     [
-    //         "Aucun",
-    //         "Reginaldo Patzan Pantzay",
-    //         "Abelain Maximiliano Velasquez Morales",
-    //         "Armando Xico Miculax",
-    //         "Carlos Daniel Oxi Chacach",
-    //         "Cleyder Edberto Arreaga Velasquez",
-    //         "Eddy Jonas Canac Ajbal",
-    //         "Efrain Bolivar Oxi Cuxil",
-    //         "Elmer Roblero Escalante",
-    //         "Ever Florencio Barrios Garcia",
-    //         "Hugo Nery Soloman Cali",
-    //         "Irad Miculax Sanum",
-    //         "Israel Miculax Xicay",
-    //         "Jerson Camey Sian",
-    //         "Jorge Ottoniel Jop Ixcajoc",
-    //         "Juan Carlos Reyes Tapia",
-    //         "Mario Felipe Arreaga Roblero",
-    //         "Oscar Daniel Arreaga Velasquez",
-    //         "Oscar Noé Pérez Capir",
-    //         "Pascal Lecault",
-    //         "Pedro Tzay Sincal",
-    //         "Yorwin Marino Arreaga Velasquez",
-    //         "Armando Roel Roblero Lopez",
-    //         "Jose Luis Tapia Martinez",
-    //         "Luis Eduardo Xicay Guch",
-    //         "Moïse Lecault-Hernandez",
-    //         "Rodolfo Ixen Sitan",
-    //         "Alvaro Miculax Pichiya",
-    //         "Berchmans Lecault",
-    //         "Carlos Ediberto Ajozal",
-    //         "Carlos Enrique Oxi Cuxil",
-    //         "Celestino Coy Can",
-    //         "Danielle O'Sullivan",
-    //         "Eder Mauricio Barrios Fuentes",
-    //         "Edwin Orlando Sian Miculax",
-    //         "Elsias Leonel Canac Sitan",
-    //         "Felipe Miculax Sitan",
-    //         "Francisco Miculax Miculax",
-    //         "Jairo Ananias Miculax Sanum",
-    //         "Jairo Gabriel Sian Aju",
-    //         "Jose Catalino Ajuchan",
-    //         "Jose Ricardo Xico Sanum",
-    //         "Mourad El Alaoui",
-    //         "Fabiola Lecault-Hernandez",
-    //         "Fabrice Lecault-Hernandez",
-    //         "Megly Belen Mendoza Figueroa",
-    //         "Raffaella Carvalho"
-    //     ]
-
 
 
     useEffect(() => {

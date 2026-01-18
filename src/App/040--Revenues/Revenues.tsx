@@ -2,13 +2,13 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import type { AppOutletContext } from "../000--App/App";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 
 interface Revenue {
     vegetable: string;
-    total_revenue: number;
+    revenue: number;
 }
 
 const Revenues = () => {
@@ -32,30 +32,6 @@ const Revenues = () => {
         "#F207D5",
     ];
 
-    // --- Fetch Revenues ---
-    // useEffect(() => {
-    //     if (!token) return;
-
-    //     const fetchRevenues = async () => {
-    //         setLoading(true);
-    //         setError(null);
-
-    //         try {
-    //             const data = (await fetchWithAuth(
-    //                 `${API_BASE_URL}/revenues/by-year?year_from=${selectedYear}`,
-    //                 { headers: { Authorization: `Bearer ${token}` } }
-    //             )) as Revenue[];
-
-    //             setRevenues(data);
-    //         } catch (err) {
-    //             setError((err as Error).message);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     fetchRevenues();
-    // }, [selectedYear, token]);
 
 
     const formatCurrency = (amount: number) => {
@@ -67,14 +43,19 @@ const Revenues = () => {
         });
     };
 
+
+    useEffect(() => {
+        console.log("Revenues updated:", revenues);
+    }, [revenues])
+
     const getConicGradient = (revenues: Revenue[]) => {
         if (revenues.length === 0) return "radial-gradient(circle, #ccc 0%, #999 100%)";
 
-        const total = revenues.reduce((sum, r) => sum + Number(r.total_revenue), 0);
+        const total = revenues.reduce((sum, r) => sum + Number(r.revenue), 0);
         let currentAngle = 0;
 
         const stops = revenues.map((r, i) => {
-            const ratio = Number(r.total_revenue) / total;
+            const ratio = Number(r.revenue) / total;
             const start = currentAngle;
             const end = currentAngle + ratio * 360;
             currentAngle = end;
@@ -154,14 +135,14 @@ const Revenues = () => {
                                 <div className="w-[70%] flex">
                                     <span className="font-bold">{item.vegetable}</span>:{" "}
                                     <span className="text-[1em]  text-nowrap mr-[2rem] ml-auto font-bold">
-                                        {formatCurrency(Number(item.total_revenue))}
+                                        {formatCurrency(Number(item.revenue))}
                                     </span>
 
                                 </div>{" "}
                                 <p className="text-[1.1em] font-bold">
-                                    {((Number(item.total_revenue) /
+                                    {((Number(item.revenue) /
                                         revenues.reduce(
-                                            (sum, r) => sum + Number(r.total_revenue),
+                                            (sum, r) => sum + Number(r.revenue),
                                             0
                                         )) *
                                         100

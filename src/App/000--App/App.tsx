@@ -7,7 +7,9 @@ import { useDate } from "@/context/date/DateContext";
 import { UnitsContext } from "@/context/units/UnitsContext";
 import { UnspecifiedContext } from "@/context/unspecified/UnspecifiedContext";
 import { genericCostsRedistribution } from "../../utils/genericCostsRedistribution";
+import { buildEffectiveRevenues } from "@/utils/buildEffectiveRevenues";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
+import { useProjectedRevenues } from "@/context/projectedRevenues/ProjectedRevenuesContext";
 
 
 
@@ -19,8 +21,10 @@ type SeedCostAPI = {
   total_cost: number;
 };
 
+
+
 export type AppOutletContext = {
-  revenues: { vegetable: string; total_revenue: number }[];
+  revenues: { vegetable: string; revenue: number }[];
   percentages: RevenuePercentage;
   vegetableCosts: { vegetable: string; total_cost: number }[];
   adjustedVegetableCosts: { vegetable: string; total_cost: number }[];
@@ -106,11 +110,17 @@ function App() {
   const { yearSelected, setYearSelected, monthSelected, setMonthSelected, startDate, setStartDate, endDate, setEndDate } = useDate();
 
 
+  interface Revenue {
+    vegetable: string;
+    revenue: number;
+  }
+
+
 
   const [soilGroupBy, setSoilGroupBy] = useState<"vegetable" | "category">("vegetable");
 
   // --- Data ---
-  const [revenues, setRevenues] = useState<{ vegetable: string; total_revenue: number }[]>([]);
+  const [revenues, setRevenues] = useState<Revenue[]>([]);
   const [revenuesSelectedYear, setRevenuesSelectedYear] = useState("2024");
 
 
@@ -146,10 +156,12 @@ function App() {
   const { unitsError, unitsLoading } = useContext(UnitsContext);
   const [allVegetables, setAllVegetables] = useState<string[]>([]);
 
-
+  const { loading: projectedRevenuesloading, error: projectedRevenuesError, projectedRevenues } = useProjectedRevenues()
 
 
   const { vegetables, loading: vegetablesLoading, error: vegetablesError } = useVegetables();
+
+
 
 
   useEffect(() => {
@@ -177,8 +189,15 @@ function App() {
 
 
 
-  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts || loadingPackagingCosts || loadingSoilProducts || unitsLoading || unspecifiedLoading || vegetablesLoading;
-  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts || errorSoilProducts || unitsError || unspecifiedError || vegetablesError;
+  const mainLoading = loadingRevenues || loadingCosts || loadingOtherCosts || loadingSeedCosts
+    || loadingPackagingCosts || loadingSoilProducts || unitsLoading || unspecifiedLoading
+    || vegetablesLoading || projectedRevenuesloading;
+
+
+  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts
+    || errorSoilProducts || unitsError
+    || unspecifiedError || vegetablesError
+    || projectedRevenuesError;
 
   // --- Derived query period ---
   const periodQuery = useMemo(() => {
@@ -209,93 +228,6 @@ function App() {
     total_cost: number;
   }
 
-  // const genericCostsRedistribution = (
-  //   data: CostEntry[],
-  //   revenues: Record<string, number>
-  // ): CostEntry[] => {
-  //   let adjusted: CostEntry[] = [...data];
-
-  //   const redistributeGroup = (groupName: string, children: string[]) => {
-  //     const validChildren = children.filter((v) => revenues[v] && revenues[v] > 0);
-
-  //     if (!validChildren.length) return;
-
-  //     const groupEntry = adjusted.find((v) => v.vegetable === groupName);
-  //     const groupCost = groupEntry?.total_cost || 0;
-
-  //     const totalRevenue = validChildren.reduce(
-  //       (sum, v) => sum + (revenues[v] || 0),
-  //       0
-  //     );
-
-  //     validChildren.forEach((child) => {
-  //       const idx = adjusted.findIndex((v) => v.vegetable === child);
-  //       const revenueShare = (revenues[child] || 0) / totalRevenue;
-  //       const childCost = groupCost * revenueShare;
-
-  //       if (idx >= 0) {
-  //         adjusted[idx].total_cost += childCost;
-  //       } else {
-  //         adjusted.push({ vegetable: child, total_cost: childCost });
-  //       }
-  //     });
-
-  //     adjusted = adjusted.filter((v) => v.vegetable !== groupName);
-  //   };
-
-  //   // Step 1: Top-level redistribution
-  //   redistributeGroup("CHOU", ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"]);
-  //   redistributeGroup("POIVRON", ["POIVRON VERT", "POIVRON ROUGE", "POIVRON JAUNE", "POIVRON ORANGE", "POIVRON VERT/ROUGE"]);
-  //   redistributeGroup("ZUCCHINI", ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"]);
-  //   redistributeGroup(
-  //     "LAITUE",
-  //     ["LAITUE POMMÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE", "LAITUE ROMAINE", "CŒUR DE ROMAINE"]
-  //   );
-
-  //   // Step 2: Nested redistribution for LAITUE ROMAINE group
-  //   const romaineChildren = ["LAITUE ROMAINE", "CŒUR DE ROMAINE"];
-  //   const romaineTotal = romaineChildren.reduce(
-  //     (sum, v) => sum + (adjusted.find((e) => e.vegetable === v)?.total_cost || 0),
-  //     0
-  //   );
-
-  //   const romaineRevenueTotal = romaineChildren.reduce(
-  //     (sum, v) => sum + (revenues[v] || 0),
-  //     0
-  //   );
-
-  //   if (romaineRevenueTotal > 0) {
-  //     romaineChildren.forEach((child) => {
-  //       const idx = adjusted.findIndex((v) => v.vegetable === child);
-  //       const share = (revenues[child] || 0) / romaineRevenueTotal;
-  //       if (idx >= 0) {
-  //         adjusted[idx].total_cost = romaineTotal * share;
-  //       } else {
-  //         adjusted.push({ vegetable: child, total_cost: romaineTotal * share });
-  //       }
-  //     });
-  //   }
-
-  //   const friseeCost = adjusted.find(v => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
-  //   if (friseeCost > 0) {
-  //     const friseeChildren = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
-  //     const totalFriseeRevenue = friseeChildren.reduce((sum, v) => sum + (revenues[v] || 0), 0);
-
-  //     friseeChildren.forEach((child) => {
-  //       const idx = adjusted.findIndex((v) => v.vegetable === child);
-  //       const share = (revenues[child] || 0) / totalFriseeRevenue;
-  //       const costShare = friseeCost * share;
-  //       if (idx >= 0) adjusted[idx].total_cost += costShare;
-  //       else adjusted.push({ vegetable: child, total_cost: costShare });
-  //     });
-
-  //     // Remove generic LAITUE FRISÉE
-  //     adjusted = adjusted.filter(v => v.vegetable !== "LAITUE FRISÉE");
-  //   }
-
-  //   return adjusted;
-  // };
-
 
 
 
@@ -315,21 +247,48 @@ function App() {
       setErrorRevenues(null);
 
       try {
-        const data = (await fetchWithAuth(
+        const data = await fetchWithAuth<
+          { vegetable: string; total_revenue: number }[]
+        >(
           `${API_BASE_URL}/revenues/by-year?year_from=${revenuesSelectedYear}`,
           { headers: { Authorization: `Bearer ${token}` } }
-        )) as { vegetable: string; total_revenue: number }[];
+        );
 
-        setRevenues(data);
+        // 1️⃣ Normalize real revenues
+        const normalizedRealRevenues = data.map((r) => ({
+          vegetable: r.vegetable,
+          revenue: Number(r.total_revenue),
+        }));
 
-        if (!data.length) {
+        const normalizedProjectedRevenues = projectedRevenues.map((p) => ({
+          vegetable: p.vegetable,
+          revenue: Number(p.projected_revenue),
+          year: p.year,
+        }));
+
+        // 2️⃣ Build effective revenues (THIS is the key fix)
+        const effectiveRevenues = buildEffectiveRevenues(
+          normalizedRealRevenues,
+          normalizedProjectedRevenues,
+          Number(yearSelected)
+        );
+
+        setRevenues(effectiveRevenues);
+
+        // 3️⃣ Percentages MUST be based on effective revenues
+        if (!effectiveRevenues.length) {
           setPercentages({});
         } else {
-          const total = data.reduce((sum, r) => sum + Number(r.total_revenue), 0);
+          const total = effectiveRevenues.reduce(
+            (sum, r) => sum + r.revenue,
+            0
+          );
+
           const pct: RevenuePercentage = {};
-          data.forEach((item) => {
-            pct[item.vegetable] = (Number(item.total_revenue) / total) * 100;
+          effectiveRevenues.forEach((item) => {
+            pct[item.vegetable] = (item.revenue / total) * 100;
           });
+
           setPercentages(pct);
         }
       } catch (err) {
@@ -340,7 +299,13 @@ function App() {
     };
 
     fetchRevenues();
-  }, [revenuesSelectedYear, token]);
+  }, [
+    revenuesSelectedYear,
+    yearSelected,          // ✅ REQUIRED
+    token,
+    projectedRevenues,    // ✅ REQUIRED
+  ]);
+
 
 
   useEffect(() => {
@@ -401,36 +366,7 @@ function App() {
       return;
     }
 
-    // // 1️⃣ Full template of all vegetables
-    // const allVegetables = [
-    //   "AUCUNE",
-    //   "CHOU",
-    //   "CHOU DE BRUXELLES",
-    //   "CHOU-FLEUR",
-    //   "CHOU VERT",
-    //   "CHOU PLAT",
-    //   "CHOU ROUGE",
-    //   "CHOU DE SAVOIE",
-    //   "CÉLERI",
-    //   "CŒUR DE ROMAINE",
-    //   "ENDIVES",
-    //   "LAITUE",
-    //   "LAITUE POMMÉE",
-    //   "LAITUE FRISÉE",
-    //   "LAITUE FRISÉE VERTE",
-    //   "LAITUE FRISÉE ROUGE",
-    //   "LAITUE ROMAINE",
-    //   "POIVRON",
-    //   "POIVRON VERT",
-    //   "POIVRON ROUGE",
-    //   "POIVRON JAUNE",
-    //   "POIVRON ORANGE",
-    //   "POIVRON VERT/ROUGE",
-    //   "ZUCCHINI",
-    //   "ZUCCHINI VERT",
-    //   "ZUCCHINI JAUNE",
-    //   "ZUCCHINI LIBANAIS",
-    // ];
+
 
     // 2️⃣ Initialize all vegetables with 0 cost
     let newAdjusted: { vegetable: string; total_cost: number }[] = allVegetables.map(
@@ -447,7 +383,7 @@ function App() {
     newAdjusted = genericCostsRedistribution(newAdjusted,
       // Build a revenue map for faster lookup
       revenues.reduce<Record<string, number>>((acc, r) => {
-        acc[r.vegetable] = Number(r.total_revenue || 0);
+        acc[r.vegetable] = Number(r.revenue || 0);
         return acc;
       }, {})
     );
@@ -544,17 +480,7 @@ function App() {
     }
 
 
-    const allVegetables = [
-      "AUCUNE",
-      "CHOU", "CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE",
-      "CHOU-FLEUR", "CHOU DE BRUXELLES",
-      "CÉLERI",
-      "CŒUR DE ROMAINE",
-      "ENDIVES",
-      "LAITUE", "LAITUE POMMÉE", "LAITUE FRISÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE", "LAITUE ROMAINE",
-      "POIVRON", "POIVRON VERT", "POIVRON ROUGE", "POIVRON JAUNE", "POIVRON ORANGE", "POIVRON VERT/ROUGE",
-      "ZUCCHINI", "ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"
-    ];
+
 
     // 2️⃣ Initialize all vegetables with 0 cost
     let newAdjusted = allVegetables.map(v => ({ vegetable: v, total_cost: 0 }));
@@ -567,7 +493,7 @@ function App() {
 
     // 4️⃣ Build revenue map
     const revenueMap: Record<string, number> = revenues.reduce((acc, r) => {
-      acc[r.vegetable] = Number(r.total_revenue || 0);
+      acc[r.vegetable] = Number(r.revenue || 0);
       return acc;
     }, {} as Record<string, number>);
 
@@ -578,7 +504,7 @@ function App() {
     setAdjustedPackagingCosts(newAdjusted);
 
 
-  }, [packagingCosts, revenues]);
+  }, [packagingCosts, revenues, allVegetables]);
 
 
 
@@ -640,22 +566,11 @@ function App() {
 
     // 1️⃣ Build revenue map
     const revenueMap: Record<string, number> = revenues.reduce((acc, r) => {
-      acc[r.vegetable] = Number(r.total_revenue || 0);
+      acc[r.vegetable] = Number(r.revenue || 0);
       return acc;
     }, {} as Record<string, number>);
 
-    // 2️⃣ Full template of all vegetables
-    const allVegetables = [
-      "AUCUNE",
-      "CHOU", "CHOU PLAT", "CHOU VERT", "CHOU ROUGE", "CHOU DE SAVOIE",
-      "CHOU-FLEUR", "CHOU DE BRUXELLES",
-      "CÉLERI",
-      "CŒUR DE ROMAINE",
-      "ENDIVES",
-      "LAITUE", "LAITUE POMMÉE", "LAITUE FRISÉE", "LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE", "LAITUE ROMAINE",
-      "POIVRON", "POIVRON VERT", "POIVRON ROUGE", "POIVRON JAUNE", "POIVRON ORANGE", "POIVRON VERT/ROUGE",
-      "ZUCCHINI", "ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"
-    ];
+
 
     // 3️⃣ Initialize newAdjusted with 0 costs
     let newAdjusted = allVegetables.map(v => ({ vegetable: v, total_cost: 0 }));
@@ -676,7 +591,7 @@ function App() {
     setAdjustedSoilProducts(newAdjusted);
 
 
-  }, [vegetableSoilProducts, revenues]);
+  }, [vegetableSoilProducts, revenues, allVegetables]);
 
 
 
@@ -698,7 +613,7 @@ function App() {
 
     // 2️⃣ Revenue map
     const revenueMap = revenues.reduce<Record<string, number>>((acc, r) => {
-      acc[r.vegetable] = Number(r.total_revenue || 0);
+      acc[r.vegetable] = Number(r.revenue || 0);
       return acc;
     }, {});
 

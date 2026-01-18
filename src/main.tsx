@@ -27,6 +27,9 @@ import EntriesJournal from './App/100-EntriesJournal/EntriesJournal'
 import { FieldsProvider } from './context/fields/FieldsContextProvider'
 import { SupervisorsProvider } from './context/supervisors/SupervisorsProvider'
 import { VegetablesProvider } from './context/vegetables/VegetablesContextProvider'
+import Administrative from './App/110--Administrative/Administrative'
+import CulturesUpdate from './App/110--Administrative/113--CulturesUpdate/CulturesUpdate'
+import { ProjectedRevenuesProvider } from './context/projectedRevenues/ProjectedRevenuesContextProvider'
 
 
 
@@ -170,7 +173,23 @@ const router = createBrowserRouter([
             <USDA />
           </ProtectedRoute>
         ),
-      }
+      },
+      {
+        path: '/gestion-administrative',
+        element: (
+          <ProtectedRoute>
+            <Administrative />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/gestion-administrative/cultures',
+        element: (
+          <ProtectedRoute>
+            <CulturesUpdate />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);
@@ -184,7 +203,9 @@ createRoot(document.getElementById('root')!).render(
             <SupervisorsProvider>
               <VegetablesProvider>
                 <FieldsProvider>
-                  <RouterProvider router={router} />
+                  <ProjectedRevenuesProvider>
+                    <RouterProvider router={router} />
+                  </ProjectedRevenuesProvider>
                 </FieldsProvider>
               </VegetablesProvider>
             </SupervisorsProvider>

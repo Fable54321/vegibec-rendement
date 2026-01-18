@@ -3,7 +3,7 @@ import type { AppOutletContext } from "../000--App/App";
 import { useEffect, useState, useContext } from "react";
 import { useDate } from "@/context/date/DateContext";
 import { UnitsContext } from "@/context/units/UnitsContext";
-import { UnspecifiedContext } from "@/context/unspecified/UnspecifiedContext";
+
 
 const Costs = () => {
     const {
@@ -22,6 +22,7 @@ const Costs = () => {
         setSoilGroupBy,
         adjustedSoilProducts,
         adjustedUnspecifiedCosts,
+        revenues,
     } = useOutletContext<AppOutletContext>();
 
 
@@ -61,9 +62,10 @@ const Costs = () => {
 
     const { totals } = useContext(UnitsContext);
 
-    const { data } = useContext(UnspecifiedContext);
 
-    console.log("unspecified costs data from context", data);
+    useEffect(() => { console.log(revenues) }, [revenues])
+
+
 
     const unitsByVegetable: Record<
         string,
