@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    const API_BASE_URL = "vegibec-rendement-backend.onrender.com";
+    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
     useEffect(() => {
         const initAuth = async () => {
