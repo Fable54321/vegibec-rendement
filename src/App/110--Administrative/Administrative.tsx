@@ -27,7 +27,7 @@ const Administrative = () => {
                                 font-bold
                                 touch-manipulation
                                 ltr  w-full' >Mise à jour des revenus</Link>
-                <Link to="#" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                <Link to="/gestion-administrative/employes" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
                                 cursor-pointer

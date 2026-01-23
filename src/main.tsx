@@ -31,6 +31,8 @@ import Administrative from './App/110--Administrative/Administrative'
 import CulturesUpdate from './App/110--Administrative/113--CulturesUpdate/CulturesUpdate'
 import { ProjectedRevenuesProvider } from './context/projectedRevenues/ProjectedRevenuesContextProvider'
 import RevenuesAdmin from './App/110--Administrative/111--RevenuesUpdate/000--RevenuesAdmin'
+import { EmployeesContextProvider } from './context/employees/EmployeesContextProvider'
+import Employeeshome from './App/110--Administrative/112--EmployeesUpdate/Employeeshome'
 
 
 
@@ -192,6 +194,14 @@ const router = createBrowserRouter([
             <RevenuesAdmin />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: '/gestion-administrative/employes',
+        element: (
+          <ProtectedRoute>
+            <Employeeshome />
+          </ProtectedRoute>
+        ),
       }
     ],
   },
@@ -204,13 +214,15 @@ createRoot(document.getElementById('root')!).render(
         <UnitsProvider>
           <UnspecifiedProvider>
             <SupervisorsProvider>
-              <VegetablesProvider>
-                <FieldsProvider>
-                  <ProjectedRevenuesProvider>
-                    <RouterProvider router={router} />
-                  </ProjectedRevenuesProvider>
-                </FieldsProvider>
-              </VegetablesProvider>
+              <EmployeesContextProvider>
+                <VegetablesProvider>
+                  <FieldsProvider>
+                    <ProjectedRevenuesProvider>
+                      <RouterProvider router={router} />
+                    </ProjectedRevenuesProvider>
+                  </FieldsProvider>
+                </VegetablesProvider>
+              </EmployeesContextProvider>
             </SupervisorsProvider>
           </UnspecifiedProvider>
         </UnitsProvider>

@@ -25,25 +25,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const API_BASE_URL = "vegibec-rendement-backend.onrender.com";
+
     useEffect(() => {
-        const initAuth = () => {
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split(".")[1]));
-                    setUser(payload);
-                } catch (err) {
-                    console.error("Invalid token:", err);
-                    setToken(null);
-                    setUser(null);
-                }
-            } else {
+        const initAuth = async () => {
+            if (!token) {
                 setUser(null);
+                setLoading(false);
+                return;
             }
-            setLoading(false); // ✅ mark loading as finished
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    credentials: "include",
+                });
+
+                if (!res.ok) throw new Error("Unauthorized");
+
+                const data = await res.json();
+                setUser(data.user);
+            } catch (err) {
+                console.warn("Auth check failed, logging out", err);
+                setToken(null);
+                localStorage.removeItem("token");
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
         };
 
         initAuth();
     }, [token]);
+
 
     const login = (newToken: string) => {
         setToken(newToken);

@@ -2,6 +2,8 @@ import { ChevronRightIcon } from "@heroicons/react/24/solid"
 import { useEffect, useState } from "react"
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
+import { useEmployees } from "@/context/employees/EmployeesContext";
+import { Link } from "react-router-dom";
 
 const FullYear = () => {
 
@@ -13,10 +15,12 @@ const FullYear = () => {
         days_in_year: number;
     }
 
-    const [employees, setEmployees] = useState<string[]>([]);
+
     const [name, setName] = useState<string>("");
     const [year, setYear] = useState<number | "">("");
     const [annualSalary, setAnnualSalary] = useState<string>("");
+
+    const { employees } = useEmployees();
 
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
@@ -30,30 +34,7 @@ const FullYear = () => {
 
 
 
-    useEffect(() => {
 
-        if (!token) {
-            return;
-        }
-        const fetchEmployees = async () => {
-            try {
-                const employeesData: string[] = await fetchWithAuth(`${API_BASE_URL}/employees`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                )
-
-
-
-
-                setEmployees(employeesData);
-
-            } catch (error) {
-                console.error('Error fetching employees:', error);
-            }
-        };
-        fetchEmployees();
-
-
-    }, [token]);
 
 
 
@@ -120,7 +101,10 @@ const FullYear = () => {
 
 
     return (
-        <article className="w-full flex flex-col items-center mt-[9rem] md:text-[1.5em]">
+        <article className="w-full flex flex-col items-center mt-[6rem] md:text-[1.5em]">
+
+            <Link to="/" className="button-generic mb-[1rem]">Accueil</Link>
+
             <form onSubmit={handleSubmit} className="flex flex-col items-center w-[min(90%,_400px)] md:w-[600px] gap-[1.7rem] rounded-[0.75rem] border-4 border-green-400 border-solid py-[1rem] px-[0.5rem]">
 
                 <h2 className="text-[1.5em] font-extrabold text-center">Entrée d'un salaire pour une année complète</h2>
