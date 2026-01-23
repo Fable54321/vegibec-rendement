@@ -7,18 +7,18 @@ const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 const Login = () => {
     const { login } = useAuth();
+    const navigate = useNavigate();
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const navigate = useNavigate();
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         setLoading(true);
+        setError(null);
 
         try {
             const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -30,15 +30,12 @@ const Login = () => {
 
             if (!res.ok) {
                 const errorData = await res.json().catch(() => null);
-                throw new Error(
-                    errorData?.message || "Nom d’utilisateur ou mot de passe invalide"
-                );
+                throw new Error(errorData?.message || "Nom d’utilisateur ou mot de passe invalide");
             }
 
             const data = await res.json();
-            login(data.token); // Save token in context/localStorage
-
-            navigate("/");
+            login(data.token); // ✅ set token and user in context
+            navigate("/"); // go to home page
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -47,10 +44,7 @@ const Login = () => {
     };
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-center gap-4 mt-8"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 mt-8">
             <input
                 type="text"
                 placeholder="Nom d'utilisateur"

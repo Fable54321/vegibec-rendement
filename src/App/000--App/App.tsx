@@ -70,7 +70,7 @@ function App() {
 
   // --- AUTO-REFRESH ACCESS TOKEN ---
   useEffect(() => {
-    if (!token) return;
+    if (loading || !token) return;
 
     const scheduleRefresh = () => {
       try {
@@ -107,7 +107,7 @@ function App() {
 
     const cleanup = scheduleRefresh();
     return cleanup;
-  }, [token, login, logout]);
+  }, [token, login, logout, loading]);
 
   // --- Filters ---
   const { yearSelected, setYearSelected, monthSelected, setMonthSelected, startDate, setStartDate, endDate, setEndDate } = useDate();
@@ -128,10 +128,13 @@ function App() {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
+    if (!token || loading) return; // ✅ wait until auth is loaded
+
     const fetchYears = async () => {
-      const data: number[] = await fetchWithAuth(`${API_BASE_URL}/revenues/available-years`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const data: number[] = await fetchWithAuth(
+        `${API_BASE_URL}/revenues/available-years`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setAvailableYears(data);
 
       // Pick last completed year automatically
@@ -139,8 +142,10 @@ function App() {
       const lastCompleted = data.find(y => y <= currentYear - 1);
       if (lastCompleted) setRevenuesSelectedYear(lastCompleted.toString());
     };
+
     fetchYears();
-  }, [token]);
+  }, [token, loading]);
+
 
 
   const [percentages, setPercentages] = useState<RevenuePercentage>({});

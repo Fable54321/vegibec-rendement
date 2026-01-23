@@ -1,17 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom'
 import vegibec from '../../assets/vegibec.png'
 import { useAuth } from '../../context/AuthContext';
-import Login from '@/components/login';
+
 
 const Home = () => {
 
-    const { user, logout } = useAuth();
+    const { logout } = useAuth();
 
     const navigate = useNavigate();
 
-    if (!user) {
-        return <Login />
-    }
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
