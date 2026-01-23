@@ -6,14 +6,14 @@ export interface SupervisorsContextType {
   supervisors: SupervisorType[];
   loading: boolean;
   error: string | null;
-  refreshSupervisors: () => void;
+  refetchSupervisors: () => void;
 }
 
 export const SupervisorsContext = createContext<SupervisorsContextType>({
   supervisors: [],
   loading: false,
   error: null,
-  refreshSupervisors: () => {},
+  refetchSupervisors: () => {},
 });
 export const useSupervisors = () => {
   const context = useContext(SupervisorsContext);

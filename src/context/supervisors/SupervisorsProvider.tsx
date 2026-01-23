@@ -47,7 +47,7 @@ export const SupervisorsProvider = ({ children }: { children: ReactNode }) => {
                 supervisors,
                 loading,
                 error,
-                refreshSupervisors: fetchSupervisors,
+                refetchSupervisors: fetchSupervisors,
             }}
         >
             {children}
