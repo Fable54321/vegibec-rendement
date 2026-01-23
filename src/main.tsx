@@ -30,6 +30,9 @@ import { VegetablesProvider } from './context/vegetables/VegetablesContextProvid
 import Administrative from './App/110--Administrative/Administrative'
 import CulturesUpdate from './App/110--Administrative/113--CulturesUpdate/CulturesUpdate'
 import { ProjectedRevenuesProvider } from './context/projectedRevenues/ProjectedRevenuesContextProvider'
+import RevenuesAdmin from './App/110--Administrative/111--RevenuesUpdate/000--RevenuesAdmin'
+
+
 
 
 
@@ -167,14 +170,6 @@ const router = createBrowserRouter([
         )
       },
       {
-        path: '/comparatif-usda',
-        element: (
-          <ProtectedRoute>
-            <USDA />
-          </ProtectedRoute>
-        ),
-      },
-      {
         path: '/gestion-administrative',
         element: (
           <ProtectedRoute>
@@ -190,6 +185,14 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: '/gestion-administrative/mise-a-jour-revenus',
+        element: (
+          <ProtectedRoute>
+            <RevenuesAdmin />
+          </ProtectedRoute>
+        ),
+      }
     ],
   },
 ]);

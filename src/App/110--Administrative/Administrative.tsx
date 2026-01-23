@@ -12,7 +12,7 @@ const Administrative = () => {
                 Accueil
             </Link>
             <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] max-xs:w-[92%] gap-[0.75rem] md:gap-[1.5rem] mt-[2rem] md:mt-[4rem]'>
-                <Link to="#" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                <Link to="/gestion-administrative/mise-a-jour-revenus" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
                                 cursor-pointer

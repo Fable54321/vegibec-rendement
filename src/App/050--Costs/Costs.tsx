@@ -22,7 +22,6 @@ const Costs = () => {
         setSoilGroupBy,
         adjustedSoilProducts,
         adjustedUnspecifiedCosts,
-        revenues,
     } = useOutletContext<AppOutletContext>();
 
 
@@ -63,7 +62,7 @@ const Costs = () => {
     const { totals } = useContext(UnitsContext);
 
 
-    useEffect(() => { console.log(revenues) }, [revenues])
+
 
 
 

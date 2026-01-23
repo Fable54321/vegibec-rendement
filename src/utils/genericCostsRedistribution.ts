@@ -3,115 +3,120 @@ export interface CostEntry {
   total_cost: number;
 }
 
+export interface ProjectedRevenue {
+  vegetable: string;
+  generic_group?: string | null;
+  revenue: number;
+  year: number;
+}
+
+/**
+ * Redistribute group costs among children based on effective revenue.
+ */
+const redistributeGroup = (
+  adjusted: CostEntry[],
+  groupName: string,
+  children: string[],
+  effectiveRevenues: Record<string, number>,
+): CostEntry[] => {
+  const validChildren = children.filter(
+    (v) => effectiveRevenues[v] && effectiveRevenues[v] > 0,
+  );
+
+  if (!validChildren.length) return adjusted;
+
+  const groupEntry = adjusted.find((v) => v.vegetable === groupName);
+  const groupCost = groupEntry?.total_cost || 0;
+
+  if (groupCost === 0) return adjusted;
+
+  const totalRevenue = validChildren.reduce(
+    (sum, v) => sum + effectiveRevenues[v],
+    0,
+  );
+
+  validChildren.forEach((child) => {
+    const share = effectiveRevenues[child] / totalRevenue;
+    const costShare = groupCost * share;
+
+    const idx = adjusted.findIndex((v) => v.vegetable === child);
+    if (idx >= 0) {
+      adjusted[idx].total_cost += costShare;
+    } else {
+      adjusted.push({ vegetable: child, total_cost: costShare });
+    }
+  });
+
+  // Remove generic group after redistribution
+  return adjusted.filter((v) => v.vegetable !== groupName);
+};
+
+/**
+ * Builds a dynamic groups map from projected revenues.
+ */
+const extractDynamicGroups = (
+  projectedRevenues: ProjectedRevenue[],
+): Record<string, string[]> => {
+  return projectedRevenues.reduce(
+    (acc, r) => {
+      if (!r.generic_group) return acc;
+
+      if (!acc[r.generic_group]) acc[r.generic_group] = [];
+      acc[r.generic_group].push(r.vegetable);
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
+};
+
+/**
+ * Redistribute costs for both hardcoded and dynamic groups.
+ */
 export const genericCostsRedistribution = (
   data: CostEntry[],
-  revenues: Record<string, number>
+  effectiveRevenues: Record<string, number>,
+  projectedRevenues: ProjectedRevenue[],
 ): CostEntry[] => {
   let adjusted: CostEntry[] = [...data];
 
-  const redistributeGroup = (groupName: string, children: string[]) => {
-    const validChildren = children.filter(
-      (v) => revenues[v] && revenues[v] > 0
-    );
-
-    if (!validChildren.length) return;
-
-    const groupEntry = adjusted.find((v) => v.vegetable === groupName);
-    const groupCost = groupEntry?.total_cost || 0;
-
-    const totalRevenue = validChildren.reduce(
-      (sum, v) => sum + (revenues[v] || 0),
-      0
-    );
-
-    validChildren.forEach((child) => {
-      const idx = adjusted.findIndex((v) => v.vegetable === child);
-      const revenueShare = (revenues[child] || 0) / totalRevenue;
-      const childCost = groupCost * revenueShare;
-
-      if (idx >= 0) {
-        adjusted[idx].total_cost += childCost;
-      } else {
-        adjusted.push({ vegetable: child, total_cost: childCost });
-      }
-    });
-
-    adjusted = adjusted.filter((v) => v.vegetable !== groupName);
+  // --- 1️⃣ Hardcoded groups (existing logic) ---
+  const hardcodedGroups: Record<string, string[]> = {
+    CHOU: ["CHOU VERT", "CHOU PLAT", "CHOU ROUGE", "CHOU DE SAVOIE"],
+    POIVRON: [
+      "POIVRON VERT",
+      "POIVRON ROUGE",
+      "POIVRON JAUNE",
+      "POIVRON ORANGE",
+      "POIVRON VERT/ROUGE",
+    ],
+    ZUCCHINI: ["ZUCCHINI VERT", "ZUCCHINI JAUNE", "ZUCCHINI LIBANAIS"],
+    LAITUE: [
+      "LAITUE POMMÉE",
+      "LAITUE FRISÉE VERTE",
+      "LAITUE FRISÉE ROUGE",
+      "LAITUE ROMAINE",
+      "CŒUR DE ROMAINE",
+    ],
   };
 
-  // Step 1: Top-level redistribution
-  redistributeGroup("CHOU", [
-    "CHOU VERT",
-    "CHOU PLAT",
-    "CHOU ROUGE",
-    "CHOU DE SAVOIE",
-  ]);
-  redistributeGroup("POIVRON", [
-    "POIVRON VERT",
-    "POIVRON ROUGE",
-    "POIVRON JAUNE",
-    "POIVRON ORANGE",
-    "POIVRON VERT/ROUGE",
-  ]);
-  redistributeGroup("ZUCCHINI", [
-    "ZUCCHINI VERT",
-    "ZUCCHINI JAUNE",
-    "ZUCCHINI LIBANAIS",
-  ]);
-  redistributeGroup("LAITUE", [
-    "LAITUE POMMÉE",
-    "LAITUE FRISÉE VERTE",
-    "LAITUE FRISÉE ROUGE",
-    "LAITUE ROMAINE",
-    "CŒUR DE ROMAINE",
-  ]);
-
-  // Step 2: Nested redistribution for LAITUE ROMAINE group
-  const romaineChildren = ["LAITUE ROMAINE", "CŒUR DE ROMAINE"];
-  const romaineTotal = romaineChildren.reduce(
-    (sum, v) =>
-      sum + (adjusted.find((e) => e.vegetable === v)?.total_cost || 0),
-    0
-  );
-
-  const romaineRevenueTotal = romaineChildren.reduce(
-    (sum, v) => sum + (revenues[v] || 0),
-    0
-  );
-
-  if (romaineRevenueTotal > 0) {
-    romaineChildren.forEach((child) => {
-      const idx = adjusted.findIndex((v) => v.vegetable === child);
-      const share = (revenues[child] || 0) / romaineRevenueTotal;
-      if (idx >= 0) {
-        adjusted[idx].total_cost = romaineTotal * share;
-      } else {
-        adjusted.push({ vegetable: child, total_cost: romaineTotal * share });
-      }
-    });
+  for (const [group, children] of Object.entries(hardcodedGroups)) {
+    adjusted = redistributeGroup(adjusted, group, children, effectiveRevenues);
   }
 
-  const friseeCost =
-    adjusted.find((v) => v.vegetable === "LAITUE FRISÉE")?.total_cost || 0;
-  if (friseeCost > 0) {
-    const friseeChildren = ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"];
-    const totalFriseeRevenue = friseeChildren.reduce(
-      (sum, v) => sum + (revenues[v] || 0),
-      0
-    );
+  // --- 2️⃣ Nested hardcoded groups (if needed) ---
+  const nestedGroups: Record<string, string[]> = {
+    "LAITUE ROMAINE": ["LAITUE ROMAINE", "CŒUR DE ROMAINE"],
+    "LAITUE FRISÉE": ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"],
+  };
 
-    if (totalFriseeRevenue === 0) return adjusted;
+  for (const [group, children] of Object.entries(nestedGroups)) {
+    adjusted = redistributeGroup(adjusted, group, children, effectiveRevenues);
+  }
 
-    friseeChildren.forEach((child) => {
-      const idx = adjusted.findIndex((v) => v.vegetable === child);
-      const share = (revenues[child] || 0) / totalFriseeRevenue;
-      const costShare = friseeCost * share;
-      if (idx >= 0) adjusted[idx].total_cost += costShare;
-      else adjusted.push({ vegetable: child, total_cost: costShare });
-    });
-
-    // Remove generic LAITUE FRISÉE
-    adjusted = adjusted.filter((v) => v.vegetable !== "LAITUE FRISÉE");
+  // --- 3️⃣ Dynamic groups from projected revenues ---
+  const dynamicGroups = extractDynamicGroups(projectedRevenues);
+  for (const [group, children] of Object.entries(dynamicGroups)) {
+    adjusted = redistributeGroup(adjusted, group, children, effectiveRevenues);
   }
 
   return adjusted;

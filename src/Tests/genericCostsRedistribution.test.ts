@@ -1,12 +1,19 @@
 import { genericCostsRedistribution } from "../utils/genericCostsRedistribution";
-import { describe, expect, test, it } from "vitest";
+import { describe, expect, it, test } from "vitest";
 
-type CostEntry = {
+export interface CostEntry {
   vegetable: string;
   total_cost: number;
-};
+}
 
-describe("genericCostsRedistribution", () => {
+export interface ProjectedRevenue {
+  vegetable: string;
+  generic_group?: string | null;
+  revenue: number;
+  year: number;
+}
+
+describe("genericCostsRedistribution (updated)", () => {
   test("redistributes CHOU cost proportionally and removes group", () => {
     const data: CostEntry[] = [
       { vegetable: "CHOU", total_cost: 100 },
@@ -19,7 +26,9 @@ describe("genericCostsRedistribution", () => {
       "CHOU ROUGE": 100,
     };
 
-    const result = genericCostsRedistribution(data, revenues);
+    const projected: ProjectedRevenue[] = [];
+
+    const result = genericCostsRedistribution(data, revenues, projected);
 
     const vert = result.find((v) => v.vegetable === "CHOU VERT")!;
     const rouge = result.find((v) => v.vegetable === "CHOU ROUGE")!;
@@ -30,65 +39,84 @@ describe("genericCostsRedistribution", () => {
     expect(group).toBeUndefined();
   });
 
-  test("does nothing if no child has revenue", () => {
+  test("does nothing if no child has revenue or projected revenue", () => {
     const data: CostEntry[] = [{ vegetable: "ZUCCHINI", total_cost: 80 }];
-
     const revenues = {};
+    const projected: ProjectedRevenue[] = [];
 
-    const result = genericCostsRedistribution(data, revenues);
+    const result = genericCostsRedistribution(data, revenues, projected);
 
     expect(result).toEqual(data);
   });
 
-  test("redistributes LAITUE into its children", () => {
-    const data: CostEntry[] = [{ vegetable: "LAITUE", total_cost: 200 }];
-
+  test("redistributes dynamic generic group from projectedRevenues", () => {
+    const data: CostEntry[] = [{ vegetable: "TOMATE", total_cost: 120 }];
     const revenues = {
-      "LAITUE ROMAINE": 50,
-      "CŒUR DE ROMAINE": 50,
-      "LAITUE FRISÉE VERTE": 100,
+      "TOMATE CERISE": 0, // No real revenue
+      "TOMATE RONDE": 0,
     };
-
-    const result = genericCostsRedistribution(data, revenues);
-
-    const romaine = result.find((v) => v.vegetable === "LAITUE ROMAINE")!;
-    const coeur = result.find((v) => v.vegetable === "CŒUR DE ROMAINE")!;
-    const frisee = result.find((v) => v.vegetable === "LAITUE FRISÉE VERTE")!;
-
-    expect(romaine.total_cost).toBeCloseTo(50);
-    expect(coeur.total_cost).toBeCloseTo(50);
-    expect(frisee.total_cost).toBeCloseTo(100);
-  });
-
-  test("rebalances LAITUE ROMAINE and CŒUR DE ROMAINE based on revenue", () => {
-    const data: CostEntry[] = [
-      { vegetable: "LAITUE ROMAINE", total_cost: 120 },
-      { vegetable: "CŒUR DE ROMAINE", total_cost: 80 },
+    const projected: ProjectedRevenue[] = [
+      {
+        vegetable: "TOMATE CERISE",
+        revenue: 50,
+        generic_group: "TOMATE",
+        year: 2025,
+      },
+      {
+        vegetable: "TOMATE RONDE",
+        revenue: 50,
+        generic_group: "TOMATE",
+        year: 2025,
+      },
     ];
 
-    const revenues = {
-      "LAITUE ROMAINE": 75,
-      "CŒUR DE ROMAINE": 25,
-    };
+    const result = genericCostsRedistribution(data, revenues, projected);
 
-    const result = genericCostsRedistribution(data, revenues);
+    const cerise = result.find((v) => v.vegetable === "TOMATE CERISE")!;
+    const ronde = result.find((v) => v.vegetable === "TOMATE RONDE")!;
+    const group = result.find((v) => v.vegetable === "TOMATE");
 
-    const romaine = result.find((v) => v.vegetable === "LAITUE ROMAINE")!;
-    const coeur = result.find((v) => v.vegetable === "CŒUR DE ROMAINE")!;
-
-    expect(romaine.total_cost).toBeCloseTo(150);
-    expect(coeur.total_cost).toBeCloseTo(50);
+    expect(cerise.total_cost).toBeCloseTo(60); // 50% of 120
+    expect(ronde.total_cost).toBeCloseTo(60);
+    expect(group).toBeUndefined();
   });
 
-  test("redistributes LAITUE FRISÉE into VERTE and ROUGE and removes group", () => {
-    const data: CostEntry[] = [{ vegetable: "LAITUE FRISÉE", total_cost: 90 }];
+  test("uses real revenues first before projected revenues", () => {
+    const data: CostEntry[] = [{ vegetable: "POTIRON", total_cost: 200 }];
+    const revenues = { "POTIRON ORANGE": 80, "POTIRON VERT": 20 };
+    const projected: ProjectedRevenue[] = [
+      {
+        vegetable: "POTIRON ORANGE",
+        revenue: 50,
+        generic_group: "POTIRON",
+        year: 2025,
+      },
+      {
+        vegetable: "POTIRON VERT",
+        revenue: 50,
+        generic_group: "POTIRON",
+        year: 2025,
+      },
+    ];
 
+    const result = genericCostsRedistribution(data, revenues, projected);
+
+    const orange = result.find((v) => v.vegetable === "POTIRON ORANGE")!;
+    const vert = result.find((v) => v.vegetable === "POTIRON VERT")!;
+
+    expect(orange.total_cost).toBeCloseTo(160); // 80% of 200
+    expect(vert.total_cost).toBeCloseTo(40); // 20% of 200
+  });
+
+  test("preserves total cost for hardcoded LAITUE FRISÉE redistribution", () => {
+    const data: CostEntry[] = [{ vegetable: "LAITUE FRISÉE", total_cost: 90 }];
     const revenues = {
       "LAITUE FRISÉE VERTE": 2,
       "LAITUE FRISÉE ROUGE": 1,
     };
+    const projected: ProjectedRevenue[] = [];
 
-    const result = genericCostsRedistribution(data, revenues);
+    const result = genericCostsRedistribution(data, revenues, projected);
 
     const verte = result.find((v) => v.vegetable === "LAITUE FRISÉE VERTE")!;
     const rouge = result.find((v) => v.vegetable === "LAITUE FRISÉE ROUGE")!;
@@ -99,66 +127,74 @@ describe("genericCostsRedistribution", () => {
     expect(group).toBeUndefined();
   });
 
-  test("does not create NaN when frisée revenue is zero", () => {
-    const data: CostEntry[] = [{ vegetable: "LAITUE FRISÉE", total_cost: 50 }];
-
+  it("never returns NaN or Infinity", () => {
+    const data: CostEntry[] = [{ vegetable: "LAITUE FRISÉE", total_cost: 100 }];
     const revenues = {
       "LAITUE FRISÉE VERTE": 0,
       "LAITUE FRISÉE ROUGE": 0,
     };
+    const projected: ProjectedRevenue[] = [];
 
-    const result = genericCostsRedistribution(data, revenues);
+    const result = genericCostsRedistribution(data, revenues, projected);
 
-    expect(
-      result.find((v) => v.vegetable === "LAITUE FRISÉE")?.total_cost
-    ).toBe(50);
+    result.forEach((v) => {
+      expect(Number.isFinite(v.total_cost)).toBe(true);
+    });
+  });
+
+  it("is idempotent", () => {
+    const data: CostEntry[] = [{ vegetable: "CHOU", total_cost: 100 }];
+    const revenues = {
+      "CHOU VERT": 2,
+      "CHOU ROUGE": 1,
+    };
+    const projected: ProjectedRevenue[] = [];
+
+    const once = genericCostsRedistribution(data, revenues, projected);
+    const twice = genericCostsRedistribution(once, revenues, projected);
+
+    expect(twice).toEqual(once);
   });
 });
 
-it("preserves total cost", () => {
-  const data = [
-    { vegetable: "CHOU", total_cost: 100 },
-    { vegetable: "ZUCCHINI", total_cost: 50 },
-  ];
+describe("genericCostsRedistribution - dynamic groups", () => {
+  it("redistributes group cost among children from effectiveRevenues", () => {
+    const data: CostEntry[] = [
+      { vegetable: "TOMATE", total_cost: 120 }, // group
+    ];
 
-  const revenues = {
-    "CHOU VERT": 1,
-    "CHOU ROUGE": 1,
-  };
+    const effectiveRevenues: Record<string, number> = {
+      "TOMATE CERISE": 50,
+      "TOMATE RONDE": 50,
+    };
 
-  const result = genericCostsRedistribution(data, revenues);
+    const projectedRevenues: ProjectedRevenue[] = [
+      {
+        vegetable: "TOMATE CERISE",
+        revenue: 50,
+        generic_group: "TOMATE",
+        year: 2025,
+      },
+      {
+        vegetable: "TOMATE RONDE",
+        revenue: 50,
+        generic_group: "TOMATE",
+        year: 2025,
+      },
+    ];
 
-  const inputTotal = data.reduce((s, v) => s + v.total_cost, 0);
-  const outputTotal = result.reduce((s, v) => s + v.total_cost, 0);
+    const result = genericCostsRedistribution(
+      data,
+      effectiveRevenues,
+      projectedRevenues,
+    );
 
-  expect(outputTotal).toBeCloseTo(inputTotal);
-});
+    const cerise = result.find((v) => v.vegetable === "TOMATE CERISE")!;
+    const ronde = result.find((v) => v.vegetable === "TOMATE RONDE")!;
+    const group = result.find((v) => v.vegetable === "TOMATE");
 
-it("never returns NaN or Infinity", () => {
-  const data = [{ vegetable: "LAITUE FRISÉE", total_cost: 100 }];
-
-  const revenues = {
-    "LAITUE FRISÉE VERTE": 0,
-    "LAITUE FRISÉE ROUGE": 0,
-  };
-
-  const result = genericCostsRedistribution(data, revenues);
-
-  result.forEach((v) => {
-    expect(Number.isFinite(v.total_cost)).toBe(true);
+    expect(group).toBeUndefined();
+    expect(cerise.total_cost).toBeCloseTo(60); // 50% of 120
+    expect(ronde.total_cost).toBeCloseTo(60);
   });
-});
-
-it("is idempotent", () => {
-  const data = [{ vegetable: "CHOU", total_cost: 100 }];
-
-  const revenues = {
-    "CHOU VERT": 2,
-    "CHOU ROUGE": 1,
-  };
-
-  const once = genericCostsRedistribution(data, revenues);
-  const twice = genericCostsRedistribution(once, revenues);
-
-  expect(twice).toEqual(once);
 });

@@ -1,0 +1,13 @@
+.scroll-left-right {
+    animation: scroll-left-right 5s linear infinite;
+}
+
+@keyframes scroll-left-right {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-20%));
+    }
+}

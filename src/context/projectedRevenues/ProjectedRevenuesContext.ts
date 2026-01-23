@@ -4,6 +4,7 @@ export interface ProjectedRevenue {
   vegetable: string;
   year: number;
   projected_revenue: number;
+  generic_group?: string | null;
 }
 
 export interface ProjectedRevenuesContextType {
@@ -21,7 +22,7 @@ export const useProjectedRevenues = () => {
   const context = useContext(ProjectedRevenuesContext);
   if (!context) {
     throw new Error(
-      "useProjectedRevenues must be used within a ProjectedRevenuesProvider"
+      "useProjectedRevenues must be used within a ProjectedRevenuesProvider",
     );
   }
   return context;

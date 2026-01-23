@@ -54,12 +54,15 @@ export type AppOutletContext = {
   revenuesSelectedYear: string;
   setRevenuesSelectedYear: (year: string) => void;
   adjustedUnspecifiedCosts: { vegetable: string; total_cost: number }[];
+  availableYears: number[];
 };
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 function App() {
   const { token, login, logout, loading } = useAuth();
+
+
 
   type SoilProductCost =
     | { vegetable: string; total_cost: number }
@@ -117,11 +120,27 @@ function App() {
 
 
 
-  const [soilGroupBy, setSoilGroupBy] = useState<"vegetable" | "category">("vegetable");
+  const [soilGroupBy, setSoilGroupBy] = useState<"vegetable" | "category">("category");
 
   // --- Data ---
   const [revenues, setRevenues] = useState<Revenue[]>([]);
   const [revenuesSelectedYear, setRevenuesSelectedYear] = useState("2024");
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+
+  useEffect(() => {
+    const fetchYears = async () => {
+      const data: number[] = await fetchWithAuth(`${API_BASE_URL}/revenues/available-years`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAvailableYears(data);
+
+      // Pick last completed year automatically
+      const currentYear = new Date().getFullYear();
+      const lastCompleted = data.find(y => y <= currentYear - 1);
+      if (lastCompleted) setRevenuesSelectedYear(lastCompleted.toString());
+    };
+    fetchYears();
+  }, [token]);
 
 
   const [percentages, setPercentages] = useState<RevenuePercentage>({});
@@ -157,6 +176,17 @@ function App() {
   const [allVegetables, setAllVegetables] = useState<string[]>([]);
 
   const { loading: projectedRevenuesloading, error: projectedRevenuesError, projectedRevenues } = useProjectedRevenues()
+
+  const normalizedProjectedRevenues = useMemo(
+    () =>
+      projectedRevenues.map((p) => ({
+        vegetable: p.vegetable,
+        revenue: Number(p.projected_revenue),
+        year: p.year,
+        generic_group: p.generic_group,
+      })),
+    [projectedRevenues] // only recompute when projectedRevenues changes
+  );
 
 
   const { vegetables, loading: vegetablesLoading, error: vegetablesError } = useVegetables();
@@ -332,6 +362,10 @@ function App() {
     fetchPackagingCosts();
   }, [periodQuery, token]);
 
+  useEffect(() => {
+    console.log('packagingCosts', packagingCosts)
+  }, [packagingCosts])
+
   // --- Fetch Vegetable Costs ---
   useEffect(() => {
     if (!token) return;
@@ -385,13 +419,14 @@ function App() {
       revenues.reduce<Record<string, number>>((acc, r) => {
         acc[r.vegetable] = Number(r.revenue || 0);
         return acc;
-      }, {})
+      }, {}),
+      normalizedProjectedRevenues,
     );
 
     setAdjustedVegetableCosts(newAdjusted);
 
 
-  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate, allVegetables]);
+  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate, allVegetables, normalizedProjectedRevenues]);
 
 
 
@@ -470,7 +505,7 @@ function App() {
     setTotalCostsToRedistribute(
       Number(noCultureCosts) + Number(otherCostsTotal) + Number(noPackagingCost) + Number(aucuneSoilCost) + Number(noCultureUnspecifiedCost)
     );
-  }, [noCultureCosts, otherCostsTotal, packagingCosts, aucuneSoilCost, adjustedUnspecifiedCosts]);
+  }, [noCultureCosts, otherCostsTotal, packagingCosts, aucuneSoilCost, adjustedUnspecifiedCosts, revenues]);
 
 
   useEffect(() => {
@@ -498,13 +533,13 @@ function App() {
     }, {} as Record<string, number>);
 
     // 5️⃣ Apply the generic redistribution
-    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap);
+    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap, normalizedProjectedRevenues);
 
     // 6️⃣ Set state
     setAdjustedPackagingCosts(newAdjusted);
 
 
-  }, [packagingCosts, revenues, allVegetables]);
+  }, [packagingCosts, revenues, allVegetables, normalizedProjectedRevenues]);
 
 
 
@@ -585,13 +620,13 @@ function App() {
     });
 
     // 5️⃣ Apply the generic redistribution
-    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap);
+    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap, normalizedProjectedRevenues);
 
     // 6️⃣ Set state
     setAdjustedSoilProducts(newAdjusted);
 
 
-  }, [vegetableSoilProducts, revenues, allVegetables]);
+  }, [vegetableSoilProducts, revenues, allVegetables, normalizedProjectedRevenues]);
 
 
 
@@ -618,13 +653,13 @@ function App() {
     }, {});
 
     // 3️⃣ Redistribution
-    const redistributed = genericCostsRedistribution(baseCosts, revenueMap);
+    const redistributed = genericCostsRedistribution(baseCosts, revenueMap, normalizedProjectedRevenues);
 
     // 4️⃣ No remapping needed
     setAdjustedUnspecifiedCosts(redistributed);
 
 
-  }, [data, revenues, yearSelected, monthSelected, startDate, endDate]);
+  }, [data, revenues, yearSelected, monthSelected, startDate, endDate, normalizedProjectedRevenues]);
 
 
 
@@ -726,6 +761,7 @@ function App() {
             revenuesSelectedYear,
             setRevenuesSelectedYear,
             adjustedUnspecifiedCosts,
+            availableYears,
           }}
         />
       </div>
