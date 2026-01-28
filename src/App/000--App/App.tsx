@@ -72,23 +72,7 @@ function App() {
   useEffect(() => {
     if (loading || !token) return;
 
-    const scheduleRefresh = () => {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const expiresAt = payload.exp * 1000;
-        const now = Date.now();
-        const timeout = expiresAt - now - 5000;
-
-        if (timeout <= 0) {
-          refreshToken();
-        } else {
-          const timer = setTimeout(refreshToken, timeout);
-          return () => clearTimeout(timer);
-        }
-      } catch (err) {
-        console.error("Failed to parse token for refresh:", err);
-      }
-    };
+    let timer: ReturnType<typeof setTimeout>;
 
     const refreshToken = async () => {
       try {
@@ -96,7 +80,9 @@ function App() {
           method: "POST",
           credentials: "include",
         });
+
         if (!res.ok) throw new Error("Failed to refresh token");
+
         const data = await res.json();
         login(data.token);
       } catch (err) {
@@ -105,9 +91,26 @@ function App() {
       }
     };
 
-    const cleanup = scheduleRefresh();
-    return cleanup;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expiresAt = payload.exp * 1000;
+      const now = Date.now();
+      const timeout = expiresAt - now - 5000;
+
+      if (timeout <= 0) {
+        refreshToken();
+      } else {
+        timer = setTimeout(refreshToken, timeout);
+      }
+    } catch (err) {
+      console.error("Failed to parse token for refresh:", err);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [token, login, logout, loading]);
+
 
   // --- Filters ---
   const { yearSelected, setYearSelected, monthSelected, setMonthSelected, startDate, setStartDate, endDate, setEndDate } = useDate();

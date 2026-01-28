@@ -57,7 +57,7 @@ const Administrative = () => {
                                 font-bold
                                 touch-manipulation
                                 ltr  w-full' >Modifier Cultures / Champs</Link>
-                <Link to="#" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                <Link to="/gestion-administrative/taches" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
                                 cursor-pointer

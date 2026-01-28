@@ -2,6 +2,7 @@ import './SecondPage.css';
 import { useEffect, useState } from 'react';
 import DatePicker from '../../Components/DatePicker';
 import { fetchWithAuth } from '@/utils/fetchWithAuth';
+import type { TaskCategory } from '@/context/taskCategories/TaskCategoriesContext';
 
 interface SecondStepProps {
     numberOfWages: number | "";
@@ -14,7 +15,8 @@ interface SecondStepProps {
     setMultiplier: React.Dispatch<React.SetStateAction<(number | "")[]>>;
     isFirstStepCompleted: boolean;
     setIsFirstStepCompleted: React.Dispatch<React.SetStateAction<boolean>>;
-    task: object;
+    categories: TaskCategory[];
+    selectedCategoryId: number | null;
     subCategory: string;
     cultureDefined: boolean;
     selectedVeggie: string;
@@ -29,7 +31,9 @@ const SecondStep: React.FC<SecondStepProps> = ({
     hoursInput, setHoursInput,
     wages, setWages, multiplier, setMultiplier,
     setIsFirstStepCompleted,
-    task, subCategory,
+    categories,
+    selectedCategoryId,
+    subCategory,
     cultureDefined, selectedVeggie,
     supervisor,
     selectedDate, setSelectedDate,
@@ -73,12 +77,11 @@ const SecondStep: React.FC<SecondStepProps> = ({
         setTotalHours(numericHours !== null ? employees * numericHours : 0);
     }, [numericHours, multiplier, numberOfWages]);
 
-    let currentTask = "";
-    for (const [key, value] of Object.entries(task)) {
-        if (value === true) {
-            currentTask = key;
-        }
-    }
+    const currentCategory = categories.find(
+        (c) => c.id === selectedCategoryId
+    );
+
+    const currentTask = currentCategory?.name ?? "—";
 
     useEffect(() => {
 
@@ -147,7 +150,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
         const payload = {
             vegetable: cultureDefined ? selectedVeggie.toUpperCase() : "AUCUNE",
-            category: Object.keys(task).find((k) => task[k as keyof typeof task]) || "Autre",
+            category: currentCategory?.name,
             sub_category: subCategory,
             total_hours: totalHours,
             supervisor: supervisor === "Aucun" ? null : normalizeSupervisor(supervisor),

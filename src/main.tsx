@@ -33,6 +33,8 @@ import { ProjectedRevenuesProvider } from './context/projectedRevenues/Projected
 import RevenuesAdmin from './App/110--Administrative/111--RevenuesUpdate/000--RevenuesAdmin'
 import { EmployeesContextProvider } from './context/employees/EmployeesContextProvider'
 import Employeeshome from './App/110--Administrative/112--EmployeesUpdate/Employeeshome'
+import { TaskCategoriesContextProvider } from './context/taskCategories/TaskCategoriesContextProvider'
+import TaskCategoriesAdmin from './App/110--Administrative/115--TaskCategoriesAdmin/TaskCategoriesAdmin'
 
 
 
@@ -202,6 +204,14 @@ const router = createBrowserRouter([
             <Employeeshome />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: '/gestion-administrative/taches',
+        element: (
+          <ProtectedRoute>
+            <TaskCategoriesAdmin />
+          </ProtectedRoute>
+        )
       }
     ],
   },
@@ -215,13 +225,15 @@ createRoot(document.getElementById('root')!).render(
           <UnspecifiedProvider>
             <SupervisorsProvider>
               <EmployeesContextProvider>
-                <VegetablesProvider>
-                  <FieldsProvider>
-                    <ProjectedRevenuesProvider>
-                      <RouterProvider router={router} />
-                    </ProjectedRevenuesProvider>
-                  </FieldsProvider>
-                </VegetablesProvider>
+                <TaskCategoriesContextProvider>
+                  <VegetablesProvider>
+                    <FieldsProvider>
+                      <ProjectedRevenuesProvider>
+                        <RouterProvider router={router} />
+                      </ProjectedRevenuesProvider>
+                    </FieldsProvider>
+                  </VegetablesProvider>
+                </TaskCategoriesContextProvider>
               </EmployeesContextProvider>
             </SupervisorsProvider>
           </UnspecifiedProvider>

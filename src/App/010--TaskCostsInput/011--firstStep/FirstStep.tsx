@@ -4,30 +4,12 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { useFields } from "@/context/fields/FieldsContext";
 import { useSupervisors } from "@/context/supervisors/SupervisorContext";
 import SearchableFieldListbox from "@/components/SearchableListBox";
+import type { TaskCategory, TaskSubcategory } from "@/context/taskCategories/TaskCategoriesContext";
 
 
 
 interface FirstStepProps {
-    task: {
-        Entretien: boolean;
-        Entrepôt: boolean;
-        Agronomie: boolean;
-        Pompage: boolean;
-        Transport: boolean;
-        Opérations: boolean;
-        Autre: boolean;
-    };
-    setTask: Dispatch<SetStateAction<{
-        Entretien: boolean;
-        Entrepôt: boolean;
-        Agronomie: boolean;
-        Pompage: boolean;
-        Transport: boolean;
-        Opérations: boolean;
-        Autre: boolean;
-    }>>;
-    subCategories: string[];
-    setSubcategories: Dispatch<SetStateAction<string[]>>;
+    categories: TaskCategory[];
     subCategory: string;
     setSubCategory: Dispatch<SetStateAction<string>>;
     cultureDefined: boolean;
@@ -43,10 +25,31 @@ interface FirstStepProps {
     setField: Dispatch<SetStateAction<string | null>>;
     isFieldDefined: boolean;
     setIsFieldDefined: Dispatch<SetStateAction<boolean>>;
+    onCategoryChange: (category: number) => void;
+    selectedCategoryId: number | null;
+    subCategories: TaskSubcategory[];
 }
 
 
-const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, setSubcategories, subCategory, setSubCategory, cultureDefined, setCultureDefined, selectedVeggie, setSelectedVeggie, vegetables, setIsFirstStepCompleted, supervisor, setSupervisor, field, setField, isFieldDefined, setIsFieldDefined }) => {
+const FirstStep: React.FC<FirstStepProps> = ({
+    categories,
+    subCategories,
+    subCategory,
+    setSubCategory,
+    cultureDefined,
+    setCultureDefined,
+    selectedVeggie,
+    setSelectedVeggie,
+    vegetables,
+    setIsFirstStepCompleted,
+    supervisor,
+    setSupervisor,
+    field,
+    setField,
+    isFieldDefined,
+    setIsFieldDefined,
+    onCategoryChange,
+    selectedCategoryId }) => {
 
     const { fields } = useFields();
 
@@ -58,137 +61,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
 
 
 
-    useEffect(() => {
-        if (task.Entretien) {
-            setSubcategories(["Mécanique", "Électricité", "Soudure", "Autre"])
-        }
-        else if (task.Entrepôt) {
-            setSubcategories([
-                "Emballage céleri",
-                "Emballage chou",
-                "Emballage chou de Bruxelles",
-                "Emballage chou-fleur",
-                "Emballage cœur de romaine",
-                "Emballage laitue frisée",
-                "Emballage laitue pommée",
-                "Emballage laitue romaine",
-                "Emballage poivron",
-                "Emballage produit inconnu",
-                "Emballage zucchini",
-                "Inventaire",
-                "Maintenance de bâtiment",
-                "Réception/Expédition",
-                "Autre"
-            ])
-        }
-        else if (task.Agronomie) {
-            setSubcategories([
-                "Application de fongicide",
-                "Dépistage",
-                "Disposition des plateaux en serres",
-                "Fertilisation",
-                "Installation de connecteurs",
-                "Installation goutte-à-goutte",
-                "Installation tuyaux irrigation",
-                "Irrigation",
-                "Maintenance",
-                "Nettoyage",
-                "Nettoyage entrepôt d'irrigation",
-                "Préparation matériel d'irrigation",
-                "Pulvérisateur",
-                "Réparation pulvérisateur",
-                "Répartition fumier",
-                "Retrait de système d'irrigation",
-                "Semage",
-                "Sortie de plateaux",
-                "Tâches générales en serre",
-                "Transfert de plants",
-                "Vérification goutte-à-goutte",
-                "Vidage des pompes d'irrigation",
-                "Autre"
-            ])
-        }
-        else if (task.Pompage) {
-            setSubcategories([
-                "Gicleurs avec tuyaux d'aluminium",
-                "Goutte-à-goutte",
-                "Autre"
-            ])
-        }
-        else if (task.Autre) {
-            setSubcategories([
-                "Aménagement paysager",
-                "Bois de chauffage",
-                "Confection de beignes",
-                "Entretien salubrité",
-                "Maintenance de bâtiment",
-                "Manifestation - accompagnement",
-                "Nettoyage de champs",
-                "Nettoyage de machinerie",
-                "Nettoyage de plateaux",
-                "Nettoyage des aires de travail",
-                "Opération de pelle mécanique",
-                "Peinture",
-                "Réparation de caissons de bois",
-                "Réparation de palettes",
-                "Réunion",
-                "Sous-contrat voisin",
-                "Varié",
-                "Maintenance de bâtiment - ménage",
-                "Autre"
-            ])
-        }
-        else if (task.Transport) {
-            setSubcategories([
-                "Livraison",
-                "Transport machinerie",
-                "Transport de matériel",
-                "Transport de pierres",
-                "Transport de plants",
-                "Transport de plastique",
-                "Transport de support métallique",
-                "Transport de terre",
-                "Transport de toile",
-                "Transport matériel",
-                "Transport récolte",
-                "Autre"
-            ])
-        }
-        else if (task.Opérations) {
-            setSubcategories([
-                "Ajustement de plastique",
-                "Ajustement de toile",
-                "Attache",
-                "Conditionnement",
-                "Désherbage",
-                "Épierrage",
-                "Fauchage",
-                "Perforage de plastique",
-                "Plantation",
-                "Pose de plastique",
-                "Pose de support métallique",
-                "Pose de toile",
-                "Rangement de matériel",
-                "Récolte",
-                "Réparation de plastique",
-                "Réparation de toile",
-                "Repiquage",
-                "Retrait de plastique",
-                "Retrait de support métallique",
-                "Retrait de toile",
-                "Rotoculteur",
-                "Sarcleur",
-                "Supervision",
-                "Taille",
-                "Traçage de canaux d’eau",
-                "Traçage de rangs",
-                "Tri",
-                "Autre"
-            ])
-        }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [task])
 
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -196,50 +69,36 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
         setIsFirstStepCompleted(true);
     }
 
+    const selectedCategory = categories.find(
+        (c) => c.id === selectedCategoryId
+    );
+
+    const isEntrepot = selectedCategory?.name === "Entrepôt";
+
+
+    const emballageToVegetableMap: Record<string, string> = {
+        "Emballage céleri": "Céleri",
+        "Emballage chou": "Chou",
+        "Emballage chou de Bruxelles": "Chou de Bruxelles",
+        "Emballage chou-fleur": "Chou-fleur",
+        "Emballage cœur de romaine": "Cœur de romaine",
+        "Emballage laitue frisée": "Laitue frisée",
+        "Emballage laitue pommée": "Laitue pommée",
+        "Emballage laitue romaine": "Laitue romaine",
+        "Emballage poivron": "Poivron",
+    };
+
     useEffect(() => {
-        if (task.Entrepôt === false) {
-            return
-        }
-        switch (subCategory) {
-            case "Emballage céleri":
-                setCultureDefined(true);
-                setSelectedVeggie("Céleri");
-                break;
-            case "Emballage chou":
-                setCultureDefined(true);
-                setSelectedVeggie("Chou");
-                break;
-            case "Emballage chou de Bruxelles":
-                setCultureDefined(true);
-                setSelectedVeggie("Chou de Bruxelles");
-                break;
-            case "Emballage chou-fleur":
-                setCultureDefined(true);
-                setSelectedVeggie("Chou-fleur");
-                break;
-            case "Emballage cœur de romaine":
-                setCultureDefined(true);
-                setSelectedVeggie("Cœur de romaine");
-                break;
-            case "Emballage laitue frisée":
-                setCultureDefined(true);
-                setSelectedVeggie("Laitue frisée");
-                break;
-            case "Emballage laitue pommée":
-                setCultureDefined(true);
-                setSelectedVeggie("Laitue pommée");
-                break;
-            case "Emballage laitue romaine":
-                setCultureDefined(true);
-                setSelectedVeggie("Laitue romaine");
-                break;
-            case "Emballage poivron":
-                setCultureDefined(true);
-                setSelectedVeggie("Poivron");
-                break;
+        if (!isEntrepot) return;
+
+        const veggie = emballageToVegetableMap[subCategory];
+
+        if (veggie) {
+            setCultureDefined(true);
+            setSelectedVeggie(veggie);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [task.Entrepôt, subCategory])
+    }, [isEntrepot, subCategory]);
 
 
 
@@ -299,35 +158,27 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
 
             </div>
             <div className="mt-[1rem] grid grid-cols-2 w-[95%] gap-[0.5rem]">
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="entretien">Entretien</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Entretien} onChange={(e) => setTask({ ...task, Entretien: e.target.checked, Entrepôt: false, Agronomie: false, Pompage: false, Transport: false, Opérations: false, Autre: false })} type="checkbox" id="entretien" name="entretien" />
-                </div>
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="entrepot">Entrepôt</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Entrepôt} onChange={(e) => setTask({ ...task, Entrepôt: e.target.checked, Entretien: false, Agronomie: false, Pompage: false, Transport: false, Opérations: false, Autre: false })} id="entrepot" name="entrepot" type="checkbox" />
-                </div>
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="agronomie">Agronomie</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Agronomie} onChange={(e) => setTask({ ...task, Agronomie: e.target.checked, Entretien: false, Entrepôt: false, Pompage: false, Transport: false, Opérations: false, Autre: false })} type="checkbox" id="agronomie" name="agronomie" />
-                </div>
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="pompage">Pompage</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Pompage} onChange={(e) => setTask({ ...task, Pompage: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Transport: false, Opérations: false, Autre: false })} type="checkbox" id="pompage" name="pompage" />
-                </div>
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="autre">Autre</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Autre} onChange={(e) => setTask({ ...task, Autre: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false, Transport: false, Opérations: false })} type="checkbox" id="autre" name="autre" />
-                </div>
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="transport">Transport</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Transport} onChange={(e) => setTask({ ...task, Transport: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false, Opérations: false, Autre: false })} type="checkbox" id="transport" name="transport" />
-                </div>
-                <div className="mx-auto flex w-[70%] justify-center">
-                    <label htmlFor="operations">Opérations</label>
-                    <input className=" ml-auto w-[1.1rem]" checked={task.Opérations} onChange={(e) => setTask({ ...task, Opérations: e.target.checked, Entretien: false, Entrepôt: false, Agronomie: false, Pompage: false, Transport: false, Autre: false })} type="checkbox" id="operations" name="operations" />
-                </div>
+                {categories.map((category) => (
+                    <div
+                        key={category.id}
+                        className="mx-auto flex w-[70%] justify-center"
+                    >
+                        <label htmlFor={`category-${category.id}`}>
+                            {category.name}
+                        </label>
+
+                        <input
+                            className="ml-auto w-[1.1rem]"
+                            type="radio"
+                            name="task-category"
+                            id={`category-${category.id}`}
+                            checked={selectedCategoryId === category.id}
+                            onChange={() => onCategoryChange(category.id)}
+                        />
+                    </div>
+                ))}
             </div>
+
 
 
             <section className="w-full flex flex-col gap-[0.1rem] items-center">
@@ -349,7 +200,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                             >
 
                                 {subCategories
-                                    .sort((a, b) => a.localeCompare(b))
+                                    .sort((a, b) => a.name.localeCompare(b.name))
                                     .map((cat, index) => (
                                         <Listbox.Option
                                             key={index}
@@ -359,7 +210,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                                                     : "text-gray-900"
                                                 }`
                                             }
-                                            value={cat}
+                                            value={cat.name}
                                         >
                                             {({ selected }) => (
                                                 <>
@@ -367,7 +218,7 @@ const FirstStep: React.FC<FirstStepProps> = ({ task, setTask, subCategories, set
                                                         className={`block truncate ${selected ? "font-medium" : "font-normal"
                                                             } sm:text-[1.1rem]`}
                                                     >
-                                                        {cat}
+                                                        {cat.name}
                                                     </span>
                                                     {selected ? (
                                                         <span className=" absolute inset-y-0 left-0 flex items-center pl-3 text-green-600">

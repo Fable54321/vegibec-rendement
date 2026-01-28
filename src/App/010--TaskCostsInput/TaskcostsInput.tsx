@@ -6,19 +6,20 @@ import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
 import { useFields } from "@/context/fields/FieldsContext";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
+import { useTaskCategories } from "../../context/taskCategories/TaskCategoriesContext";
 
 
 const TaskCostsInput = () => {
-    const [task, setTask] = useState({
-        Entretien: false,
-        Entrepôt: false,
-        Agronomie: false,
-        Pompage: false,
-        Transport: false,
-        Opérations: false,
-        Autre: false,
-    });
 
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+
+    const {
+        categories,
+        subcategories,
+        fetchSubcategories,
+        loadingCategories,
+        loadingSubcategories,
+    } = useTaskCategories();
 
     interface TaskCostEntry {
         id: number;
@@ -55,8 +56,10 @@ const TaskCostsInput = () => {
 
     const { token } = useAuth();
 
-    const [subCategories, setSubcategories] = useState<string[]>([]);
+
     const [subCategory, setSubCategory] = useState("");
+
+
     const [cultureDefined, setCultureDefined] = useState(false);
     const [selectedVeggie, setSelectedVeggie] = useState(vegetables[0]);
     const [supervisor, setSupervisor] = useState("");
@@ -87,6 +90,12 @@ const TaskCostsInput = () => {
     const [error, setError] = useState<string | null>(null);
 
     const { fields } = useFields();
+
+    const handleCategoryChange = (categoryId: number) => {
+        setSelectedCategoryId(categoryId);
+        setSubCategory("");
+        fetchSubcategories(categoryId);
+    };
 
 
     useEffect(() => {
@@ -229,7 +238,7 @@ const TaskCostsInput = () => {
                             </button>
                         </div>
 
-                        {loading && <p className="text-center">Chargement...</p>}
+                        {loading || loadingCategories || loadingSubcategories && <p className="text-center">Chargement...</p>}
                         {error && (
                             <p className="text-center text-red-600">
                                 Erreur : {error}
@@ -409,10 +418,7 @@ const TaskCostsInput = () => {
             <article className="flex flex-col items-center w-full lg:mt-[1.5rem] lg:text-[1.2rem]">
                 {!isFirstStepCompleted && (
                     <FirstStep
-                        task={task}
-                        setTask={setTask}
-                        subCategories={subCategories}
-                        setSubcategories={setSubcategories}
+                        categories={categories}
                         subCategory={subCategory}
                         setSubCategory={setSubCategory}
                         cultureDefined={cultureDefined}
@@ -428,12 +434,16 @@ const TaskCostsInput = () => {
                         setField={setField}
                         isFieldDefined={isFieldDefined}
                         setIsFieldDefined={setIsFieldDefined}
-
+                        onCategoryChange={handleCategoryChange}
+                        selectedCategoryId={selectedCategoryId}
+                        subCategories={subcategories}
                     />
                 )}
 
                 {isFirstStepCompleted && (
                     <SecondStep
+                        categories={categories}
+                        selectedCategoryId={selectedCategoryId}
                         numberOfWages={numberOfWages}
                         setNumberOfWages={setNumberOfWages}
                         wages={wages}
@@ -444,7 +454,6 @@ const TaskCostsInput = () => {
                         setHoursInput={setHoursInput}
                         isFirstStepCompleted={isFirstStepCompleted}
                         setIsFirstStepCompleted={setIsFirstStepCompleted}
-                        task={task}
                         subCategory={subCategory}
                         selectedVeggie={selectedVeggie}
                         cultureDefined={cultureDefined}
