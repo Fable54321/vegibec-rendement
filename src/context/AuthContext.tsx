@@ -28,39 +28,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Run once on mount: check if token in localStorage is valid
     useEffect(() => {
-        let isMounted = true;
+
 
         const initAuth = async () => {
             const storedToken = localStorage.getItem("token");
-            if (!storedToken) {
-                if (isMounted) {
-                    setUser(null);
-                    setLoading(false);
-                }
-                return;
-            }
 
             try {
-                const res = await fetch(`${API_BASE_URL}/auth/me`, {
-                    headers: { Authorization: `Bearer ${storedToken}` },
+                // First try current token
+                if (storedToken) {
+                    const res = await fetch(`${API_BASE_URL}/auth/me`, {
+                        headers: { Authorization: `Bearer ${storedToken}` },
+                        credentials: "include",
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        setUser(data.user);
+                        setToken(storedToken);
+                        return;
+                    }
+                }
+
+                // 🔁 Fallback to refresh
+                const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                    method: "POST",
                     credentials: "include",
                 });
 
-                if (!res.ok) throw new Error("Unauthorized");
+                if (!refreshRes.ok) throw new Error("Refresh failed");
 
-                const data = await res.json();
-                if (isMounted) setUser(data.user);
+                const data = await refreshRes.json();
+                login(data.token); // sets token + user
             } catch (err) {
-                console.warn("Auth check failed", err);
-                localStorage.removeItem("token");
-                if (isMounted) setUser(null);
+                console.warn("Auth init failed:", err);
+                logout();
             } finally {
-                if (isMounted) setLoading(false);
+                setLoading(false);
             }
         };
 
         initAuth();
-        return () => { isMounted = false; };
+
     }, []);
 
     const login = (newToken: string) => {
@@ -77,11 +85,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
+        } catch {
+            // ignore
+        }
+
         setToken(null);
         setUser(null);
         localStorage.removeItem("token");
     };
+
 
     return (
         <AuthContext.Provider value={{ token, user, login, logout, loading }}>

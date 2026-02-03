@@ -115,7 +115,7 @@ const RevenuesUpdate = () => {
     return (
         <article className='flex flex-col items-center w-full'>
             <h2 className="text-2xl font-semibold mb-4">Ajouter les revenus d'une année complétée</h2>
-            <p>Pour une culture à ajouter pour l'année en cours, consultez plutôt <Link to='gestion-administrative/cultures' className='underline font-bold text-[1.1em] text-green-700'>ce lien-ci</Link></p>
+            <p>Pour une culture à ajouter pour l'année en cours, consultez plutôt <Link to='/gestion-administrative/cultures' className='underline font-bold text-[1.1em] text-green-700'>ce lien-ci</Link></p>
 
             <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 w-[min(95%,_600px)] mt-[1rem]">
                 {/* Select year */}

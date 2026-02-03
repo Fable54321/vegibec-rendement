@@ -102,11 +102,7 @@ const Home = () => {
                                 font-bold
                                 touch-manipulation
                                 ltr  w-full' >Entrée des unités vendues (ventes)</Link>
-
-                </div>
-                <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[0.75rem] lg:gap-[1rem] '>
-                    <h2 className='text-[1.7em] font-extrabold text-center'>Visualisation des coûts et revenus</h2>
-                    <Link to="/comparatif-usda" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                    <Link to="/suivi-des-pertes" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
                                 cursor-pointer
@@ -118,7 +114,25 @@ const Home = () => {
                                 text-[1.2em]
                                 font-bold
                                 touch-manipulation
-                                ltr  w-full'>Comparatif USDA</Link>
+                                ltr  w-full' >Suivi des pertes</Link>
+
+                </div>
+                <div className='flex flex-col items-center w-[min(85%,_400px)] md:w-[650px] gap-[0.75rem] lg:gap-[1rem] '>
+                    <h2 className='text-[1.7em] font-extrabold text-center'>Visualisation des coûts et revenus</h2>
+                    <Link to="/journal-des-entrees" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                                border border-black rounded-[4px]
+                                box-border text-white
+                                cursor-pointer
+                                tracking-[-0.022em] leading-[1.47059]
+                                shadow-[-2px_4px_6px_hsl(0_0%_0%_/_0.5)]
+                                overflow-visible
+                                px-[0.25rem] py-[0.25rem]
+                                text-center select-none
+                                text-[1.2em]
+                                font-bold
+                                touch-manipulation
+                                ltr  w-full' >Journal des entrées (correction)</Link>
+
                     <Link to="/couts" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
@@ -145,7 +159,7 @@ const Home = () => {
                                 font-bold
                                 touch-manipulation
                                 ltr  w-full'>Revenus</Link>
-                    <Link to="/journal-des-entrees" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
+                    <Link to="/comparatif-usda" className='bg-gradient-to-b from-[hsl(85,73%,56%)] to-[hsl(85,73%,26%)]
                                 border border-black rounded-[4px]
                                 box-border text-white
                                 cursor-pointer
@@ -157,7 +171,9 @@ const Home = () => {
                                 text-[1.2em]
                                 font-bold
                                 touch-manipulation
-                                ltr  w-full' >Journal des entrées (correction)</Link>
+                                ltr  w-full'>Comparatif USDA</Link>
+
+
                 </div>
             </section>
         </main>

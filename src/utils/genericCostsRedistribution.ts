@@ -47,8 +47,10 @@ const redistributeGroup = (
     }
   });
 
-  // Remove generic group after redistribution
-  return adjusted.filter((v) => v.vegetable !== groupName);
+  // Only remove the group if it's NOT "LAITUE ROMAINE"
+  return adjusted.filter(
+    (v) => v.vegetable !== groupName || groupName === "LAITUE ROMAINE",
+  );
 };
 
 /**

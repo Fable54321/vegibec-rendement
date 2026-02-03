@@ -370,9 +370,7 @@ function App() {
     fetchPackagingCosts();
   }, [periodQuery, token]);
 
-  useEffect(() => {
-    console.log('packagingCosts', packagingCosts)
-  }, [packagingCosts])
+
 
   // --- Fetch Vegetable Costs ---
   useEffect(() => {

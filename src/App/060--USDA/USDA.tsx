@@ -3,6 +3,7 @@ import type { AppOutletContext } from "../000--App/App";
 import { useEffect, useContext, useState, useMemo } from "react";
 import { useDate } from "../../context/date/DateContext";
 import { UnitsContext } from "../../context/units/UnitsContext";
+import { usdaToVegibec } from "@/utils/usdaToVegibec";
 
 const USDA = () => {
 
@@ -25,6 +26,11 @@ const USDA = () => {
         var: string;
         organic: string;
         properties: string;
+    };
+
+    type USDAAvg = {
+        avgUnitCostCAD: number;
+        count: number;
     };
 
     const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
@@ -586,6 +592,99 @@ const USDA = () => {
 
 
 
+    // const usdaAveragesByCommodity = useMemo(() => {
+    //     const map: Record<string, { sum: number; count: number }> = {};
+
+    //     rows.forEach((row) => {
+    //         const price = getPrice(row, usdToCadRate);
+
+    //         // We only compare per-unit prices (not lb)
+    //         if (!price) return;
+
+    //         const key = [
+    //             row.commodity.toUpperCase().trim(),
+    //             row.var?.toUpperCase().trim() || "",
+    //             row.properties?.toUpperCase().trim() || "",
+    //         ].join("|");
+
+    //         if (!map[key]) {
+    //             map[key] = { sum: 0, count: 0 };
+    //         }
+
+    //         map[key].sum += price.value;
+    //         map[key].count += 1;
+    //     });
+
+    //     const averages: Record<string, USDAAvg> = {};
+
+    //     Object.entries(map).forEach(([key, v]) => {
+    //         if (v.count > 0) {
+    //             averages[key] = {
+    //                 avgUnitCostCAD: v.sum / v.count,
+    //                 count: v.count,
+    //             };
+    //         }
+    //     });
+
+    //     return averages;
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [rows, usdToCadRate]);
+
+
+    const usdaAveragesByVegibec = useMemo(() => {
+        const map: Record<string, { sum: number; count: number }> = {};
+
+        rows.forEach((row) => {
+            const vegibecName = usdaToVegibec(row);
+            if (!vegibecName) return;
+
+            const price = getPrice(row, usdToCadRate);
+            if (!price) return;
+
+            if (!map[vegibecName]) {
+                map[vegibecName] = { sum: 0, count: 0 };
+            }
+
+            map[vegibecName].sum += price.value;
+            map[vegibecName].count += 1;
+        });
+
+        const result: Record<string, USDAAvg> = {};
+
+        Object.entries(map).forEach(([k, v]) => {
+            result[k] = {
+                avgUnitCostCAD: v.sum / v.count,
+                count: v.count,
+            };
+        });
+
+        return result;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rows, usdToCadRate]);
+
+    // function getUSDAAverageForVegetable(vegetable: string): USDAAvg | null {
+    //     const vegKey = vegetable.toUpperCase().trim();
+
+    //     let sum = 0;
+    //     let count = 0;
+
+    //     Object.entries(usdaAveragesByCommodity).forEach(([key, value]) => {
+    //         const [commodity] = key.split("|");
+
+    //         if (commodity === vegKey) {
+    //             sum += value.avgUnitCostCAD * value.count;
+    //             count += value.count;
+    //         }
+    //     });
+
+    //     if (count === 0) return null;
+
+    //     return {
+    //         avgUnitCostCAD: sum / count,
+    //         count,
+    //     };
+    // }
+
 
     return (
         <>
@@ -610,17 +709,22 @@ const USDA = () => {
                             setStartDate(newStartDate);
                             setEndDate(newEndDate);
                         }}
+                        className="border rounded px-3 py-2 mt-2 hover:cursor-pointer"
                     />
                 </label>
                 <section className="w-full max-w-4xl mt-8 mb-16 px-4">
                     <table className="w-full border-collapse table-auto">
                         <thead>
                             <tr>
-                                <th className="border border-gray-300 px-4 py-2">Culture</th>
-                                <th className="border border-gray-300 px-4 py-2">Coût Unitaire (vegibec)</th>
+                                <th className="border border-t-2 border-l-2 border-r-2 border-l-green-700 border-t-green-700 border-b-green-400 border-r-green-700 border-b-2 px-4 py-2">Culture</th>
+                                <th className="border border-t-2 border-r-2 border-r-green-700 border-t-green-700 border-b-green-400 border-l-green-400 border-b-2 px-4 py-2">Coût Unitaire (vegibec)</th>
+                                <th className="border border-t-2 border-r-2 border-r-green-700 border-t-green-700 border-b-green-400 border-l-green-400 border-b-2 px-4 py-2">Coût Total(vegibec)</th>
+                                <th className="border border-t-2 border-r-2 border-r-green-700 border-t-green-700 border-b-green-400 border-l-green-400 border-b-2 px-4 py-2">
+                                    Coût unitaire moyen (USDA)
+                                </th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="border-b-2 border-b-green-700">
                             {totalCostsArray.map((veg) => {
                                 const matchingTotal = totals.find(
                                     (t) => t.vegetable === veg.vegetable
@@ -634,18 +738,32 @@ const USDA = () => {
                                 const unitCost =
                                     denominator > 0 ? veg.total_cost / denominator : null;
 
+                                const usdaAvg = usdaAveragesByVegibec[veg.vegetable];
+
                                 return (
-                                    <tr key={veg.vegetable}>
-                                        <td className="border border-gray-300 px-4 py-2">
+                                    <tr key={veg.vegetable} className="border border-x-2 border-green-700 ">
+                                        <td className="border border-r-green-400 border-t-green-400  border-b-green-400 px-4 py-2">
                                             {veg.vegetable}
                                         </td>
 
-                                        <td className="border border-gray-300 px-4 py-2">
+                                        <td className="border border-green-400  px-4 py-2">
                                             {unitCost !== null ? formatCurrency(unitCost) : "—"}
                                         </td>
 
-                                        <td className="border border-gray-300 px-4 py-2">
+                                        <td className="border border-t-green-400 border-b-green-400 px-4 py-2">
                                             {formatCurrency(veg.total_cost)}
+                                        </td>
+                                        <td className="border border-green-400 px-4 py-2">
+                                            {usdaAvg ? (
+                                                <>
+                                                    {formatCurrency(usdaAvg.avgUnitCostCAD)}
+                                                    <span className="text-sm text-gray-500 ml-1">
+                                                        /{veg.vegetable === "CHOU DE BRUXELLES" ? "lb" : "ch"}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                "—"
+                                            )}
                                         </td>
                                     </tr>
                                 );
@@ -680,7 +798,7 @@ const USDA = () => {
                         {rows.map((r, i) => (
                             <tr key={`${r.commodity}-${i}`}>
                                 <td className="border px-4 py-2 font-medium">
-                                    {r.commodity}
+                                    {usdaToVegibec(r) ?? r.commodity}
                                 </td>
 
                                 <td className="border px-4 py-2">
