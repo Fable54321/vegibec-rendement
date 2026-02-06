@@ -15,6 +15,7 @@ import FieldDelete from "./FieldDelete";
 import SimpleCultureForm from "@/App/Components/SimpleCultureForm";
 import { GenericCultureForm } from "@/App/Components/GenericCultureForm";
 
+
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 type GroupEntry = {
@@ -146,6 +147,8 @@ const CulturesUpdate = () => {
                     },
                     body: JSON.stringify({
                         vegetable: normalizedGroup,
+                        is_generic: true,
+                        generic_group: null,
                     }),
                 });
 
@@ -168,6 +171,7 @@ const CulturesUpdate = () => {
                         body: JSON.stringify({
                             vegetable: normalizedVegetable,
                             generic_group: normalizedGroup,
+                            is_generic: false,
                         }),
                     });
 

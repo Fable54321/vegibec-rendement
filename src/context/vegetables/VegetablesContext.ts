@@ -1,7 +1,11 @@
 import { createContext, useContext } from "react";
 
 export interface VegetablesContextType {
-  vegetables: { vegetable: string }[];
+  vegetables: {
+    vegetable: string;
+    is_generic: boolean;
+    generic_group: string;
+  }[];
   loading: boolean;
   error: string | null;
   refreshVegetables: () => Promise<void>;

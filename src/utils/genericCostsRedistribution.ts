@@ -10,6 +10,12 @@ export interface ProjectedRevenue {
   year: number;
 }
 
+export interface VegetableRow {
+  vegetable: string;
+  generic_group: string | null;
+  is_generic: boolean;
+}
+
 /**
  * Redistribute group costs among children based on effective revenue.
  */
@@ -56,15 +62,19 @@ const redistributeGroup = (
 /**
  * Builds a dynamic groups map from projected revenues.
  */
-const extractDynamicGroups = (
-  projectedRevenues: ProjectedRevenue[],
+const extractDynamicGroupsFromVegetables = (
+  vegetables: VegetableRow[],
 ): Record<string, string[]> => {
-  return projectedRevenues.reduce(
-    (acc, r) => {
-      if (!r.generic_group) return acc;
+  return vegetables.reduce(
+    (acc, v) => {
+      if (!v.generic_group) return acc;
 
-      if (!acc[r.generic_group]) acc[r.generic_group] = [];
-      acc[r.generic_group].push(r.vegetable);
+      if (!acc[v.generic_group]) {
+        acc[v.generic_group] = [];
+      }
+
+      acc[v.generic_group].push(v.vegetable);
+
       return acc;
     },
     {} as Record<string, string[]>,
@@ -77,7 +87,7 @@ const extractDynamicGroups = (
 export const genericCostsRedistribution = (
   data: CostEntry[],
   effectiveRevenues: Record<string, number>,
-  projectedRevenues: ProjectedRevenue[],
+  vegetables: VegetableRow[],
 ): CostEntry[] => {
   let adjusted: CostEntry[] = [...data];
 
@@ -116,10 +126,10 @@ export const genericCostsRedistribution = (
   }
 
   // --- 3️⃣ Dynamic groups from projected revenues ---
-  const dynamicGroups = extractDynamicGroups(projectedRevenues);
+  const dynamicGroups = extractDynamicGroupsFromVegetables(vegetables);
+
   for (const [group, children] of Object.entries(dynamicGroups)) {
     adjusted = redistributeGroup(adjusted, group, children, effectiveRevenues);
   }
-
   return adjusted;
 };

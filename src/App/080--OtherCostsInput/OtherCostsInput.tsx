@@ -16,6 +16,7 @@ const OtherCostsInput = () => {
     const [showCultivar, setShowCultivar] = useState<boolean>(false);
     const [description, setDescription] = useState<string>("");
     const [cultivar, setCultivar] = useState<string>("");
+    const [seedUnits, setSeedUnits] = useState<string>("");
     const [allVegetables, setAllVegetables] = useState<string[]>([]);
 
     const currentYear = new Date().getFullYear();
@@ -65,6 +66,7 @@ const OtherCostsInput = () => {
         description?: never;
         is_seasonal?: never;
         cultivar?: string | null;
+        units?: number | null;
     };
 
     type SubmitPayload = UnspecifiedCostPayload | RegularCostPayload;
@@ -88,6 +90,15 @@ const OtherCostsInput = () => {
         if (isUnspecified && !description.trim()) {
             alert("Veuillez ajouter une description pour les coûts hors catégorie.");
             return;
+        }
+
+        if (category === "SEMENCE") {
+            const unitsNum = Number(seedUnits);
+
+            if (!seedUnits || isNaN(unitsNum) || unitsNum <= 0) {
+                alert("Veuillez entrer un nombre valide d'unités de semences.");
+                return;
+            }
         }
 
         try {
@@ -117,6 +128,9 @@ const OtherCostsInput = () => {
                     cost_domain: category,
                     employee_name: "-",
                     cultivar: cultivar?.trim() ? cultivar : null,
+                    units: category === "SEMENCE"
+                        ? Number(seedUnits)
+                        : null,
                 };
             }
 
@@ -172,9 +186,9 @@ const OtherCostsInput = () => {
 
 
     return (
-        <>
-            <Link to="/" className="button-generic absolute left-[50%] translate-x-[-50%] top-[5.5rem] text-[1.1rem]"> Accueil</Link>
-            <article className="flex flex-col items-center md:text-[1.5em] mt-[9rem]">
+        <div className="flex flex-col items-center">
+            <Link to="/" className="button-generic  text-[1.1rem] mt-[1rem]"> Accueil</Link>
+            <article className="flex flex-col items-center md:text-[1.4em] mt-[1rem]">
                 <h2 className="text-center text-[1.5em]">Entrée des autres coûts</h2>
                 <form className="mb-[2rem] mt-[1rem] flex flex-col items-center w-[min(90%,_400px)] md:w-[600px] gap-[1.7rem] rounded-[0.75rem] border-4 border-green-400 border-solid py-[1rem] px-[0.5rem]" onSubmit={handleSubmit}>
                     <label className="flex flex-col w-full gap-[0.5rem] px-[1rem]" htmlFor="cost-category">
@@ -222,6 +236,13 @@ const OtherCostsInput = () => {
                         </label>
                     }
                     {
+                        cultureSpecified && category === "SEMENCE" &&
+                        <label className="flex flex-col w-full gap-[0.5rem] px-[1rem]" htmlFor="seed-units">
+                            Unités de semences (graines) :
+                            <input type="number" name="seed-units" id="seed-units" value={seedUnits} onChange={(e) => setSeedUnits(e.target.value)} className="border border-gray-400 rounded-[0.25rem] px-[0.5rem] py-[0.25rem] text-[1em]" />
+                        </label>
+                    }
+                    {
                         isUnspecified &&
                         <div className="flex flex-col w-full px-[1rem] gap-[2rem]">
                             <label htmlFor="isSeasonal">
@@ -257,14 +278,14 @@ const OtherCostsInput = () => {
                                 overflow-visible
                                 px-[0.25rem] py-[0.25rem]
                                 text-center select-none
-                                text-[1.4em]
+                                text-[1.2em]
                                 font-bold
                                 touch-manipulation
                                 flex flex-row items-center justify-center
                                 ltr  w-fit">Soumettre <ChevronRightIcon className="w-5 h-5 md:w-7 md:h-7" /></button>
                 </form>
             </article>
-        </>
+        </div>
     )
 }
 

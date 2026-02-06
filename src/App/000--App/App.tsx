@@ -185,16 +185,16 @@ function App() {
 
   const { loading: projectedRevenuesloading, error: projectedRevenuesError, projectedRevenues } = useProjectedRevenues()
 
-  const normalizedProjectedRevenues = useMemo(
-    () =>
-      projectedRevenues.map((p) => ({
-        vegetable: p.vegetable,
-        revenue: Number(p.projected_revenue),
-        year: p.year,
-        generic_group: p.generic_group,
-      })),
-    [projectedRevenues] // only recompute when projectedRevenues changes
-  );
+  // const normalizedProjectedRevenues = useMemo(
+  //   () =>
+  //     projectedRevenues.map((p) => ({
+  //       vegetable: p.vegetable,
+  //       revenue: Number(p.projected_revenue),
+  //       year: p.year,
+  //       generic_group: p.generic_group,
+  //     })),
+  //   [projectedRevenues] // only recompute when projectedRevenues changes
+  // );
 
 
   const { vegetables, loading: vegetablesLoading, error: vegetablesError } = useVegetables();
@@ -420,19 +420,22 @@ function App() {
     });
 
     // 4️⃣ Apply the generic redistribution
-    newAdjusted = genericCostsRedistribution(newAdjusted,
-      // Build a revenue map for faster lookup
+    newAdjusted = genericCostsRedistribution(
+      newAdjusted,
+
+      // revenue map
       revenues.reduce<Record<string, number>>((acc, r) => {
         acc[r.vegetable] = Number(r.revenue || 0);
         return acc;
       }, {}),
-      normalizedProjectedRevenues,
+
+      vegetables   // ✅ NEW SOURCE OF TRUTH
     );
 
     setAdjustedVegetableCosts(newAdjusted);
 
 
-  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate, allVegetables, normalizedProjectedRevenues]);
+  }, [vegetableCosts, revenues, yearSelected, monthSelected, startDate, endDate, allVegetables, vegetables]);
 
 
 
@@ -539,13 +542,13 @@ function App() {
     }, {} as Record<string, number>);
 
     // 5️⃣ Apply the generic redistribution
-    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap, normalizedProjectedRevenues);
+    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap, vegetables);
 
     // 6️⃣ Set state
     setAdjustedPackagingCosts(newAdjusted);
 
 
-  }, [packagingCosts, revenues, allVegetables, normalizedProjectedRevenues]);
+  }, [packagingCosts, revenues, allVegetables, vegetables]);
 
 
 
@@ -626,13 +629,13 @@ function App() {
     });
 
     // 5️⃣ Apply the generic redistribution
-    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap, normalizedProjectedRevenues);
+    newAdjusted = genericCostsRedistribution(newAdjusted, revenueMap, vegetables);
 
     // 6️⃣ Set state
     setAdjustedSoilProducts(newAdjusted);
 
 
-  }, [vegetableSoilProducts, revenues, allVegetables, normalizedProjectedRevenues]);
+  }, [vegetableSoilProducts, revenues, allVegetables, vegetables]);
 
 
 
@@ -659,13 +662,13 @@ function App() {
     }, {});
 
     // 3️⃣ Redistribution
-    const redistributed = genericCostsRedistribution(baseCosts, revenueMap, normalizedProjectedRevenues);
+    const redistributed = genericCostsRedistribution(baseCosts, revenueMap, vegetables);
 
     // 4️⃣ No remapping needed
     setAdjustedUnspecifiedCosts(redistributed);
 
 
-  }, [data, revenues, yearSelected, monthSelected, startDate, endDate, normalizedProjectedRevenues]);
+  }, [data, revenues, yearSelected, monthSelected, startDate, endDate, vegetables]);
 
 
 

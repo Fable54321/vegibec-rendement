@@ -35,6 +35,7 @@ import { EmployeesContextProvider } from './context/employees/EmployeesContextPr
 import Employeeshome from './App/110--Administrative/112--EmployeesUpdate/Employeeshome'
 import { TaskCategoriesContextProvider } from './context/taskCategories/TaskCategoriesContextProvider'
 import TaskCategoriesAdmin from './App/110--Administrative/115--TaskCategoriesAdmin/TaskCategoriesAdmin'
+import LossesTracking from './App/120--LossesTracking/LossesTracking'
 
 
 
@@ -212,8 +213,16 @@ const router = createBrowserRouter([
             <TaskCategoriesAdmin />
           </ProtectedRoute>
         )
+      },
+      {
+        path: '/suivi-des-pertes',
+        element: (
+          <ProtectedRoute>
+            <LossesTracking />
+          </ProtectedRoute>
+        ),
       }
-    ],
+    ]
   },
 ]);
 
