@@ -10,6 +10,7 @@ import { genericCostsRedistribution } from "../../utils/genericCostsRedistributi
 import { buildEffectiveRevenues } from "@/utils/buildEffectiveRevenues";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
 import { useProjectedRevenues } from "@/context/projectedRevenues/ProjectedRevenuesContext";
+import ScrollToTop from "../0--ScrollToTop/ScrollToTop";
 
 
 
@@ -127,23 +128,29 @@ function App() {
 
   // --- Data ---
   const [revenues, setRevenues] = useState<Revenue[]>([]);
-  const [revenuesSelectedYear, setRevenuesSelectedYear] = useState("2024");
+  const [revenuesSelectedYear, setRevenuesSelectedYear] = useState("");
   const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!token || loading) return; // ✅ wait until auth is loaded
+    if (!token || loading) return;
 
     const fetchYears = async () => {
       const data: number[] = await fetchWithAuth(
         `${API_BASE_URL}/revenues/available-years`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setAvailableYears(data);
 
-      // Pick last completed year automatically
-      const currentYear = new Date().getFullYear();
-      const lastCompleted = data.find(y => y <= currentYear - 1);
-      if (lastCompleted) setRevenuesSelectedYear(lastCompleted.toString());
+      // 🟢 Pick MOST RECENT available year
+      const mostRecent = Math.max(...data);
+
+      // 🔒 Only override if user hasn't picked anything yet
+      setRevenuesSelectedYear(prev =>
+        prev === "" || !data.includes(Number(prev))
+          ? mostRecent.toString()
+          : prev
+      );
     };
 
     fetchYears();
@@ -175,7 +182,7 @@ function App() {
   const [loadingSeedCosts, setLoadingSeedCosts] = useState(false);
   const [loadingPackagingCosts, setLoadingPackagingCosts] = useState(false);
   const [loadingSoilProducts, setLoadingSoilProducts] = useState(false);
-  const [errorRevenues, setErrorRevenues] = useState<string | null>(null);
+  const [, setErrorRevenues] = useState<string | null>(null);
   const [errorCosts, setErrorCosts] = useState<string | null>(null);
   const [errorOtherCosts, setErrorOtherCosts] = useState<string | null>(null);
   const [errorSeedCosts, setErrorSeedCosts] = useState<string | null>(null);
@@ -232,7 +239,7 @@ function App() {
     || vegetablesLoading || projectedRevenuesloading;
 
 
-  const mainError = errorRevenues || errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts
+  const mainError = errorCosts || errorOtherCosts || errorSeedCosts || errorPackagingCosts
     || errorSoilProducts || unitsError
     || unspecifiedError || vegetablesError
     || projectedRevenuesError;
@@ -738,6 +745,7 @@ function App() {
       {mainError && <p className="text-center text-red-500">{mainError}</p>}
 
       <div className="font-[nunito] w-full">
+        <ScrollToTop />
         <Outlet
           context={{
             revenues,

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Link, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import type { AppOutletContext } from '@/App/000--App/App';
 import { fetchWithAuth } from '@/utils/fetchWithAuth';
 import { Pencil } from 'lucide-react';
+import { useVegetables } from '@/context/vegetables/VegetablesContext';
+import { AddCultureDrawer } from '@/App/Components/AddCultureDrawer';
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
@@ -20,6 +22,7 @@ const formatRevenue = (value: number | ""): string => {
 const RevenuesUpdate = () => {
     const { token } = useAuth();
     const { revenues, revenuesSelectedYear } = useOutletContext<AppOutletContext>();
+    const { vegetables } = useVegetables();
 
     const [year, setYear] = useState<number | "">("");
     const [revenueInputs, setRevenueInputs] = useState<RevenueInput[]>(() =>
@@ -29,11 +32,36 @@ const RevenuesUpdate = () => {
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [isNumberFocused, setIsNumberFocused] = useState(false);
     const [isVegetableFocused, setIsVegetableFocused] = useState(false);
+    const [showDrawer, setShowDrawer] = useState(false);
 
 
     useEffect(() => {
-        setRevenueInputs(revenues.map(r => ({ vegetable: r.vegetable, revenue: r.revenue })));
-    }, [revenues]);
+
+        // 1. Start from vegetables as source of truth
+        const base: RevenueInput[] = vegetables
+            .filter(
+                (v) =>
+                    !v.is_generic &&
+                    v.vegetable !== "AUCUNE"
+            )
+            .map((v) => {
+                // 2. Try to find existing revenue for that vegetable
+                const existing = revenues.find(
+                    (r) => r.vegetable === v.vegetable
+                );
+
+                return {
+                    vegetable: v.vegetable,
+                    revenue: existing && existing.revenue !== null
+                        ? Number(existing.revenue)
+                        : "",
+                };
+            });
+
+        setRevenueInputs(base);
+
+    }, [vegetables, revenues]);
+
 
     // Update revenue value for a vegetable
     const handleChange = (index: number, value: number | "") => {
@@ -42,10 +70,8 @@ const RevenuesUpdate = () => {
         setRevenueInputs(newInputs);
     };
 
-    // Add a new blank vegetable
-    const handleAdd = () => {
-        setRevenueInputs([...revenueInputs, { vegetable: "", revenue: "" }]);
-    };
+
+
 
     // Remove a vegetable
     const handleRemove = (index: number) => {
@@ -115,7 +141,17 @@ const RevenuesUpdate = () => {
     return (
         <article className='flex flex-col items-center w-full'>
             <h2 className="text-2xl font-semibold mb-4">Ajouter les revenus d'une année complétée</h2>
-            <p>Pour une culture à ajouter pour l'année en cours, consultez plutôt <Link to='/gestion-administrative/cultures' className='underline font-bold text-[1.1em] text-green-700'>ce lien-ci</Link></p>
+            <p>
+                Pour ajouter une nouvelle culture,&nbsp;
+                <button
+                    type="button"
+                    onClick={() => setShowDrawer(true)}
+                    className="underline font-bold text-[1.1em] text-green-700 hover:text-green-400 hover:cursor-pointer"
+                >
+                    cliquez ici
+                </button>
+            </p>
+
 
             <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 w-[min(95%,_600px)] mt-[1rem]">
                 {/* Select year */}
@@ -186,15 +222,7 @@ const RevenuesUpdate = () => {
                     ))}
                 </div>
 
-                {/* Add new vegetable */}
-                <button
-                    type="button"
-                    onClick={handleAdd}
-                    className="text-green-700 font-bold hover:cursor-pointer hover:underline"
-                    disabled={loading}
-                >
-                    + Ajouter un légume
-                </button>
+
 
                 {/* Submit */}
                 <button
@@ -212,6 +240,12 @@ const RevenuesUpdate = () => {
                     </p>
                 )}
             </form>
+
+            <AddCultureDrawer
+                open={showDrawer}
+                onClose={() => setShowDrawer(false)}
+            />
+
         </article>
     );
 };

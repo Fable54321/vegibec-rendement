@@ -25,6 +25,11 @@ type GroupEntry = {
     projectedRevenueYear: number;
 };
 
+type CulturesUpdateProps = {
+    onClose?: () => void;        // drawer will pass this
+    embedded?: boolean;          // hide page-specific stuff
+};
+
 
 const formatCurrency = (value: number | string | undefined | null) => {
     if (value == null) return "—";
@@ -34,7 +39,7 @@ const formatCurrency = (value: number | string | undefined | null) => {
     return n.toLocaleString("fr-CA", { style: "currency", currency: "CAD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const CulturesUpdate = () => {
+const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
     const { token } = useAuth();
 
     const [culture, setCulture] = useState("");
@@ -207,6 +212,10 @@ const CulturesUpdate = () => {
             setGroupEntries([]);
             setSuccess(true);
 
+            if (embedded && onClose) {
+                onClose();
+            }
+
         } catch (err) {
             setError((err as Error).message);
         } finally {
@@ -217,9 +226,11 @@ const CulturesUpdate = () => {
 
     return (
         <article className="flex flex-col items-center  mx-auto">
-            <Link to="/" className="button-generic mt-[2rem] text-[1em]">
-                Accueil
-            </Link>
+            {!embedded && (
+                <Link to="/" className="button-generic mt-[2rem] text-[1em]">
+                    Accueil
+                </Link>
+            )}
             <div className="mt-[1rem] flex gap-[0.8rem]">
                 <button
                     type="button"
