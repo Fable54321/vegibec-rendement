@@ -117,7 +117,6 @@ export const genericCostsRedistribution = (
 
   // --- 2️⃣ Nested hardcoded groups (if needed) ---
   const nestedGroups: Record<string, string[]> = {
-    "LAITUE ROMAINE": ["LAITUE ROMAINE", "CŒUR DE ROMAINE"],
     "LAITUE FRISÉE": ["LAITUE FRISÉE VERTE", "LAITUE FRISÉE ROUGE"],
   };
 
@@ -131,5 +130,27 @@ export const genericCostsRedistribution = (
   for (const [group, children] of Object.entries(dynamicGroups)) {
     adjusted = redistributeGroup(adjusted, group, children, effectiveRevenues);
   }
+
+  // --- Final pooling of LAITUE ROMAINE + CŒUR DE ROMAINE ---
+  const lrIndex = adjusted.findIndex((v) => v.vegetable === "LAITUE ROMAINE");
+
+  const crIndex = adjusted.findIndex((v) => v.vegetable === "CŒUR DE ROMAINE");
+
+  if (lrIndex >= 0 && crIndex >= 0) {
+    const combined =
+      adjusted[lrIndex].total_cost + adjusted[crIndex].total_cost;
+
+    const lrRevenue = effectiveRevenues["LAITUE ROMAINE"] || 0;
+    const crRevenue = effectiveRevenues["CŒUR DE ROMAINE"] || 0;
+
+    const totalRevenue = lrRevenue + crRevenue;
+
+    if (totalRevenue > 0) {
+      adjusted[lrIndex].total_cost = combined * (lrRevenue / totalRevenue);
+
+      adjusted[crIndex].total_cost = combined * (crRevenue / totalRevenue);
+    }
+  }
+
   return adjusted;
 };

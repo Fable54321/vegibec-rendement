@@ -592,43 +592,6 @@ const USDA = () => {
 
 
 
-    // const usdaAveragesByCommodity = useMemo(() => {
-    //     const map: Record<string, { sum: number; count: number }> = {};
-
-    //     rows.forEach((row) => {
-    //         const price = getPrice(row, usdToCadRate);
-
-    //         // We only compare per-unit prices (not lb)
-    //         if (!price) return;
-
-    //         const key = [
-    //             row.commodity.toUpperCase().trim(),
-    //             row.var?.toUpperCase().trim() || "",
-    //             row.properties?.toUpperCase().trim() || "",
-    //         ].join("|");
-
-    //         if (!map[key]) {
-    //             map[key] = { sum: 0, count: 0 };
-    //         }
-
-    //         map[key].sum += price.value;
-    //         map[key].count += 1;
-    //     });
-
-    //     const averages: Record<string, USDAAvg> = {};
-
-    //     Object.entries(map).forEach(([key, v]) => {
-    //         if (v.count > 0) {
-    //             averages[key] = {
-    //                 avgUnitCostCAD: v.sum / v.count,
-    //                 count: v.count,
-    //             };
-    //         }
-    //     });
-
-    //     return averages;
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [rows, usdToCadRate]);
 
 
     const usdaAveragesByVegibec = useMemo(() => {
@@ -730,10 +693,13 @@ const USDA = () => {
                                     (t) => t.vegetable === veg.vegetable
                                 );
 
-                                const denominator =
-                                    matchingTotal?.total_units ??
-                                    matchingTotal?.total_kg ??
-                                    0;
+                                let denominator = 0;
+
+                                if (matchingTotal?.total_units && matchingTotal.total_units > 0) {
+                                    denominator = matchingTotal.total_units;
+                                } else if (matchingTotal?.total_kg && matchingTotal.total_kg > 0) {
+                                    denominator = matchingTotal.total_kg;
+                                }
 
                                 const unitCost =
                                     denominator > 0 ? veg.total_cost / denominator : null;
@@ -747,7 +713,19 @@ const USDA = () => {
                                         </td>
 
                                         <td className="border border-green-400  px-4 py-2">
-                                            {unitCost !== null ? formatCurrency(unitCost) : "—"}
+                                            {unitCost !== null
+                                                ? formatCurrency(
+                                                    veg.vegetable === "CHOU DE BRUXELLES"
+                                                        ? unitCost / 2.20462   // kg → lb
+                                                        : unitCost
+                                                )
+                                                : "—"}
+                                            {unitCost !== null && (
+                                                <span className="text-sm text-gray-500 ml-1">
+                                                    /{veg.vegetable === "CHOU DE BRUXELLES" ? "lb" : "ch"}
+                                                </span>
+                                            )}
+
                                         </td>
 
                                         <td className="border border-t-green-400 border-b-green-400 px-4 py-2">
