@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { VegetablesContext } from "./VegetablesContext";
+import { VegetablesContext, type Vegetable } from "./VegetablesContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useAuth } from "@/context/AuthContext";
 
@@ -8,7 +8,7 @@ const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 export const VegetablesProvider = ({ children }: { children: ReactNode }) => {
     const { token } = useAuth();
 
-    const [vegetables, setVegetables] = useState<{ vegetable: string }[]>([]);
+    const [vegetables, setVegetables] = useState<Vegetable[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export const VegetablesProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
 
         try {
-            const res = await fetchWithAuth<{ vegetable: string }[]>(
+            const res = await fetchWithAuth<Vegetable[]>(
                 `${API_BASE_URL}/vegetables`,
                 {
                     headers: {
