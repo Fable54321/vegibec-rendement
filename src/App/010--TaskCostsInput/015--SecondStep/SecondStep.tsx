@@ -153,7 +153,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
         const totalWorker = multiplier.reduce<number>(
             (acc, m) => acc + (m === "" ? 1 : m),
             0
-        ) + 1;
+        );
 
         const payload = {
             vegetable: cultureDefined ? selectedVeggie.toUpperCase() : "AUCUNE",
