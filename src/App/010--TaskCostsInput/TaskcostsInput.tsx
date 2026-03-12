@@ -31,6 +31,7 @@ const TaskCostsInput = () => {
         total_cost: number;
         created_at: string;
         field: string | null;
+        total_worker?: number;
     }
 
     interface PaginatedTaskCostResponse {
@@ -254,10 +255,12 @@ const TaskCostsInput = () => {
                                             <th className="p-2 border">Catégorie</th>
                                             <th className="p-2 border">Sous Catégorie</th>
                                             <th className="p-2 border">Heures Totales</th>
+                                            <th className="p-2 border">Nb de travailleurs</th> {/* <-- new */}
                                             <th className="p-2 border">Superviseur</th>
                                             <th className="p-2 border">Coût Total</th>
                                             <th className="p-2 border">Date</th>
                                             <th className="p-2 border">Champ</th>
+                                            <th className="p-2 border">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -270,25 +273,20 @@ const TaskCostsInput = () => {
                                                 <td className="p-2 border">{entry.category}</td>
                                                 <td className="p-2 border">{entry.sub_category}</td>
                                                 <td className="p-2 border">{Number(entry.total_hours).toFixed(2)}</td>
+                                                <td className="p-2 border">{Number(entry.total_worker ?? 0)}</td> {/* <-- display total_worker */}
                                                 <td className="p-2 border">{entry.supervisor}</td>
-                                                <td className="p-2 border">
-                                                    {Number(entry.total_cost).toFixed(2)} $
-                                                </td>
+                                                <td className="p-2 border">{Number(entry.total_cost).toFixed(2)} $</td>
                                                 <td className="p-2 border">
                                                     {new Date(entry.created_at).toLocaleDateString("fr-CA")}
                                                 </td>
                                                 <td className="p-2 border flex items-center justify-center">
-                                                    {entry.field ? (
-                                                        entry.field
-                                                    ) : (
+                                                    {entry.field ? entry.field : (
                                                         <button
                                                             onClick={async () => {
-                                                                // 1️⃣ Ask user to select a field
                                                                 const selectedField = prompt("Entrez le champ pour cette entrée :");
                                                                 if (!selectedField) return;
 
                                                                 try {
-                                                                    // 2️⃣ Call fix-field route
                                                                     const result = await fetchWithAuth(
                                                                         `${API_BASE_URL}/fix-field`,
                                                                         {
@@ -298,10 +296,8 @@ const TaskCostsInput = () => {
                                                                         }
                                                                     );
 
-
                                                                     console.log("Patch result:", result);
 
-                                                                    // 3️⃣ Update local state
                                                                     setLatestEntries((prev) =>
                                                                         prev.map((e) =>
                                                                             e.id === entry.id ? { ...e, field: selectedField.toUpperCase() } : e

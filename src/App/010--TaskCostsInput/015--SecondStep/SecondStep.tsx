@@ -140,6 +140,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
             return;
         }
 
+        // Total cost
         const totalCost = numericHours === null
             ? 0
             : wages.reduce<number>((acc, cur, i) => {
@@ -148,15 +149,22 @@ const SecondStep: React.FC<SecondStepProps> = ({
                 return acc + w * m * numericHours;
             }, 0);
 
+        // ✅ Total workers
+        const totalWorker = multiplier.reduce<number>(
+            (acc, m) => acc + (m === "" ? 1 : m),
+            0
+        ) + 1;
+
         const payload = {
             vegetable: cultureDefined ? selectedVeggie.toUpperCase() : "AUCUNE",
             category: currentCategory?.name,
             sub_category: subCategory,
             total_hours: totalHours,
+            total_worker: totalWorker,       // <-- add this here
             supervisor: supervisor === "Aucun" ? null : normalizeSupervisor(supervisor),
             total_cost: totalCost,
             created_at: useCustomDate && selectedDate ? selectedDate.toISOString() : undefined,
-            field: field || null // <-- send field state here
+            field: field || null
         };
 
         try {
@@ -179,6 +187,10 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
         setTimeout(() => window.location.reload(), 200);
     };
+
+    useEffect(() => {
+        console.log(multiplier)
+    }, [multiplier])
 
 
     // 🔹 Helper to format 3.5 → 3h30
