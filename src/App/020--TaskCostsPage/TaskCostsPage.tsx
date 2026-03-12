@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import { Link } from "react-router-dom";
 import { fr } from "date-fns/locale";
-import FormatCost from "../../assets/Functions/formatcost";
-import FormatHours from "../../assets/Functions/FormatHours";
-import capitalizeName from "@/assets/Functions/capitalizeName";
+import capitalizeName from "../../assets/Functions/capitalizeName";
+
+
 import {
     Select,
     SelectTrigger,
@@ -13,6 +13,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
 const TaskCostsPage = () => {
     type CostRow = {
@@ -29,7 +30,7 @@ const TaskCostsPage = () => {
 
 
 
-    const [groupBy, setGroupBy] = useState("supervisor");
+    const [groupBy, setGroupBy] = useState<string | string[]>("supervisor");
     const [data, setData] = useState<CostRow[]>([]);
 
 
@@ -38,6 +39,9 @@ const TaskCostsPage = () => {
     const [endDate, setEndDate] = useState("");
     const [yearSelected, setYearSelected] = useState<string | undefined>(undefined);
     const [monthSelected, setMonthSelected] = useState<string | undefined>(undefined);
+    const [selectedVegetable, setSelectedVegetable] = useState<string | undefined>(undefined);
+
+    const { vegetables } = useVegetables();
 
     const months = [
         { value: "01", label: "Janvier" }, { value: "02", label: "Février" }, { value: "03", label: "Mars" },
@@ -46,15 +50,24 @@ const TaskCostsPage = () => {
         { value: "10", label: "Octobre" }, { value: "11", label: "Novembre" }, { value: "12", label: "Décembre" },
     ];
 
-    const getGroupValue = (row: CostRow, key: string) => {
-        switch (key) {
-            case "vegetable": return row.vegetable;
-            case "category": return row.category;
-            case "sub_category": return row.sub_category;
-            case "supervisor": return row.supervisor;
-            default: return "";
-        }
+    const formatCost = (cost: number) => {
+        return new Intl.NumberFormat("fr-CA", {
+            style: "currency",
+            currency: "CAD",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(cost);
     };
+
+
+    const groupingOptions = [
+        { label: "Culture", value: ["vegetable"] },
+        { label: "Catégorie", value: ["category"] },
+        { label: "Sous-Catégorie", value: ["sub_category"] },
+        { label: "Superviseur", value: ["supervisor"] },
+        { label: "Culture / Sous-Catégorie", value: ["vegetable", "sub_category"] },
+        { label: "Culture / Catégorie", value: ["vegetable", "category"] },
+    ];
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 10 }, (_, i) => (currentYear - i).toString());
@@ -62,7 +75,11 @@ const TaskCostsPage = () => {
     // --- Fetch main cost summary ---
     const fetchData = async () => {
         try {
-            let url = `https://vegibec-rendement-backend.onrender.com/data/costs/summary?groupBy=${groupBy}`;
+            const groupParam = Array.isArray(groupBy)
+                ? groupBy.join(",")
+                : groupBy;
+
+            let url = `https://vegibec-rendement-backend.onrender.com/data/costs/summary?groupBy=${encodeURIComponent(groupParam)}`;
 
             if (yearSelected) {
                 if (monthSelected) {
@@ -76,9 +93,14 @@ const TaskCostsPage = () => {
                 url += `&start=${startDate}&end=${endDate}`;
             }
 
-            const json = await fetchWithAuth(url); // <-- use fetchWithAuth
-            if (Array.isArray(json)) setData(json);
-            else setData([]);
+            const json = await fetchWithAuth(url);
+
+            if (Array.isArray(json)) {
+                setData(json);
+            } else {
+                setData([]);
+            }
+
         } catch (err) {
             console.error("Fetch failed:", err);
             setData([]);
@@ -91,22 +113,75 @@ const TaskCostsPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [groupBy, startDate, endDate, yearSelected, monthSelected]);
 
+    const groupFields = Array.isArray(groupBy) ? groupBy : [groupBy];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const getLabel = (item: any) => {
+        return groupFields
+            .map((field) => item[field])
+            .filter(Boolean)
+            .join(" - ");
+    };
+
+    const includesVegetable = groupFields.includes("vegetable");
+
+    const filteredData = selectedVegetable
+        ? data.filter((row) => row.vegetable === selectedVegetable)
+        : data;
 
     return (
+
+
+
         <>
+
+
             <div className="p-1 flex flex-col items-center w-full max-sm:text-[0.9em]">
-                <h1 className="text-2xl font-bold mb-4">Rapports de coûts de tâches</h1>
+
+                <Link to="/entrer-couts-des-taches" className="button-generic mt-2">Retour</Link>
+
+                <h1 className="text-2xl font-bold mb-4 mt-4">Rapports de coûts de tâches</h1>
 
                 <div className="flex gap-2 mb-4">
                     <label>Grouper par:</label>
-                    <select className="w-[65%] border-1 border-green-400" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
-                        <option value="vegetable">Culture</option>
-                        <option value="category">Catégorie de tâche</option>
-                        <option value="sub_category">Sous-Catégorie de tâche</option>
-                        <option value="supervisor">Superviseur</option>
+                    <select
+                        value={Array.isArray(groupBy) ? groupBy.join(",") : groupBy}
+                        onChange={(e) => setGroupBy(e.target.value.split(","))}
+                    >
+                        {groupingOptions.map((opt) => (
+                            <option key={opt.value.join(",")} value={opt.value.join(",")}>
+                                {opt.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
+
+                {includesVegetable && (
+                    <div className="flex gap-2 mb-4 items-center">
+                        <label>Culture:</label>
+
+                        <Select
+                            value={selectedVegetable ?? "all"}
+                            onValueChange={(val) =>
+                                setSelectedVegetable(val === "all" ? undefined : val)
+                            }
+                        >
+                            <SelectTrigger className="border-1 border-green-400 w-[200px]">
+                                <SelectValue placeholder="Toutes les cultures" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectItem value="all">Toutes les cultures</SelectItem>
+
+                                {vegetables.map((veg) => (
+                                    <SelectItem key={veg.vegetable} value={veg.vegetable}>
+                                        {capitalizeName(veg.vegetable)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
 
                 {/* DATE PICKER SECTION */}
                 <section className="flex flex-col items-center gap-[1rem] mb-[0.5rem]">
@@ -191,10 +266,17 @@ const TaskCostsPage = () => {
                         <thead className="border-b-3 border-green-400 border-dotted">
                             <tr>
                                 <th className="border-1 border-green-400 p-2 rounded-[0.5rem]">
-                                    {groupBy === "vegetable" ? "Culture" :
-                                        groupBy === "category" ? "Catégorie de tâche" :
-                                            groupBy === "sub_category" ? "Sous-Catégorie de tâche" :
-                                                "Superviseur"}
+                                    {groupFields
+                                        .map((field) =>
+                                            field === "vegetable"
+                                                ? "Culture"
+                                                : field === "category"
+                                                    ? "Catégorie de tâche"
+                                                    : field === "sub_category"
+                                                        ? "Sous-catégorie de tâche"
+                                                        : "Superviseur"
+                                        )
+                                        .join(" / ")}
                                 </th>
                                 <th className="border-1 border-green-400 p-2 rounded-[0.5rem]">
                                     Heures Totales<span className="block text-[0.7rem]">(des groupes supervisés)</span>
@@ -203,21 +285,11 @@ const TaskCostsPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.map((row, i) => (
-                                <tr key={i}>
-                                    <td className="border-1 border-green-400 p-2">
-                                        {(() => {
-                                            if (groupBy === "sub_category") return `${row.sub_category} (${row.category})`;
-                                            if (groupBy === "supervisor") return capitalizeName(row.supervisor);
-                                            return getGroupValue(row, groupBy);
-                                        })()}
-                                    </td>
-                                    <td className="border-1 border-green-400 p-2">
-                                        <FormatHours hours={row.total_hours} />
-                                    </td>
-                                    <td className="border-1 border-green-400 p-2">
-                                        <FormatCost cost={row.total_cost} />
-                                    </td>
+                            {filteredData.map((item, index) => (
+                                <tr className="border border-green-400 " key={index}>
+                                    <td className="p-2">{getLabel(item)}</td>
+                                    <td className="p-2 border border-x-2 border-green-400">{item.total_hours}</td>
+                                    <td className="p-2">{formatCost(item.total_cost)}</td>
                                 </tr>
                             ))}
                         </tbody>

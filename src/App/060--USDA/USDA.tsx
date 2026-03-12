@@ -206,6 +206,8 @@ const USDA = () => {
     );
 
 
+    useEffect(() => { console.log(vegReports) }, [vegReports])
+
 
     ////////////////////////////////////////////////////WEIGHT INFO////////////  
 
