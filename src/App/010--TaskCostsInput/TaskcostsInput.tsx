@@ -29,6 +29,7 @@ const TaskCostsInput = () => {
         total_hours: number;
         supervisor: string;
         total_cost: number;
+        total_cost_with_charges?: number;
         created_at: string;
         field: string | null;
         total_worker?: number;
@@ -258,6 +259,7 @@ const TaskCostsInput = () => {
                                             <th className="p-2 border">Nb de travailleurs</th> {/* <-- new */}
                                             <th className="p-2 border">Superviseur</th>
                                             <th className="p-2 border">Coût Total</th>
+                                            <th className="p-2 border">Coût Total avec charges</th>
                                             <th className="p-2 border">Date</th>
                                             <th className="p-2 border">Champ</th>
                                             <th className="p-2 border">Actions</th>
@@ -276,6 +278,7 @@ const TaskCostsInput = () => {
                                                 <td className="p-2 border">{Number(entry.total_worker ?? 0)}</td> {/* <-- display total_worker */}
                                                 <td className="p-2 border">{entry.supervisor}</td>
                                                 <td className="p-2 border">{Number(entry.total_cost).toFixed(2)} $</td>
+                                                <td className="p-2 border">{Number(entry.total_cost_with_charges ?? entry.total_cost).toFixed(2)} $</td>
                                                 <td className="p-2 border">
                                                     {new Date(entry.created_at).toLocaleDateString("fr-CA")}
                                                 </td>

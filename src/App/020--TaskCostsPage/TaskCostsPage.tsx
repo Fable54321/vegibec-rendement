@@ -23,6 +23,7 @@ const TaskCostsPage = () => {
         supervisor: string;
         total_hours: number;
         total_cost: number;
+        total_cost_with_charges: number;
         displayCost?: number;
         isRedistributed?: boolean;
         originalCost?: number;
@@ -282,6 +283,10 @@ const TaskCostsPage = () => {
                                     Heures Totales<span className="block text-[0.7rem]">(des groupes supervisés)</span>
                                 </th>
                                 <th className="border-1 border-green-400 p-2 rounded-[0.5rem]">Coûts totaux</th>
+                                <th className="border-1 border-green-400 p-2 rounded-[0.5rem]">
+                                    Coûts totaux avec charges
+
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -290,6 +295,7 @@ const TaskCostsPage = () => {
                                     <td className="p-2">{getLabel(item)}</td>
                                     <td className="p-2 border border-x-2 border-green-400">{Number(item.total_hours ?? 0).toFixed(2)}</td>
                                     <td className="p-2">{formatCost(item.total_cost)}</td>
+                                    <td className="p-2 border border-l-2 border-green-400">{formatCost(item.total_cost_with_charges)}</td>
                                 </tr>
                             ))}
                         </tbody>
