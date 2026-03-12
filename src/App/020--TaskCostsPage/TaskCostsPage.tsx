@@ -288,7 +288,7 @@ const TaskCostsPage = () => {
                             {filteredData.map((item, index) => (
                                 <tr className="border border-green-400 " key={index}>
                                     <td className="p-2">{getLabel(item)}</td>
-                                    <td className="p-2 border border-x-2 border-green-400">{item.total_hours.toFixed(2)}</td>
+                                    <td className="p-2 border border-x-2 border-green-400">{Number(item.total_hours ?? 0).toFixed(2)}</td>
                                     <td className="p-2">{formatCost(item.total_cost)}</td>
                                 </tr>
                             ))}
