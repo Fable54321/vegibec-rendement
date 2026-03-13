@@ -758,7 +758,7 @@ const TaskCostsInput = () => {
 
 
                                                             {/* dropdown list */}
-                                                            <div className="absolute top-full left-0 mt-1 w-full max-h-48 overflow-y-auto bg-white border rounded shadow z-50">
+                                                            <div className="absolute hidden top-full left-0 mt-1 w-full max-h-48 overflow-y-auto bg-white border rounded shadow z-50">
                                                                 {fields.filter(f =>
                                                                     f.field.toLowerCase().includes(editingData.field.toLowerCase())
                                                                 ).map(f => (
