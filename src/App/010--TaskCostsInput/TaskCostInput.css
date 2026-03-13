@@ -1,0 +1,13 @@
+@keyframes PlaceholderScroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-100%));
+    }
+}
+
+.animate-placeholder-scroll {
+    animation: PlaceholderScroll 6s linear infinite;
+}

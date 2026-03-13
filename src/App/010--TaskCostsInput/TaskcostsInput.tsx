@@ -7,6 +7,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useFields } from "@/context/fields/FieldsContext";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
 import { useTaskCategories } from "../../context/taskCategories/TaskCategoriesContext";
+import "./TaskCostInput.css";
+import { useSupervisors } from "@/context/supervisors/SupervisorContext";
+
 
 
 const TaskCostsInput = () => {
@@ -20,6 +23,25 @@ const TaskCostsInput = () => {
         loadingCategories,
         loadingSubcategories,
     } = useTaskCategories();
+
+    const { vegetables: vegList } = useVegetables();
+    const { supervisors } = useSupervisors();
+    const { fields } = useFields();
+
+    useEffect(() => {
+        console.log(
+            "vegList",
+            vegList,
+            "supervisors",
+            supervisors,
+            "fields",
+            fields,
+            "categories",
+            categories,
+            "subcategories",
+            subcategories,
+        );
+    }, [vegList, supervisors, fields, categories, subcategories]);
 
     interface TaskCostEntry {
         id: number;
@@ -43,7 +65,11 @@ const TaskCostsInput = () => {
         };
     }
 
-    const { vegetables: vegList } = useVegetables();
+    interface PatchTaskCostResponse {
+        entry: TaskCostEntry;
+    }
+
+
 
     const [vegetables, setVegetables] = useState<string[]>([]);
 
@@ -91,7 +117,38 @@ const TaskCostsInput = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const { fields } = useFields();
+    const [editingId, setEditingId] = useState<number | null>(null);
+
+    const [editingData, setEditingData] = useState({
+        vegetable: "",
+        category: "",
+        sub_category: "",
+        total_hours: "",
+        total_worker: "",
+        supervisor: "",
+        total_cost: "",
+        total_cost_with_charges: "",
+        created_at: "",
+        field: "",
+    });
+
+    const startEditing = (entry: TaskCostEntry) => {
+        setEditingId(entry.id);
+
+        setEditingData({
+            vegetable: entry.vegetable,
+            category: entry.category,
+            sub_category: entry.sub_category,
+            total_hours: entry.total_hours.toString(),
+            total_worker: (entry.total_worker ?? 0).toString(),
+            supervisor: entry.supervisor,
+            total_cost: entry.total_cost.toString(),
+            total_cost_with_charges: (entry.total_cost_with_charges ?? entry.total_cost).toString(),
+            created_at: entry.created_at,
+            field: entry.field || "",
+        });
+    };
+
 
     const handleCategoryChange = (categoryId: number) => {
         setSelectedCategoryId(categoryId);
@@ -166,6 +223,12 @@ const TaskCostsInput = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fromDate, toDate]);
+
+
+
+
+
+
 
 
     return (
@@ -262,6 +325,7 @@ const TaskCostsInput = () => {
                                             <th className="p-2 border">Coût Total avec charges</th>
                                             <th className="p-2 border">Date</th>
                                             <th className="p-2 border">Champ</th>
+                                            <th className="p-2 border">Modifier</th>
                                             <th className="p-2 border">Actions</th>
                                         </tr>
                                     </thead>
@@ -271,52 +335,507 @@ const TaskCostsInput = () => {
                                                 key={entry.id}
                                                 className="odd:bg-gray-100 even:bg-white text-center"
                                             >
-                                                <td className="p-2 border">{entry.vegetable}</td>
-                                                <td className="p-2 border">{entry.category}</td>
-                                                <td className="p-2 border">{entry.sub_category}</td>
-                                                <td className="p-2 border">{Number(entry.total_hours).toFixed(2)}</td>
-                                                <td className="p-2 border">{Number(entry.total_worker ?? 0)}</td> {/* <-- display total_worker */}
-                                                <td className="p-2 border">{entry.supervisor}</td>
-                                                <td className="p-2 border">{Number(entry.total_cost).toFixed(2)} $</td>
-                                                <td className="p-2 border">{Number(entry.total_cost_with_charges ?? entry.total_cost).toFixed(2)} $</td>
                                                 <td className="p-2 border">
-                                                    {new Date(entry.created_at).toLocaleDateString("fr-CA")}
-                                                </td>
-                                                <td className="p-2 border flex items-center justify-center">
-                                                    {entry.field ? entry.field : (
-                                                        <button
-                                                            onClick={async () => {
-                                                                const selectedField = prompt("Entrez le champ pour cette entrée :");
-                                                                if (!selectedField) return;
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed">
 
+                                                                {/* absolute select overlay */}
+                                                                <select
+                                                                    value={editingData.vegetable}
+                                                                    onChange={(e) =>
+                                                                        setEditingData((prev) => ({ ...prev, vegetable: e.target.value }))
+                                                                    }
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                >
+                                                                    {vegList.map((veg) => (
+                                                                        <option key={veg.vegetable} value={veg.vegetable}>
+                                                                            {veg.vegetable}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {entry.vegetable}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {entry.vegetable}
+                                                                </div>
+
+                                                            </div>
+
+                                                            : entry.vegetable}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed">
+
+                                                                {/* absolute select overlay */}
+                                                                <select
+                                                                    value={editingData.category}
+                                                                    onChange={(e) => {
+                                                                        const selectedCategory = categories.find((c) => c.name === e.target.value);
+                                                                        setEditingData((prev) => ({
+                                                                            ...prev,
+                                                                            category: e.target.value,
+                                                                            sub_category: "", // reset subcategory when category changes
+                                                                        }));
+                                                                        handleCategoryChange(selectedCategory?.id ?? 0); // fetch new subcategories
+                                                                    }}
+                                                                    id="catInput"
+                                                                    name="catInput"
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                >
+                                                                    {categories.map((cat) => (
+                                                                        <option key={cat.id} value={cat.name}>
+                                                                            {cat.name}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {entry.category}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {entry.category}
+                                                                </div>
+
+                                                            </div>
+
+                                                            : entry.category}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed py-4">
+
+                                                                {/* absolute select overlay */}
+                                                                <select
+                                                                    value={editingData.sub_category}
+                                                                    onChange={(e) =>
+                                                                        setEditingData((prev) => ({ ...prev, sub_category: e.target.value }))
+                                                                    }
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent  px-1 outline-none"
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                >
+                                                                    {subcategories.map((sub) => (
+                                                                        <option key={sub.id} value={sub.name}>
+                                                                            {sub.name}
+                                                                        </option>
+                                                                    ))}
+
+                                                                </select>
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {entry.sub_category}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {entry.sub_category}
+                                                                </div>
+
+                                                            </div>
+
+
+                                                            : entry.sub_category}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed px-5">
+
+                                                                {/* absolute input overlay */}
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingData.total_hours}
+                                                                    onChange={(e) => {
+                                                                        setEditingData((prev) => ({
+                                                                            ...prev,
+                                                                            total_hours: e.target.value,
+                                                                        }));
+                                                                    }}
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                />
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {Number(entry.total_hours).toFixed(2)}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {Number(entry.total_hours).toFixed(2)}
+                                                                </div>
+
+                                                            </div>
+                                                            :
+                                                            Number(entry.total_hours).toFixed(2)}
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed">
+
+                                                                {/* absolute input overlay */}
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingData.total_worker}
+                                                                    onChange={(e) => {
+                                                                        setEditingData((prev) => ({
+                                                                            ...prev,
+                                                                            total_worker: e.target.value,
+                                                                        }));
+                                                                    }}
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                />
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {Number(entry.total_worker ?? 0)}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {Number(entry.total_worker ?? 0)}
+                                                                </div>
+
+                                                            </div>
+                                                            :
+                                                            Number(entry.total_worker ?? 0)}
+                                                </td> {/* <-- display total_worker */}
+                                                <td className="p-2 border">
+                                                    {editingId === entry.id ? (
+                                                        <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed">
+
+                                                            {/* absolute select overlay */}
+                                                            <select
+                                                                value={editingData.supervisor}
+                                                                onChange={(e) =>
+                                                                    setEditingData((prev) => ({ ...prev, supervisor: e.target.value }))
+                                                                }
+                                                                onFocus={(e) => {
+                                                                    const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                    placeholder?.classList.add("hidden");
+                                                                    e.currentTarget.classList.remove("text-transparent");
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                    placeholder?.classList.remove("hidden");
+                                                                    e.currentTarget.classList.add("text-transparent");
+                                                                }}
+                                                                className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                            >
+                                                                {supervisors.map((sup) => (
+                                                                    <option key={sup.supervisor} value={sup.supervisor}>
+                                                                        {sup.supervisor}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+
+                                                            {/* visible placeholder */}
+                                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                {entry.supervisor}
+                                                            </div>
+
+                                                            {/* height reference */}
+                                                            <div className="text-transparent pointer-events-none">
+                                                                {entry.supervisor ? entry.supervisor : "-"}
+                                                            </div>
+
+                                                        </div>
+                                                    ) : (
+                                                        entry.supervisor
+                                                    )}
+                                                </td>
+
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed px-5">
+
+                                                                {/* absolute input overlay */}
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingData.total_cost}
+                                                                    onChange={(e) => {
+                                                                        setEditingData((prev) => ({
+                                                                            ...prev,
+                                                                            total_cost: e.target.value,
+                                                                        }));
+                                                                    }}
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                />
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {Number(entry.total_cost).toFixed(2) + "$"}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {Number(entry.total_cost).toFixed(2) + "$"}
+                                                                </div>
+
+                                                            </div>
+                                                            :
+                                                            Number(entry.total_cost).toFixed(2) + "$"
+                                                    }
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed">
+
+                                                                {/* absolute input overlay */}
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingData.total_cost_with_charges}
+                                                                    onChange={(e) => {
+                                                                        setEditingData((prev) => ({
+                                                                            ...prev,
+                                                                            total_cost_with_charges: e.target.value,
+                                                                        }));
+                                                                    }}
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                />
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {Number(entry.total_cost_with_charges ?? entry.total_cost).toFixed(2) + "$"}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {Number(entry.total_cost_with_charges ?? entry.total_cost).toFixed(2) + "$"}
+                                                                </div>
+
+                                                            </div>
+                                                            :
+                                                            Number(entry.total_cost_with_charges ?? entry.total_cost).toFixed(2) + "$"
+                                                    }
+                                                </td>
+                                                <td className="p-2 border">
+                                                    {
+                                                        editingId === entry.id ?
+                                                            <div className="relative overflow-hidden bg-transparent border-2 border-green-400 border-dashed px-5">
+
+                                                                {/* absolute input overlay */}
+                                                                <input
+                                                                    type="date"
+                                                                    value={editingData.created_at}
+                                                                    onChange={(e) => {
+                                                                        setEditingData((prev) => ({
+                                                                            ...prev,
+                                                                            created_at: e.target.value,
+                                                                        }));
+                                                                    }}
+                                                                    onFocus={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.add("hidden");
+                                                                        e.currentTarget.classList.remove("text-transparent");
+                                                                    }}
+                                                                    onBlur={(e) => {
+                                                                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                                                        placeholder?.classList.remove("hidden");
+                                                                        e.currentTarget.classList.add("text-transparent");
+                                                                    }}
+                                                                    className="absolute inset-0 w-full h-full bg-transparent text-transparent px-1 outline-none"
+                                                                />
+
+                                                                {/* visible placeholder */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                                    {new Date(entry.created_at).toLocaleDateString("fr-CA")}
+                                                                </div>
+
+                                                                {/* height reference */}
+                                                                <div className="text-transparent pointer-events-none">
+                                                                    {new Date(entry.created_at).toLocaleDateString("fr-CA")}
+                                                                </div>
+
+                                                            </div>
+                                                            :
+                                                            new Date(entry.created_at).toLocaleDateString("fr-CA")
+                                                    }
+                                                </td>
+                                                <td className="p-2 border ">
+                                                    {editingId === entry.id ? (
+                                                        <div className="relative bg-transparent border-2 border-green-400 border-dashed px-2 py-1">
+
+                                                            {/* input for search */}
+                                                            <input
+                                                                type="text"
+                                                                value={editingData.field}
+                                                                onChange={(e) => setEditingData((prev) => ({ ...prev, field: e.target.value }))}
+                                                                placeholder="Rechercher un champ..."
+                                                                className="w-full px-1 py-1 outline-none"
+                                                                onFocus={(e) => {
+                                                                    const list = e.currentTarget.nextElementSibling
+                                                                    list?.classList.remove("hidden")
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    const list = e.currentTarget.nextElementSibling
+                                                                    list?.classList.add("hidden")
+                                                                }}
+                                                            />
+
+
+
+                                                            {/* dropdown list */}
+                                                            <div className="absolute top-full left-0 mt-1 w-full max-h-48 overflow-y-auto bg-white border rounded shadow z-50">
+                                                                {fields.filter(f =>
+                                                                    f.field.toLowerCase().includes(editingData.field.toLowerCase())
+                                                                ).map(f => (
+                                                                    <div
+                                                                        key={f.field}
+                                                                        onMouseDown={() => setEditingData(prev => ({ ...prev, field: f.field }))}
+                                                                        className="px-2 py-1 hover:bg-green-100 cursor-pointer"
+                                                                    >
+                                                                        {f.field}
+                                                                    </div>
+                                                                ))}
+                                                                {fields.filter(f =>
+                                                                    f.field.toLowerCase().includes(editingData.field.toLowerCase())
+                                                                ).length === 0 && <div className="px-2 py-1 text-gray-400">Aucun résultat</div>}
+                                                            </div>
+
+                                                        </div>
+
+
+
+                                                    ) : (
+                                                        entry.field || "N/A"
+                                                    )
+                                                    }
+                                                </td>
+                                                <td className="p-2 border">
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (editingId === entry.id) {
+                                                                // ✅ Row is being edited → confirm changes
                                                                 try {
-                                                                    const result = await fetchWithAuth(
-                                                                        `${API_BASE_URL}/fix-field`,
+                                                                    const updated = await fetchWithAuth<PatchTaskCostResponse>(
+                                                                        `${API_BASE_URL}/data/costs/${entry.id}`,
                                                                         {
                                                                             method: "PATCH",
-                                                                            headers: { "Content-Type": "application/json" },
-                                                                            body: JSON.stringify({ ids: [entry.id], field: selectedField.toUpperCase() }),
+                                                                            headers: {
+                                                                                "Content-Type": "application/json",
+                                                                                Authorization: `Bearer ${token}`,
+                                                                            },
+                                                                            body: JSON.stringify({
+                                                                                vegetable: editingData.vegetable,
+                                                                                category: editingData.category,
+                                                                                sub_category: editingData.sub_category,
+                                                                                total_hours: Number(editingData.total_hours),
+                                                                                total_worker: Number(editingData.total_worker),
+                                                                                supervisor: editingData.supervisor,
+                                                                                total_cost: Number(editingData.total_cost),
+                                                                                total_cost_with_charges: Number(editingData.total_cost_with_charges),
+                                                                                created_at: editingData.created_at,
+                                                                                field: editingData.field,
+                                                                            }),
                                                                         }
                                                                     );
 
-                                                                    console.log("Patch result:", result);
-
+                                                                    // Update the table locally
                                                                     setLatestEntries((prev) =>
                                                                         prev.map((e) =>
-                                                                            e.id === entry.id ? { ...e, field: selectedField.toUpperCase() } : e
+                                                                            e.id === entry.id ? { ...e, ...updated.entry } : e
                                                                         )
                                                                     );
 
+                                                                    // Exit edit mode
+                                                                    setEditingId(null);
                                                                 } catch (err) {
                                                                     console.error(err);
-                                                                    alert("Erreur lors de la correction du champ.");
+                                                                    alert("Erreur lors de la modification.");
                                                                 }
-                                                            }}
-                                                            className="bg-yellow-400 hover:bg-yellow-500 hover:cursor-pointer text-white px-2 py-1 rounded text-sm"
-                                                        >
-                                                            Ajouter
-                                                        </button>
-                                                    )}
+                                                            } else {
+                                                                // 🖊 Start editing this row
+                                                                startEditing(entry);
+                                                            }
+                                                        }}
+                                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg"
+                                                    >
+                                                        {editingId === entry.id ? "Confirmer" : "Modifier"}
+                                                    </button>
+
                                                 </td>
                                                 <td className="p-2 border">
                                                     <button
