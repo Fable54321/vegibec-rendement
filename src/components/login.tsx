@@ -1,9 +1,6 @@
-// src/components/Login.tsx
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 const Login = () => {
     const { login } = useAuth();
@@ -21,21 +18,8 @@ const Login = () => {
         setError(null);
 
         try {
-            const res = await fetch(`${API_BASE_URL}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-                credentials: "include",
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => null);
-                throw new Error(errorData?.message || "Nom d’utilisateur ou mot de passe invalide");
-            }
-
-            const data = await res.json();
-            login(data.token); // ✅ set token and user in context
-            navigate("/"); // go to home page
+            await login(username, password);
+            navigate("/");
         } catch (err) {
             setError((err as Error).message);
         } finally {

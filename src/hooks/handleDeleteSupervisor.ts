@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { useSupervisors } from "@/context/supervisors/SupervisorContext";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
-
 export const useDeleteSupervisor = () => {
-  const { token } = useAuth();
   const { refetchSupervisors } = useSupervisors();
 
   const [loading, setLoading] = useState(false);
@@ -17,23 +13,12 @@ export const useDeleteSupervisor = () => {
       return;
     }
 
-    if (!token) {
-      setError("Utilisateur non authentifié");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/supervisors/${encodeURIComponent(supervisor)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        `/supervisors/${encodeURIComponent(supervisor)}`,
       );
 
       if (!response.ok) {

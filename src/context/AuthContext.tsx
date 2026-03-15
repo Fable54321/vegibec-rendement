@@ -1,87 +1,119 @@
 // src/context/AuthContext.tsx
-import { createContext, useState, useContext, type ReactNode, useEffect } from "react";
+import {
+    createContext,
+    useState,
+    useContext,
+    type ReactNode,
+    useEffect,
+} from "react";
+
+type User = {
+    id: number;
+    username: string;
+    role?: string;
+};
 
 interface AuthContextType {
-    token: string | null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    user: any; // replace with your proper user type if you have one
-    login: (token: string) => void;
-    logout: () => void;
+    user: User | null;
+    login: (username: string, password: string) => Promise<void>;
+    logout: () => Promise<void>;
     loading: boolean;
+    authChecked: boolean;
+    refreshSession: () => Promise<boolean>;
 }
-
-const AuthContext = createContext<AuthContextType>({
-    token: null,
-    user: null,
-    login: () => { },
-    logout: () => { },
-    loading: true,
-});
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    login: async () => { },
+    logout: async () => { },
+    loading: true,
+    authChecked: false,
+    refreshSession: async () => false,
+});
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [authChecked, setAuthChecked] = useState(false);
 
-    // Run once on mount: check if token in localStorage is valid
+    const refreshSession = async (): Promise<boolean> => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            return res.ok;
+        } catch {
+            return false;
+        }
+    };
+
+    const fetchMe = async (): Promise<User | null> => {
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
+            method: "GET",
+            credentials: "include",
+        });
+
+        if (!res.ok) {
+            return null;
+        }
+
+        const data = await res.json();
+        return data.user ?? null;
+    };
+
     useEffect(() => {
-
-
         const initAuth = async () => {
-            const storedToken = localStorage.getItem("token");
-
             try {
-                // First try current token
-                if (storedToken) {
-                    const res = await fetch(`${API_BASE_URL}/auth/me`, {
-                        headers: { Authorization: `Bearer ${storedToken}` },
-                        credentials: "include",
-                    });
+                let me = await fetchMe();
 
-                    if (res.ok) {
-                        const data = await res.json();
-                        setUser(data.user);
-                        setToken(storedToken);
-                        return;
+                if (!me) {
+                    const refreshed = await refreshSession();
+
+                    if (refreshed) {
+                        me = await fetchMe();
                     }
                 }
 
-                // 🔁 Fallback to refresh
-                const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-                    method: "POST",
-                    credentials: "include",
-                });
-
-                if (!refreshRes.ok) throw new Error("Refresh failed");
-
-                const data = await refreshRes.json();
-                login(data.token); // sets token + user
+                setUser(me);
             } catch (err) {
                 console.warn("Auth init failed:", err);
-                logout();
+                setUser(null);
             } finally {
                 setLoading(false);
+                setAuthChecked(true);
             }
         };
 
         initAuth();
-
     }, []);
 
-    const login = (newToken: string) => {
-        setToken(newToken);
-        localStorage.setItem("token", newToken);
+    const login = async (username: string, password: string) => {
+        setLoading(true);
 
         try {
-            const payload = JSON.parse(atob(newToken.split(".")[1]));
-            setUser(payload); // set user immediately from JWT
-        } catch {
-            setUser(null);
+            const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Login failed");
+            }
+
+            setUser(data.user);
         } finally {
-            setLoading(false); // ✅ mark loading complete
+            setLoading(false);
+            setAuthChecked(true);
         }
     };
 
@@ -93,16 +125,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
         } catch {
             // ignore
+        } finally {
+            setUser(null);
         }
-
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem("token");
     };
 
-
     return (
-        <AuthContext.Provider value={{ token, user, login, logout, loading }}>
+        <AuthContext.Provider
+            value={{
+                user,
+                login,
+                logout,
+                loading,
+                authChecked,
+                refreshSession,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

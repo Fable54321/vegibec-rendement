@@ -1,7 +1,7 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid"
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
+
 import { Link } from "react-router-dom";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
@@ -24,7 +24,7 @@ const OtherCostsInput = () => {
 
 
 
-    const { token } = useAuth();
+
 
     const { vegetables } = useVegetables();
 
@@ -42,7 +42,7 @@ const OtherCostsInput = () => {
 
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
     type UnspecifiedCostPayload = {
         category: string; // keep category for consistency
@@ -102,7 +102,7 @@ const OtherCostsInput = () => {
         }
 
         try {
-            const endpoint = `${API_BASE_URL}/other-costs-entry`;
+            const endpoint = `/other-costs-entry`;
 
             let payload: SubmitPayload;
 
@@ -136,10 +136,6 @@ const OtherCostsInput = () => {
 
             const data = await fetchWithAuth(endpoint, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify(payload),
             }) as { success?: boolean };
 

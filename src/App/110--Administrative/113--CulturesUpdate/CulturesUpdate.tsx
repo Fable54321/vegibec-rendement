@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { Link, useOutletContext } from "react-router-dom";
 import type { AppOutletContext } from "@/App/000--App/App";
 import { ChevronDown, X } from "lucide-react";
@@ -16,7 +15,7 @@ import SimpleCultureForm from "@/App/Components/SimpleCultureForm";
 import { GenericCultureForm } from "@/App/Components/GenericCultureForm";
 
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 type GroupEntry = {
     vegetable: string;
@@ -40,7 +39,7 @@ const formatCurrency = (value: number | string | undefined | null) => {
 };
 
 const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
-    const { token } = useAuth();
+
 
     const [culture, setCulture] = useState("");
     const [loading, setLoading] = useState(false);
@@ -99,12 +98,9 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                 }
 
                 // 1️⃣ Add vegetable
-                await fetchWithAuth(`${API_BASE_URL}/vegetables`, {
+                await fetchWithAuth(`/vegetables`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
+
                     body: JSON.stringify({
                         vegetable: normalizedCulture,
                     }),
@@ -112,12 +108,9 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
 
                 // 2️⃣ Add projected revenue if needed
                 if (!isRevenueExisting) {
-                    await fetchWithAuth(`${API_BASE_URL}/projected-revenues`, {
+                    await fetchWithAuth(`/projected-revenues`, {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
+
                         body: JSON.stringify({
                             vegetable: normalizedCulture,
                             year: projectedRevenueYear,
@@ -144,12 +137,9 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                 }
 
                 // 0️⃣ Add the generic group itself as a vegetable
-                await fetchWithAuth(`${API_BASE_URL}/vegetables`, {
+                await fetchWithAuth(`/vegetables`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
+
                     body: JSON.stringify({
                         vegetable: normalizedGroup,
                         is_generic: true,
@@ -167,12 +157,9 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                     }
 
                     // Add vegetable linked to group
-                    await fetchWithAuth(`${API_BASE_URL}/vegetables`, {
+                    await fetchWithAuth(`/vegetables`, {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
+
                         body: JSON.stringify({
                             vegetable: normalizedVegetable,
                             generic_group: normalizedGroup,
@@ -182,12 +169,9 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
 
                     // Add projected revenue if needed
                     if (!entry.revenueExisting && entry.projectedRevenue !== "") {
-                        await fetchWithAuth(`${API_BASE_URL}/projected-revenues`, {
+                        await fetchWithAuth(`/projected-revenues`, {
                             method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
+
                             body: JSON.stringify({
                                 vegetable: normalizedVegetable,
                                 year: entry.projectedRevenueYear,

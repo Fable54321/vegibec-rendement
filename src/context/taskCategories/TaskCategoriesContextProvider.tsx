@@ -1,17 +1,16 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { TaskCategoriesContext } from "./TaskCategoriesContext";
-import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import type { TaskCategory, TaskSubcategory } from "./TaskCategoriesContext";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 interface Props {
     children: ReactNode;
 }
 
 export const TaskCategoriesContextProvider = ({ children }: Props) => {
-    const { token } = useAuth();
+
 
     const [categories, setCategories] = useState<TaskCategory[]>([]);
     const [subcategories, setSubcategories] = useState<TaskSubcategory[]>([]);
@@ -21,17 +20,15 @@ export const TaskCategoriesContextProvider = ({ children }: Props) => {
     const [error, setError] = useState<string | null>(null);
 
     const fetchCategories = async () => {
-        if (!token) return;
+
 
         setLoadingCategories(true);
         setError(null);
 
         try {
             const data = await fetchWithAuth<TaskCategory[]>(
-                `${API_BASE_URL}/task-categories`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
+                `/task-categories`,
+
             );
 
             setCategories(data);
@@ -44,17 +41,15 @@ export const TaskCategoriesContextProvider = ({ children }: Props) => {
     };
 
     const fetchSubcategories = async (categoryId: number) => {
-        if (!token) return;
+
 
         setLoadingSubcategories(true);
         setError(null);
 
         try {
             const data = await fetchWithAuth<TaskSubcategory[]>(
-                `${API_BASE_URL}/task-categories/${categoryId}/subcategories`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
+                `/task-categories/${categoryId}/subcategories`,
+
             );
 
             setSubcategories(data);
@@ -68,8 +63,8 @@ export const TaskCategoriesContextProvider = ({ children }: Props) => {
 
     useEffect(() => {
         fetchCategories();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
+
+    }, []);
 
     return (
         <TaskCategoriesContext.Provider

@@ -1,4 +1,3 @@
-import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 
@@ -18,9 +17,9 @@ const ShowWages = () => {
     const [year, setYear] = useState<number | null>(null);
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
-    const { token } = useAuth();
+
+
 
     useEffect(() => {
         const currentYear = new Date().getFullYear();
@@ -31,13 +30,10 @@ const ShowWages = () => {
 
     useEffect(() => {
 
-        if (!token) {
-            return;
-        }
+
         const fetchEmployees = async () => {
             try {
-                const employeesData: string[] = await fetchWithAuth(`${API_BASE_URL}/employees`,
-                    { headers: { Authorization: `Bearer ${token}` } }
+                const employeesData: string[] = await fetchWithAuth(`/employees`,
                 )
 
 
@@ -52,18 +48,16 @@ const ShowWages = () => {
         fetchEmployees();
 
 
-    }, [token]);
+    }, []);
 
     useEffect(() => {
 
-        if (!token) {
-            return;
-        }
+
 
         const fetchSalaries = async () => {
             try {
-                const salariesData = await fetchWithAuth(`${API_BASE_URL}/salary-periods/by-year/${year}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
+                const salariesData = await fetchWithAuth(`/salary-periods/by-year/${year}`,
+
                 ) as salaryType[];
 
                 setSalaries(salariesData);
@@ -78,7 +72,7 @@ const ShowWages = () => {
 
         fetchSalaries();
 
-    }, [token, year])
+    }, [year])
 
 
 

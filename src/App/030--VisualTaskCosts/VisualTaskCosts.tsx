@@ -11,10 +11,10 @@ type CostRow = {
     total_cost: number;
 };
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 const VisualTaskCosts = () => {
-    const { token, loading: authLoading } = useAuth();
+    const { loading: authLoading } = useAuth();
 
     const [year, setYear] = useState(2024);
     const [yearlyData, setYearlyData] = useState<CostRow[]>([]);
@@ -23,7 +23,7 @@ const VisualTaskCosts = () => {
 
     // --- Fetch yearly data ---
     const fetchYearlyData = async () => {
-        if (!token) return;
+
 
         setLoading(true);
         setError(null);
@@ -31,10 +31,9 @@ const VisualTaskCosts = () => {
         try {
             const start = `${year}-01-01`;
             const end = `${year}-12-31`;
-            const url = `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&start=${start}&end=${end}`;
+            const url = `/data/costs/summary?groupBy=vegetable&start=${start}&end=${end}`;
 
             const data = (await fetchWithAuth(url, {
-                headers: { Authorization: `Bearer ${token}` },
             })) as CostRow[];
 
             if (Array.isArray(data)) {
@@ -56,7 +55,7 @@ const VisualTaskCosts = () => {
     useEffect(() => {
         fetchYearlyData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [year, token]);
+    }, [year]);
 
     // --- Scaling logic ---
     const maxHeightPx = 400;

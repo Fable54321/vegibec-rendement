@@ -33,7 +33,7 @@ const USDA = () => {
         count: number;
     };
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
     const {
         vegetableTotalCosts,
@@ -88,7 +88,7 @@ const USDA = () => {
 
             try {
                 const res = await fetch(
-                    `${API_BASE_URL}/api/rate-converter/fx-rate?date=${encodeURIComponent(
+                    `/api/rate-converter/fx-rate?date=${encodeURIComponent(
                         formattedDate
                     )}`
                 );
@@ -152,7 +152,7 @@ const USDA = () => {
             setUSDALoading(true);
             try {
                 const res = await fetch(
-                    `${API_BASE_URL}/api/vegReports?date=${formatted}`
+                    `/api/vegReports?date=${formatted}`
                 );
                 const data = await res.json();
                 setVegReports(data.reports || []);

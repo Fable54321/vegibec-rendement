@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
+
 
 interface Props {
     vegetables: { vegetable: string }[];
@@ -12,7 +12,6 @@ interface Props {
 }
 
 const CultureDelete = ({ vegetables, refreshVegetables, projectedRevenues, refreshProjectedRevenues }: Props) => {
-    const { token } = useAuth();
     const [selected, setSelected] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -35,14 +34,12 @@ const CultureDelete = ({ vegetables, refreshVegetables, projectedRevenues, refre
 
             for (const p of projectedForSelected) {
                 await fetchWithAuth(
-                    `${API_BASE_URL}/projected-revenues/${encodeURIComponent(
+                    `/projected-revenues/${encodeURIComponent(
                         selected
                     )}/${p.year}`,
                     {
                         method: "DELETE",
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
+
                     }
                 );
             }
@@ -54,12 +51,10 @@ const CultureDelete = ({ vegetables, refreshVegetables, projectedRevenues, refre
 
             // 2️⃣ Delete the vegetable itself
             await fetchWithAuth(
-                `${API_BASE_URL}/vegetables/${encodeURIComponent(selected)}`,
+                `/vegetables/${encodeURIComponent(selected)}`,
                 {
                     method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+
                 }
             );
 

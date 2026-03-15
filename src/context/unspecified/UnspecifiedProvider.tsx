@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { UnspecifiedContext } from "./UnspecifiedContext";
 import type { UnspecifiedCost } from "./unspecified.context.types";
-import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useDate } from "../date/DateContext";
 
@@ -10,17 +9,16 @@ interface UnspecifiedProviderProps {
 }
 
 export const UnspecifiedProvider: React.FC<UnspecifiedProviderProps> = ({ children }) => {
-    const { token } = useAuth();
+
     const { startDate, endDate } = useDate();
 
     const [data, setData] = useState<UnspecifiedCost[]>([]);
     const [unspecifiedLoading, setUnspecifiedLoading] = useState(false);
     const [unspecifiedError, setUnspecifiedError] = useState<string | null>(null);
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
     const fetchData = async () => {
-        if (!token) return;
 
         if (!startDate || !endDate) {
             setUnspecifiedError("Missing date range");
@@ -32,8 +30,7 @@ export const UnspecifiedProvider: React.FC<UnspecifiedProviderProps> = ({ childr
 
         try {
             const result = (await fetchWithAuth(
-                `${API_BASE_URL}/unspecified/data/costs/unspecified?start=${startDate}&end=${endDate}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                `/unspecified/data/costs/unspecified?start=${startDate}&end=${endDate}`,
             )) as UnspecifiedCost[];
 
             setData(result);
@@ -48,11 +45,11 @@ export const UnspecifiedProvider: React.FC<UnspecifiedProviderProps> = ({ childr
     };
 
     useEffect(() => {
-        if (token && startDate && endDate) {
+        if (startDate && endDate) {
             fetchData();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, startDate, endDate]);
+    }, [startDate, endDate]);
 
     return (
         <UnspecifiedContext.Provider

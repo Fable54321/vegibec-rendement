@@ -1,7 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid"
 import { useEffect, useState } from "react"
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { useEmployees } from "@/context/employees/EmployeesContext";
 import { Link } from "react-router-dom";
 
@@ -23,9 +22,8 @@ const FullYear = () => {
     const { employees } = useEmployees();
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
-    const { token } = useAuth();
+
 
     useEffect(() => {
         const currentYear = new Date().getFullYear();
@@ -41,17 +39,13 @@ const FullYear = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (!token) return;
+
 
         try {
             // 1️⃣ Check if salary period already exists
             const checkResponse = await fetchWithAuth(
-                `${API_BASE_URL}/salary-periods/check?employee_name=${encodeURIComponent(name)}&year=${year}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `/salary-periods/check?employee_name=${encodeURIComponent(name)}&year=${year}`,
+
             ) as { exists: boolean };
 
             if (checkResponse.exists) {
@@ -64,12 +58,8 @@ const FullYear = () => {
             }
 
             // 2️⃣ If not exists, proceed to insert
-            const data = await fetchWithAuth(`${API_BASE_URL}/salary-periods`, {
+            const data = await fetchWithAuth(`/salary-periods`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify({
                     employee_name: name,
                     yearly_amount: Number(annualSalary),

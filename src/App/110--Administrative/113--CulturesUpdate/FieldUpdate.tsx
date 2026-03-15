@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import "./field.css";
 
@@ -11,12 +10,12 @@ type FieldUpdateProps = {
     fieldsLoading: boolean;
 }
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 const FieldUpdate = ({ field, setField, fields, refreshFields, fieldsLoading }: FieldUpdateProps) => {
 
 
-    const { token } = useAuth();
+
 
     const [fieldSubmitLoading, setFieldSubmitLoading] = useState<boolean>(false);
     const [fieldMessage, setFieldMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -39,12 +38,9 @@ const FieldUpdate = ({ field, setField, fields, refreshFields, fieldsLoading }: 
         try {
             setFieldSubmitLoading(true);
 
-            await fetchWithAuth(`${API_BASE_URL}/getfields`, {
+            await fetchWithAuth(`/getfields`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({
                     field: normalizedField,
                 }),

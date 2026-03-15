@@ -1,12 +1,10 @@
 import { useState } from "react";
 
-import { useAuth } from "@/context/AuthContext";
 import { useEmployees } from "@/context/employees/EmployeesContext";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 export const useAddEmployee = () => {
-    const { token } = useAuth();
     const { refetchEmployees } = useEmployees();
 
     const [loading, setLoading] = useState(false);
@@ -18,21 +16,15 @@ export const useAddEmployee = () => {
             return;
         }
 
-        if (!token) {
-            setError("User not authenticated");
-            return;
-        }
+
 
         setLoading(true);
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/employees`, {
+            const response = await fetch(`/employees`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({ name: name.trim() }),
             });
 

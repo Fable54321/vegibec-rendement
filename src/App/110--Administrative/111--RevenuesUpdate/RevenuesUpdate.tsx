@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { useOutletContext } from 'react-router-dom';
 import type { AppOutletContext } from '@/App/000--App/App';
 import { fetchWithAuth } from '@/utils/fetchWithAuth';
@@ -7,7 +6,7 @@ import { Pencil } from 'lucide-react';
 import { useVegetables } from '@/context/vegetables/VegetablesContext';
 import { AddCultureDrawer } from '@/App/Components/AddCultureDrawer';
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 type RevenueInput = {
     vegetable: string;
@@ -20,7 +19,6 @@ const formatRevenue = (value: number | ""): string => {
 };
 
 const RevenuesUpdate = () => {
-    const { token } = useAuth();
     const { revenues, revenuesSelectedYear } = useOutletContext<AppOutletContext>();
     const { vegetables } = useVegetables();
 
@@ -110,12 +108,8 @@ const RevenuesUpdate = () => {
                 })),
             };
 
-            await fetchWithAuth(`${API_BASE_URL}/revenues`, {
+            await fetchWithAuth(`/revenues`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify(payload),
             });
 

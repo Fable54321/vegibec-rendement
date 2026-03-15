@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 const mainCategories = [
     "SEMENCE",
@@ -53,7 +52,7 @@ interface UnitsSoldEntry {
 }
 
 const EntriesJournal = () => {
-    const { token } = useAuth();
+
 
     const [domain, setDomain] = useState<string>("SEMENCE");
     const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -72,10 +71,8 @@ const EntriesJournal = () => {
         try {
             // Tell TypeScript the type of the returned JSON
             const data = await fetchWithAuth<UnitsSoldEntry[]>(
-                `${API_BASE_URL}/units-sold-entries`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
+                `/units-sold-entries`,
+
             );
 
             setUnitsSoldEntries(data);
@@ -101,9 +98,8 @@ const EntriesJournal = () => {
     const handleDelete = async (id: number) => {
         if (!confirm("Êtes vous certain de vouloir supprimer cette entrée?")) return;
         try {
-            await fetchWithAuth(`${API_BASE_URL}/journal/${id}`, {
+            await fetchWithAuth(`/journal/${id}`, {
                 method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
             });
             fetchJournal();
         } catch (err) {
@@ -117,12 +113,9 @@ const EntriesJournal = () => {
         if (!newAmount) return;
 
         try {
-            await fetchWithAuth(`${API_BASE_URL}/journal/${id}/correct`, {
+            await fetchWithAuth(`/journal/${id}/correct`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({ amount: Number(newAmount) }),
             });
 
@@ -137,11 +130,9 @@ const EntriesJournal = () => {
         if (!confirm("Êtes-vous certain de vouloir supprimer cette entrée ?")) return;
 
         try {
-            await fetchWithAuth(`${API_BASE_URL}/units-sold-entries/${id}`, {
+            await fetchWithAuth(`/units-sold-entries/${id}`, {
                 method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+
             });
             fetchUnitsSold(); // refresh table
         } catch (err) {
@@ -162,12 +153,8 @@ const EntriesJournal = () => {
         }
 
         try {
-            await fetchWithAuth(`${API_BASE_URL}/units-sold-entries/${id}/correct`, {
+            await fetchWithAuth(`/units-sold-entries/${id}/correct`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify({ units_sold: newAmount }),
             });
             fetchUnitsSold(); // refresh table
@@ -184,8 +171,7 @@ const EntriesJournal = () => {
             const backendDomain = domain === "HORS CATÉGORIE" ? "UNSPECIFIED" : domain;
 
             const res = await fetchWithAuth(
-                `${API_BASE_URL}/journal?domain=${backendDomain}&page=${page}&limit=20`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                `/journal?domain=${backendDomain}&page=${page}&limit=20`,
             ) as JournalResponse;
 
             setEntries(res.entries || []);

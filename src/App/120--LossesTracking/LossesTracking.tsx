@@ -1,11 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 type SeedLossRow = {
     year: number;
@@ -25,7 +24,7 @@ type PackagingRow = {
 
 const LossesTracking = () => {
 
-    const { token } = useAuth();
+
 
 
 
@@ -58,13 +57,13 @@ const LossesTracking = () => {
         .map((veg) => veg.vegetable.toUpperCase());
 
     const fetchSeeds = async (vegetable?: string | null) => {
-        if (!token) return;
+
 
         setSeedsLoading(true);
         setSeedsError(null);
 
         try {
-            const url = new URL(`${API_BASE_URL}/losses-tracking/seeds`);
+            const url = new URL(`/losses-tracking/seeds`);
 
             if (vegetable) {
                 url.searchParams.append("vegetable", vegetable);
@@ -72,11 +71,7 @@ const LossesTracking = () => {
 
             const res = await fetchWithAuth<{ success: boolean; data: SeedLossRow[] }>(
                 url.toString(),
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+
             );
 
             setSeeds(res.data);
@@ -91,13 +86,13 @@ const LossesTracking = () => {
 
 
     const fetchPackaging = async (vegetable?: string | null) => {
-        if (!token) return;
+
 
         setPackagingLoading(true);
         setPackagingError(null);
 
         try {
-            const url = new URL(`${API_BASE_URL}/losses-tracking/packaging`);
+            const url = new URL(`/losses-tracking/packaging`);
 
             if (vegetable) {
                 url.searchParams.append("vegetable", vegetable);
@@ -105,11 +100,7 @@ const LossesTracking = () => {
 
             const res = await fetchWithAuth<{ success: boolean; data: PackagingRow[] }>(
                 url.toString(),
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+
             );
 
             setPackaging(res.data);
@@ -142,13 +133,10 @@ const LossesTracking = () => {
             setPackError(null);
 
             const res = await fetchWithAuth<{ success: boolean }>(
-                `${API_BASE_URL}/losses-tracking/packaging`,
+                `/losses-tracking/packaging`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
+
                     body: JSON.stringify({
                         vegetable: packVeg.trim().toUpperCase(),
                         cultivar: packCultivar.trim().toUpperCase() || null,   // 👈 NEW
@@ -185,7 +173,7 @@ const LossesTracking = () => {
     useEffect(() => {
         fetchSeeds();
         fetchPackaging();
-    }, [token, activeTab]);
+    }, [activeTab]);
 
     useEffect(() => {
         if (!packVeg && vegetableOptions.length > 0) {

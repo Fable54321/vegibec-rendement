@@ -1,12 +1,12 @@
 // src/components/ChangePassword.tsx
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+
 import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 const ChangePassword = () => {
-    const { token } = useAuth();
+
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,20 +31,14 @@ const ChangePassword = () => {
             return;
         }
 
-        if (!token) {
-            setError("Vous devez être connecté pour changer votre mot de passe.");
-            return;
-        }
+
 
         setLoading(true);
 
         try {
-            const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+            const res = await fetch(`/auth/change-password`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({ currentPassword, newPassword }),
             });
 

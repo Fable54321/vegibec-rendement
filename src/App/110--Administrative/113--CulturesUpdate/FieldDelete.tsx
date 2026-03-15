@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import "./field.css";
 
@@ -11,7 +10,7 @@ type FieldDeleteProps = {
     fieldsLoading: boolean;
 };
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 const FieldDelete = ({
     field,
@@ -20,7 +19,7 @@ const FieldDelete = ({
     refreshFields,
     fieldsLoading,
 }: FieldDeleteProps) => {
-    const { token } = useAuth();
+
 
     const [fieldDeleteLoading, setFieldDeleteLoading] = useState(false);
     const [fieldSearch, setFieldSearch] = useState("");
@@ -42,12 +41,9 @@ const FieldDelete = ({
         try {
             setFieldDeleteLoading(true);
 
-            await fetchWithAuth(`${API_BASE_URL}/getfields`, {
+            await fetchWithAuth(`/getfields`, {
                 method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({ field: normalizedField }),
             });
 
@@ -58,6 +54,7 @@ const FieldDelete = ({
             setField("");
             setFieldSearch("");
             refreshFields();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             let errorText = `Échec de la suppression du champ "${normalizedField}".`;
             if (error?.message) {

@@ -1,31 +1,26 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { FieldsContext } from "./FieldsContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
+
 
 export const FieldsProvider = ({ children }: { children: ReactNode }) => {
-    const { token } = useAuth();
+
 
     const [fields, setFields] = useState<({ field: string })[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchFields = async () => {
-        if (!token) return;
+
 
         setLoading(true);
         setError(null);
 
         try {
             const res = await fetchWithAuth<({ field: string })[]>(
-                `${API_BASE_URL}/getFields`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `/getFields`,
             );
 
             setFields(res);
@@ -38,8 +33,7 @@ export const FieldsProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         fetchFields();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
+    }, []);
 
     return (
         <FieldsContext.Provider

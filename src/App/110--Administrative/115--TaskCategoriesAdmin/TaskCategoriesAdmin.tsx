@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { useTaskCategories, type TaskCategory, type TaskSubcategory } from "@/context/taskCategories/TaskCategoriesContext";
 
 
@@ -8,7 +7,7 @@ import { useTaskCategories, type TaskCategory, type TaskSubcategory } from "@/co
 
 
 const TaskCategoriesAdmin = () => {
-    const { token } = useAuth();
+
 
     const [activeTab, setActiveTab] = useState<"addCat" | "delCat" | "addSub" | "delSub">("addCat");
     const [submitLoading, setSubmitLoading] = useState(false);
@@ -25,7 +24,7 @@ const TaskCategoriesAdmin = () => {
     const [newSubCategoryName, setNewSubCategoryName] = useState("");
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 
 
@@ -46,9 +45,8 @@ const TaskCategoriesAdmin = () => {
     const handleAddCategory = async () => {
         if (!newCategoryName.trim()) return alert("Nom requis");
         setSubmitLoading(true);
-        await fetchWithAuth(`${API_BASE_URL}/task-categories`, {
+        await fetchWithAuth(`/task-categories`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify({ name: newCategoryName }),
         });
         setNewCategoryName("");
@@ -60,9 +58,8 @@ const TaskCategoriesAdmin = () => {
     const handleDeleteCategory = async (cat: TaskCategory) => {
         if (!confirm(`Supprimer "${cat.name}" ?`)) return;
         setSubmitLoading(true);
-        await fetchWithAuth(`${API_BASE_URL}/task-categories/${cat.id}`, {
+        await fetchWithAuth(`/task-categories/${cat.id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
         });
         fetchCategories();
         const Agronomie = categories.find((c) => c.name === "Agronomie");
@@ -74,9 +71,8 @@ const TaskCategoriesAdmin = () => {
         if (!selectedCategory) return alert("Sélectionnez une catégorie");
         if (!newSubCategoryName.trim()) return alert("Nom requis");
         setSubmitLoading(true);
-        await fetchWithAuth(`${API_BASE_URL}/task-categories/${selectedCategory.id}/subcategories`, {
+        await fetchWithAuth(`/task-categories/${selectedCategory.id}/subcategories`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify({ name: newSubCategoryName }),
         });
         setNewSubCategoryName("");
@@ -88,9 +84,8 @@ const TaskCategoriesAdmin = () => {
         if (!selectedCategory) return;
         if (!confirm(`Supprimer "${sub.name}" ?`)) return;
         setSubmitLoading(true);
-        await fetchWithAuth(`${API_BASE_URL}/task-categories/${selectedCategory.id}/subcategories/${sub.id}`, {
+        await fetchWithAuth(`/task-categories/${selectedCategory.id}/subcategories/${sub.id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
         });
         fetchSubcategories(selectedCategory.id);
         setSubmitLoading(false);

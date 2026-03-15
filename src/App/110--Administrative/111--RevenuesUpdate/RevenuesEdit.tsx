@@ -1,4 +1,4 @@
-import { useAuth } from "@/context/AuthContext";
+
 import { useOutletContext } from "react-router-dom";
 import type { AppOutletContext } from "@/App/000--App/App";
 import { useEffect, useState } from "react";
@@ -12,7 +12,7 @@ type RevenueInput = {
 };
 
 const RevenuesEdit = () => {
-    const { token } = useAuth();
+
     const { revenues, revenuesSelectedYear, setRevenuesSelectedYear, availableYears } = useOutletContext<AppOutletContext>();
 
     const [revenueInputs, setRevenueInputs] = useState<RevenueInput[]>(() =>
@@ -22,7 +22,7 @@ const RevenuesEdit = () => {
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [isNumberFocused, setIsNumberFocused] = useState(false);
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
     useEffect(() => {
         setRevenueInputs(revenues.map(r => ({ vegetable: r.vegetable, revenue: r.revenue })));
@@ -43,7 +43,7 @@ const RevenuesEdit = () => {
     // Update all existing revenues (PATCH)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!token) return;
+
 
         try {
             setLoading(true);
@@ -57,12 +57,9 @@ const RevenuesEdit = () => {
 
             if (payload.length === 0) return;
 
-            await fetchWithAuth(`${API_BASE_URL}/revenues`, {
+            await fetchWithAuth(`/revenues`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({ year_from: revenuesSelectedYear, revenues: payload }),
             });
 
@@ -85,17 +82,14 @@ const RevenuesEdit = () => {
 
     // Delete a single vegetable revenue
     const handleDelete = async (veg: string) => {
-        if (!token || !window.confirm(`Voulez-vous vraiment supprimer "${veg}" pour l'année ${revenuesSelectedYear} ?`)) return;
+        if (!window.confirm(`Voulez-vous vraiment supprimer "${veg}" pour l'année ${revenuesSelectedYear} ?`)) return;
 
         try {
             setLoading(true);
 
-            await fetchWithAuth(`${API_BASE_URL}/revenues/single`, {
+            await fetchWithAuth(`/revenues/single`, {
                 method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify({ year_from: revenuesSelectedYear, vegetable: veg }),
             });
 
@@ -116,7 +110,7 @@ const RevenuesEdit = () => {
 
     // Send single vegetable revenue (POST)
     const handleAddSingle = async (index: number) => {
-        if (!token) return;
+
 
         const r = revenueInputs[index];
         if (!r.vegetable.trim() || r.revenue === "") {
@@ -135,12 +129,9 @@ const RevenuesEdit = () => {
                 total_revenue: Number(r.revenue),
             };
 
-            await fetchWithAuth(`${API_BASE_URL}/revenues/single`, {
+            await fetchWithAuth(`/revenues/single`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify(payload),
             });
 

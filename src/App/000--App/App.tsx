@@ -58,10 +58,10 @@ export type AppOutletContext = {
   availableYears: number[];
 };
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
 function App() {
-  const { token, login, logout, loading } = useAuth();
+  const { loading } = useAuth();
 
 
 
@@ -69,48 +69,7 @@ function App() {
     | { vegetable: string; total_cost: number }
     | { category: string; total_cost: number };
 
-  // --- AUTO-REFRESH ACCESS TOKEN ---
-  useEffect(() => {
-    if (loading || !token) return;
 
-    let timer: ReturnType<typeof setTimeout>;
-
-    const refreshToken = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to refresh token");
-
-        const data = await res.json();
-        login(data.token);
-      } catch (err) {
-        console.error("Refresh token failed:", err);
-        logout();
-      }
-    };
-
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const expiresAt = payload.exp * 1000;
-      const now = Date.now();
-      const timeout = expiresAt - now - 5000;
-
-      if (timeout <= 0) {
-        refreshToken();
-      } else {
-        timer = setTimeout(refreshToken, timeout);
-      }
-    } catch (err) {
-      console.error("Failed to parse token for refresh:", err);
-    }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [token, login, logout, loading]);
 
 
   // --- Filters ---
@@ -132,12 +91,12 @@ function App() {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!token || loading) return;
+    if (loading) return;
 
     const fetchYears = async () => {
       const data: number[] = await fetchWithAuth(
-        `${API_BASE_URL}/revenues/available-years`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `/revenues/available-years`,
+
       );
 
       setAvailableYears(data);
@@ -154,7 +113,7 @@ function App() {
     };
 
     fetchYears();
-  }, [token, loading]);
+  }, [loading]);
 
 
 
@@ -285,7 +244,7 @@ function App() {
 
   // --- Fetch Revenues ---
   useEffect(() => {
-    if (!token) return;
+
 
     const fetchRevenues = async () => {
       setLoadingRevenues(true);
@@ -295,8 +254,8 @@ function App() {
         const data = await fetchWithAuth<
           { vegetable: string; total_revenue: number }[]
         >(
-          `${API_BASE_URL}/revenues/by-year?year_from=${revenuesSelectedYear}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/revenues/by-year?year_from=${revenuesSelectedYear}`,
+
         );
 
         // 1️⃣ Normalize real revenues
@@ -347,14 +306,13 @@ function App() {
   }, [
     revenuesSelectedYear,
     yearSelected,          // ✅ REQUIRED
-    token,
     projectedRevenues,    // ✅ REQUIRED
   ]);
 
 
 
   useEffect(() => {
-    if (!token) return;
+
 
     const fetchPackagingCosts = async () => {
       setLoadingPackagingCosts(true);
@@ -362,8 +320,8 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/data/packaging_costs/per_vegetable?${periodQuery}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/data/packaging_costs/per_vegetable?${periodQuery}`,
+
         )) as { vegetable: string; total_cost: number }[];
 
         setPackagingCosts(data);
@@ -375,13 +333,13 @@ function App() {
     };
 
     fetchPackagingCosts();
-  }, [periodQuery, token]);
+  }, [periodQuery]);
 
 
 
   // --- Fetch Vegetable Costs ---
   useEffect(() => {
-    if (!token) return;
+
 
     const fetchCosts = async () => {
       setLoadingCosts(true);
@@ -389,8 +347,8 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/data/costs/summary?groupBy=vegetable&${periodQuery}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/data/costs/summary?groupBy=vegetable&${periodQuery}`,
+
         )) as { vegetable: string; total_cost: number }[];
 
         setVegetableCosts(data);
@@ -404,7 +362,7 @@ function App() {
     };
 
     fetchCosts();
-  }, [token, periodQuery]);
+  }, [periodQuery]);
 
 
   useEffect(() => {
@@ -486,7 +444,6 @@ function App() {
 
   // --- Fetch Other Costs ---
   useEffect(() => {
-    if (!token) return;
 
     const fetchOtherCosts = async () => {
       setLoadingOtherCosts(true);
@@ -494,8 +451,8 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/data/costs/other_costs?${periodQuery}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/data/costs/other_costs?${periodQuery}`,
+
         )) as { category: string; total_cost: number }[];
 
         const entries: [string, number][] = data.map((item) => [item.category, Number(item.total_cost)]);
@@ -509,11 +466,11 @@ function App() {
     };
 
     fetchOtherCosts();
-  }, [periodQuery, token]);
+  }, [periodQuery]);
 
   // --- Fetch Seed Costs ---
   useEffect(() => {
-    if (!token) return;
+
 
     const fetchSeedCosts = async () => {
       setLoadingSeedCosts(true);
@@ -521,8 +478,8 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/data/costs/seed_costs?${periodQuery}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/data/costs/seed_costs?${periodQuery}`,
+
         )) as SeedCostAPI[];
 
         // Store raw API data
@@ -539,7 +496,7 @@ function App() {
     };
 
     fetchSeedCosts();
-  }, [periodQuery, token]);
+  }, [periodQuery]);
 
 
 
@@ -597,7 +554,7 @@ function App() {
 
 
   useEffect(() => {
-    if (!token) return;
+
 
     const fetchSoilProducts = async () => {
       setLoadingSoilProducts(true);
@@ -605,8 +562,8 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/data/costs/soil_products/vegetable?${periodQuery}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/data/costs/soil_products/vegetable?${periodQuery}`,
+
         )) as SoilProductCost[];
 
         setVegetableSoilProducts(data);
@@ -618,10 +575,10 @@ function App() {
     };
 
     fetchSoilProducts();
-  }, [periodQuery, token]);
+  }, [periodQuery]);
 
   useEffect(() => {
-    if (!token) return;
+
 
     const fetchCategorySoilProducts = async () => {
 
@@ -630,8 +587,8 @@ function App() {
 
       try {
         const data = (await fetchWithAuth(
-          `${API_BASE_URL}/data/costs/soil_products/category?${periodQuery}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/data/costs/soil_products/category?${periodQuery}`,
+
         )) as SoilProductCost[];
 
         setCategorySoilProducts(data);
@@ -643,7 +600,7 @@ function App() {
     };
 
     fetchCategorySoilProducts();
-  }, [periodQuery, token])
+  }, [periodQuery])
 
 
   useEffect(() => {

@@ -10,7 +10,7 @@ const Home = () => {
     const navigate = useNavigate();
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
     const handleLogout = async () => {
 
@@ -18,7 +18,7 @@ const Home = () => {
         if (!confirmed) return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/auth/logout`, {
+            const res = await fetch(`/auth/logout`, {
                 method: "POST",
                 credentials: "include",
             });

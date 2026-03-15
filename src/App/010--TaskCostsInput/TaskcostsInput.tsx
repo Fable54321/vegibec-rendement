@@ -3,7 +3,6 @@ import SecondStep from "./015--SecondStep/SecondStep";
 import FirstStep from "./011--firstStep/FirstStep";
 import { Link } from "react-router-dom";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { useFields } from "@/context/fields/FieldsContext";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
 import { useTaskCategories } from "../../context/taskCategories/TaskCategoriesContext";
@@ -80,9 +79,9 @@ const TaskCostsInput = () => {
     }, [vegList]);
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
-    const { token } = useAuth();
+
+
 
 
     const [subCategory, setSubCategory] = useState("");
@@ -173,7 +172,7 @@ const TaskCostsInput = () => {
     }, [fields, isFieldDefined]);
 
     useEffect(() => {
-        if (!token || !showOverlay) return;
+        if (!showOverlay) return;
 
         const fetchLatestEntries = async () => {
             setLoading(true);
@@ -189,8 +188,7 @@ const TaskCostsInput = () => {
                 if (toDate) params.append("to", toDate);
 
                 const res = await fetchWithAuth<PaginatedTaskCostResponse>(
-                    `${API_BASE_URL}/data/costs?${params.toString()}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    `/data/costs?${params.toString()}`,
                 );
                 setLatestEntries(res.entries);
                 setOverlayTotalPages(res.pagination.totalPages);
@@ -204,7 +202,7 @@ const TaskCostsInput = () => {
 
         fetchLatestEntries();
 
-    }, [showOverlay, token, overlayPage, fromDate, toDate]);
+    }, [showOverlay, overlayPage, fromDate, toDate]);
 
     const openOverlay = () => {
         setOverlayPage(1);
@@ -791,13 +789,10 @@ const TaskCostsInput = () => {
                                                                 // ✅ Row is being edited → confirm changes
                                                                 try {
                                                                     const updated = await fetchWithAuth<PatchTaskCostResponse>(
-                                                                        `${API_BASE_URL}/data/costs/${entry.id}`,
+                                                                        `/data/costs/${entry.id}`,
                                                                         {
                                                                             method: "PATCH",
-                                                                            headers: {
-                                                                                "Content-Type": "application/json",
-                                                                                Authorization: `Bearer ${token}`,
-                                                                            },
+
                                                                             body: JSON.stringify({
                                                                                 vegetable: editingData.vegetable,
                                                                                 category: editingData.category,
@@ -846,9 +841,9 @@ const TaskCostsInput = () => {
                                                             if (!confirmDelete) return;
 
                                                             try {
-                                                                await fetchWithAuth(`${API_BASE_URL}/data/costs/${entry.id}`, {
+                                                                await fetchWithAuth(`/data/costs/${entry.id}`, {
                                                                     method: "DELETE",
-                                                                    headers: { Authorization: `Bearer ${token}` },
+
                                                                 });
 
                                                                 // remove the entry locally after deletion

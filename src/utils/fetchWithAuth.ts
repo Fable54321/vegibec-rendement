@@ -1,57 +1,48 @@
+const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 export async function fetchWithAuth<T>(
-  url: string,
-  options: RequestInit = {}
+  path: string,
+  options: RequestInit = {},
 ): Promise<T> {
-  let token = localStorage.getItem("token");
+  const url = `${API_BASE_URL}${path}`;
 
-  // First request
-  let response = await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      Authorization: token ? `Bearer ${token}` : "",
-    },
-    credentials: "include", // send refresh cookie
-  });
+  const makeRequest = () =>
+    fetch(url, {
+      ...options,
+      credentials: "include",
+      headers: {
+        ...options.headers,
+      },
+    });
 
-  // If access token expired
+  let response = await makeRequest();
+
   if (response.status === 401) {
-    console.warn("Access token expired, trying refresh...");
-
-    const refreshResponse = await fetch(`${new URL(url).origin}/auth/refresh`, {
+    const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
 
     if (refreshResponse.ok) {
-      const data = await refreshResponse.json();
-      token = data.token;
-      localStorage.setItem("token", token as string);
-
-      // Retry original request
-      response = await fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
+      response = await makeRequest();
     } else {
-      console.error("Refresh token invalid or expired — logging out");
-      localStorage.removeItem("token");
       window.location.href = "/login";
-      return Promise.reject(
-        new Error("Session expirée, veuillez vous connecter à nouveau.")
-      );
+      throw new Error("Session expirée, veuillez vous reconnecter.");
     }
   }
 
   if (!response.ok) {
-    const errText = await response.text();
-    return Promise.reject(
-      new Error(errText || `HTTP error ${response.status}`)
-    );
+    let errorMessage = `HTTP error ${response.status}`;
+
+    try {
+      const data = await response.json();
+      errorMessage = data.error || data.message || errorMessage;
+    } catch {
+      const text = await response.text();
+      if (text) errorMessage = text;
+    }
+
+    throw new Error(errorMessage);
   }
 
   return response.json();

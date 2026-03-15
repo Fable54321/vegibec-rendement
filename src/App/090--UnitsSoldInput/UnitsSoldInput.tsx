@@ -1,7 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
@@ -11,13 +10,12 @@ import { useVegetables } from "@/context/vegetables/VegetablesContext";
 
 
 const UnitsSoldInput = () => {
-    const { token } = useAuth();
 
     const { vegetables } = useVegetables();
 
 
 
-    const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+
 
     const [culture, setCulture] = useState("CHOU VERT");
     const [value, setValue] = useState<number | "">("");
@@ -47,12 +45,9 @@ const UnitsSoldInput = () => {
         };
 
         try {
-            const data = await fetchWithAuth(`${API_BASE_URL}/units/send-data`, {
+            const data = await fetchWithAuth(`/units/send-data`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+
                 body: JSON.stringify(payload),
             });
 
