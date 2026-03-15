@@ -3,6 +3,7 @@ import { UnspecifiedContext } from "./UnspecifiedContext";
 import type { UnspecifiedCost } from "./unspecified.context.types";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useDate } from "../date/DateContext";
+import { useAuth } from "../AuthContext";
 
 interface UnspecifiedProviderProps {
     children: React.ReactNode;
@@ -16,7 +17,7 @@ export const UnspecifiedProvider: React.FC<UnspecifiedProviderProps> = ({ childr
     const [unspecifiedLoading, setUnspecifiedLoading] = useState(false);
     const [unspecifiedError, setUnspecifiedError] = useState<string | null>(null);
 
-
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const fetchData = async () => {
 
@@ -45,11 +46,13 @@ export const UnspecifiedProvider: React.FC<UnspecifiedProviderProps> = ({ childr
     };
 
     useEffect(() => {
+        if (!authChecked || authLoading || !user) return;
+
         if (startDate && endDate) {
             fetchData();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startDate, endDate]);
+    }, [startDate, endDate, authChecked, authLoading, user]);
 
     return (
         <UnspecifiedContext.Provider

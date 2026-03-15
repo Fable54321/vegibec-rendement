@@ -14,7 +14,7 @@ type CostRow = {
 
 
 const VisualTaskCosts = () => {
-    const { loading: authLoading } = useAuth();
+    const { loading: authLoading, user, authChecked } = useAuth();
 
     const [year, setYear] = useState(2024);
     const [yearlyData, setYearlyData] = useState<CostRow[]>([]);
@@ -53,6 +53,11 @@ const VisualTaskCosts = () => {
     };
 
     useEffect(() => {
+
+        if (!authChecked || !user || !authLoading) {
+            return;
+        }
+
         fetchYearlyData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [year]);

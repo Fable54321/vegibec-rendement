@@ -61,7 +61,7 @@ export type AppOutletContext = {
 
 
 function App() {
-  const { loading } = useAuth();
+  const { user, loading, authChecked } = useAuth();
 
 
 
@@ -91,7 +91,7 @@ function App() {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !authChecked || !user) return;
 
     const fetchYears = async () => {
       const data: number[] = await fetchWithAuth(
@@ -113,7 +113,7 @@ function App() {
     };
 
     fetchYears();
-  }, [loading]);
+  }, [loading, authChecked, user]);
 
 
 
@@ -245,7 +245,7 @@ function App() {
   // --- Fetch Revenues ---
   useEffect(() => {
 
-
+    if (loading || !authChecked || !user) return;
     const fetchRevenues = async () => {
       setLoadingRevenues(true);
       setErrorRevenues(null);
@@ -305,14 +305,18 @@ function App() {
     fetchRevenues();
   }, [
     revenuesSelectedYear,
-    yearSelected,          // ✅ REQUIRED
-    projectedRevenues,    // ✅ REQUIRED
+    yearSelected,
+    projectedRevenues,
+    authChecked,
+    user,
+    loading,
   ]);
 
 
 
   useEffect(() => {
 
+    if (!loading || !authChecked || !user) return;
 
     const fetchPackagingCosts = async () => {
       setLoadingPackagingCosts(true);
@@ -333,7 +337,7 @@ function App() {
     };
 
     fetchPackagingCosts();
-  }, [periodQuery]);
+  }, [periodQuery, authChecked, user, loading]);
 
 
 
@@ -342,6 +346,10 @@ function App() {
 
 
     const fetchCosts = async () => {
+
+      if (loading || !authChecked || !user) return;
+
+
       setLoadingCosts(true);
       setErrorCosts(null);
 
@@ -362,7 +370,7 @@ function App() {
     };
 
     fetchCosts();
-  }, [periodQuery]);
+  }, [periodQuery, authChecked, user, loading]);
 
 
   useEffect(() => {
@@ -445,6 +453,7 @@ function App() {
   // --- Fetch Other Costs ---
   useEffect(() => {
 
+    if (loading || !authChecked || !user) return;
     const fetchOtherCosts = async () => {
       setLoadingOtherCosts(true);
       setErrorOtherCosts(null);
@@ -466,10 +475,12 @@ function App() {
     };
 
     fetchOtherCosts();
-  }, [periodQuery]);
+  }, [periodQuery, authChecked, user, loading]);
 
   // --- Fetch Seed Costs ---
   useEffect(() => {
+
+    if (loading || !authChecked || !user) return;
 
 
     const fetchSeedCosts = async () => {
@@ -496,7 +507,7 @@ function App() {
     };
 
     fetchSeedCosts();
-  }, [periodQuery]);
+  }, [periodQuery, authChecked, user, loading]);
 
 
 
@@ -555,6 +566,7 @@ function App() {
 
   useEffect(() => {
 
+    if (loading || !authChecked || !user) return;
 
     const fetchSoilProducts = async () => {
       setLoadingSoilProducts(true);
@@ -575,10 +587,11 @@ function App() {
     };
 
     fetchSoilProducts();
-  }, [periodQuery]);
+  }, [periodQuery, authChecked, user, loading]);
 
   useEffect(() => {
 
+    if (loading || !authChecked || !user) return;
 
     const fetchCategorySoilProducts = async () => {
 
@@ -600,7 +613,7 @@ function App() {
     };
 
     fetchCategorySoilProducts();
-  }, [periodQuery])
+  }, [periodQuery, authChecked, user, loading]);
 
 
   useEffect(() => {

@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { TaskCategoriesContext } from "./TaskCategoriesContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import type { TaskCategory, TaskSubcategory } from "./TaskCategoriesContext";
+import { useAuth } from "../AuthContext";
 
 
 
@@ -18,6 +19,8 @@ export const TaskCategoriesContextProvider = ({ children }: Props) => {
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingSubcategories, setLoadingSubcategories] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const fetchCategories = async () => {
 
@@ -62,9 +65,14 @@ export const TaskCategoriesContextProvider = ({ children }: Props) => {
     };
 
     useEffect(() => {
+
+        if (!authChecked || authLoading || !user) {
+            return;
+        }
+
         fetchCategories();
 
-    }, []);
+    }, [authChecked, authLoading, user]);
 
     return (
         <TaskCategoriesContext.Provider

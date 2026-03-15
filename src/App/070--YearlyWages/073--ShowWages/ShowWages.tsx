@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "@/context/AuthContext";
 
 
 const ShowWages = () => {
@@ -17,7 +18,7 @@ const ShowWages = () => {
     const [year, setYear] = useState<number | null>(null);
 
 
-
+    const { user, loading, authChecked } = useAuth();
 
 
 
@@ -30,6 +31,7 @@ const ShowWages = () => {
 
     useEffect(() => {
 
+        if (!authChecked || !user || loading) return
 
         const fetchEmployees = async () => {
             try {
@@ -48,7 +50,7 @@ const ShowWages = () => {
         fetchEmployees();
 
 
-    }, []);
+    }, [authChecked, loading, user]);
 
     useEffect(() => {
 

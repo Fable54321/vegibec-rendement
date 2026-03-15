@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+
 
 
 
@@ -52,6 +54,8 @@ interface UnitsSoldEntry {
 }
 
 const EntriesJournal = () => {
+
+    const { user, loading: userLoading, authChecked } = useAuth();
 
 
     const [domain, setDomain] = useState<string>("SEMENCE");
@@ -186,6 +190,10 @@ const EntriesJournal = () => {
     };
 
     useEffect(() => {
+
+        if (!user || !authChecked || !userLoading) return
+
+
         if (activeTab === "UNITÉS VENDUES") {
             fetchUnitsSold();
         }
@@ -193,7 +201,7 @@ const EntriesJournal = () => {
             fetchJournal();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [domain, page]); // Use actual domain instead of mainCategories
+    }, [domain, page, user, authChecked, loading]); // Use actual domain instead of mainCategories
 
 
 

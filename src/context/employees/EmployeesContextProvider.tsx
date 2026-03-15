@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { EmployeesContext } from "./EmployeesContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "../AuthContext";
 
 
 
@@ -14,6 +15,8 @@ export const EmployeesContextProvider = ({ children }: Props) => {
     const [employees, setEmployees] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const fetchEmployees = async () => {
 
@@ -37,9 +40,14 @@ export const EmployeesContextProvider = ({ children }: Props) => {
     };
 
     useEffect(() => {
+
+        if (!authChecked || authLoading || !user) {
+            return;
+        }
+
         fetchEmployees();
 
-    }, []);
+    }, [authChecked, authLoading, user]);
 
     return (
         <EmployeesContext.Provider

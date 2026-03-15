@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ProjectedRevenuesContext, type ProjectedRevenue } from "./ProjectedRevenuesContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "../AuthContext";
 
 
 
@@ -11,6 +12,7 @@ export const ProjectedRevenuesProvider = ({
     children: ReactNode;
 }) => {
 
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const [projectedRevenues, setProjectedRevenues] = useState<ProjectedRevenue[]>([]);
     const [loading, setLoading] = useState(false);
@@ -36,9 +38,12 @@ export const ProjectedRevenuesProvider = ({
     };
 
     useEffect(() => {
+
+        if (!user || authLoading || !authChecked) return;
+
         fetchProjectedRevenues();
 
-    }, []);
+    }, [authChecked, authLoading, user]);
 
     return (
         <ProjectedRevenuesContext.Provider

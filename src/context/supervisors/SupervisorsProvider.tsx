@@ -1,12 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { SupervisorsContext, type SupervisorType } from "./SupervisorContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "../AuthContext";
 
 
 
 
 export const SupervisorsProvider = ({ children }: { children: ReactNode }) => {
 
+
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const [supervisors, setSupervisors] = useState<SupervisorType[]>([]);
     const [loading, setLoading] = useState(false);
@@ -33,9 +36,11 @@ export const SupervisorsProvider = ({ children }: { children: ReactNode }) => {
     };
 
     useEffect(() => {
+        if (!authChecked || !user || authLoading) return;
+
         fetchSupervisors();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+
+    }, [authChecked, user, authLoading]);
 
     return (
         <SupervisorsContext.Provider

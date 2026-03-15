@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { VegetablesContext, type Vegetable } from "./VegetablesContext";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "../AuthContext";
 
 
 
@@ -11,6 +12,8 @@ export const VegetablesProvider = ({ children }: { children: ReactNode }) => {
     const [vegetables, setVegetables] = useState<Vegetable[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const fetchVegetables = async () => {
 
@@ -32,9 +35,12 @@ export const VegetablesProvider = ({ children }: { children: ReactNode }) => {
     };
 
     useEffect(() => {
+
+        if (!authChecked || authLoading || !user) return
+
         fetchVegetables();
 
-    }, []);
+    }, [authChecked, authLoading, user]);
 
     return (
         <VegetablesContext.Provider

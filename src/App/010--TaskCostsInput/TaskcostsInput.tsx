@@ -8,6 +8,7 @@ import { useVegetables } from "@/context/vegetables/VegetablesContext";
 import { useTaskCategories } from "../../context/taskCategories/TaskCategoriesContext";
 import "./TaskCostInput.css";
 import { useSupervisors } from "@/context/supervisors/SupervisorContext";
+import { useAuth } from "@/context/AuthContext";
 
 
 
@@ -131,6 +132,8 @@ const TaskCostsInput = () => {
         field: "",
     });
 
+    const { loading: loadingAuth, user, authChecked } = useAuth()
+
     const startEditing = (entry: TaskCostEntry) => {
         setEditingId(entry.id);
 
@@ -172,7 +175,7 @@ const TaskCostsInput = () => {
     }, [fields, isFieldDefined]);
 
     useEffect(() => {
-        if (!showOverlay) return;
+        if (!showOverlay || !authChecked || !user || loadingAuth) return;
 
         const fetchLatestEntries = async () => {
             setLoading(true);
@@ -202,7 +205,7 @@ const TaskCostsInput = () => {
 
         fetchLatestEntries();
 
-    }, [showOverlay, overlayPage, fromDate, toDate]);
+    }, [showOverlay, overlayPage, fromDate, toDate, authChecked, user, loadingAuth]);
 
     const openOverlay = () => {
         setOverlayPage(1);

@@ -4,6 +4,7 @@ import { UnitsContext } from "./UnitsContext";
 import type { UnitsItem } from "./units.context.types";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useDate } from "../date/DateContext";
+import { useAuth } from "../AuthContext";
 
 interface UnitsProviderProps {
     children: React.ReactNode;
@@ -21,7 +22,7 @@ export const UnitsProvider: React.FC<UnitsProviderProps> = ({
 
     const { startDate, endDate } = useDate();
 
-
+    const { user, loading: authLoading, authChecked } = useAuth();
 
     const fetchTotals = async () => {
 
@@ -53,11 +54,16 @@ export const UnitsProvider: React.FC<UnitsProviderProps> = ({
     };
 
     useEffect(() => {
+
+        if (authLoading || !authChecked || !user) {
+            return;
+        }
+
         if (startDate && endDate) {
             fetchTotals();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startDate, endDate]);
+    }, [startDate, endDate, user, authLoading, authChecked]);
 
     return (
         <UnitsContext.Provider

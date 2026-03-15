@@ -1,6 +1,7 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "@/context/AuthContext";
 
 
 const EditWages = () => {
@@ -19,10 +20,12 @@ const EditWages = () => {
     const [annualSalary, setAnnualSalary] = useState<string>("");
 
 
-
+    const { loading, user, authChecked } = useAuth();
 
     // Fetch employees
     useEffect(() => {
+
+        if (!authChecked || !user || loading) return;
 
         const fetchEmployees = async () => {
             try {
@@ -35,7 +38,7 @@ const EditWages = () => {
             }
         };
         fetchEmployees();
-    }, []);
+    }, [authChecked, loading, user]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

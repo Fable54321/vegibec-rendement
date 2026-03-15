@@ -12,7 +12,6 @@ import Costs from './App/050--Costs/Costs'
 import USDA from './App/060--USDA/USDA'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Login from './components/login'
 import ChangePassword from './components/ChangePassword'
 import YearlyWages from './App/070--YearlyWages/YearlyWages'
 import FullYear from './App/070--YearlyWages/071--FullYear/FullYear'
@@ -130,10 +129,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: 'login',
-        element: <Login />
-      },
+
       {
         path: 'change-password',
         element: (

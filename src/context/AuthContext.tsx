@@ -15,22 +15,20 @@ type User = {
 
 interface AuthContextType {
     user: User | null;
-    login: (username: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
     loading: boolean;
     authChecked: boolean;
-    refreshSession: () => Promise<boolean>;
+    checkAuth: () => Promise<void>;
+    clearAuth: () => void;
 }
 
 const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
-    login: async () => { },
-    logout: async () => { },
     loading: true,
     authChecked: false,
-    refreshSession: async () => false,
+    checkAuth: async () => { },
+    clearAuth: () => { },
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -38,17 +36,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
 
-    const refreshSession = async (): Promise<boolean> => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
-                method: "POST",
-                credentials: "include",
-            });
-
-            return res.ok;
-        } catch {
-            return false;
-        }
+    const clearAuth = () => {
+        setUser(null);
+        setAuthChecked(true);
+        setLoading(false);
     };
 
     const fetchMe = async (): Promise<User | null> => {
@@ -65,80 +56,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return data.user ?? null;
     };
 
-    useEffect(() => {
-        const initAuth = async () => {
-            try {
-                let me = await fetchMe();
+    const tryRefresh = async (): Promise<boolean> => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                method: "POST",
+                credentials: "include",
+            });
 
-                if (!me) {
-                    const refreshed = await refreshSession();
+            return res.ok;
+        } catch {
+            return false;
+        }
+    };
 
-                    if (refreshed) {
-                        me = await fetchMe();
-                    }
-                }
-
-                setUser(me);
-            } catch (err) {
-                console.warn("Auth init failed:", err);
-                setUser(null);
-            } finally {
-                setLoading(false);
-                setAuthChecked(true);
-            }
-        };
-
-        initAuth();
-    }, []);
-
-    const login = async (username: string, password: string) => {
+    const checkAuth = async () => {
         setLoading(true);
 
         try {
-            const res = await fetch(`${API_BASE_URL}/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({ username, password }),
-            });
+            let me = await fetchMe();
 
-            const data = await res.json();
+            if (!me) {
+                const refreshed = await tryRefresh();
 
-            if (!res.ok) {
-                throw new Error(data.error || "Login failed");
+                if (refreshed) {
+                    me = await fetchMe();
+                }
             }
 
-            setUser(data.user);
+            setUser(me);
+        } catch (err) {
+            console.warn("Auth check failed:", err);
+            setUser(null);
         } finally {
             setLoading(false);
             setAuthChecked(true);
         }
     };
 
-    const logout = async () => {
-        try {
-            await fetch(`${API_BASE_URL}/auth/logout`, {
-                method: "POST",
-                credentials: "include",
-            });
-        } catch {
-            // ignore
-        } finally {
-            setUser(null);
-        }
-    };
+    useEffect(() => {
+        checkAuth();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <AuthContext.Provider
             value={{
                 user,
-                login,
-                logout,
                 loading,
                 authChecked,
-                refreshSession,
+                checkAuth,
+                clearAuth,
             }}
         >
             {children}

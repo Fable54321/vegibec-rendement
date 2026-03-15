@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { useVegetables } from "@/context/vegetables/VegetablesContext";
+import { useAuth } from "@/context/AuthContext";
 
 const TaskCostsPage = () => {
     type CostRow = {
@@ -29,7 +30,7 @@ const TaskCostsPage = () => {
         originalCost?: number;
     };
 
-
+    const { user, loading, authChecked } = useAuth();
 
     const [groupBy, setGroupBy] = useState<string | string[]>("supervisor");
     const [data, setData] = useState<CostRow[]>([]);
@@ -110,6 +111,9 @@ const TaskCostsPage = () => {
 
 
     useEffect(() => {
+        if (!authChecked || !user || loading) return
+
+
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [groupBy, startDate, endDate, yearSelected, monthSelected]);
