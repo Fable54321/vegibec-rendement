@@ -169,7 +169,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
         try {
             const result = await fetchWithAuth(
-                "https://vegibec-rendement-backend.onrender.com/data/costs",
+                "/data/costs",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
