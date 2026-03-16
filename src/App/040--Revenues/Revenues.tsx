@@ -2,7 +2,7 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import type { AppOutletContext } from "../000--App/App";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 
 
