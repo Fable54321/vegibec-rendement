@@ -47,6 +47,10 @@ const TaskCategoriesAdmin = () => {
         setSubmitLoading(true);
         await fetchWithAuth(`/task-categories`, {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            },
             body: JSON.stringify({ name: newCategoryName }),
         });
         setNewCategoryName("");
@@ -73,6 +77,10 @@ const TaskCategoriesAdmin = () => {
         setSubmitLoading(true);
         await fetchWithAuth(`/task-categories/${selectedCategory.id}/subcategories`, {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            },
             body: JSON.stringify({ name: newSubCategoryName }),
         });
         setNewSubCategoryName("");

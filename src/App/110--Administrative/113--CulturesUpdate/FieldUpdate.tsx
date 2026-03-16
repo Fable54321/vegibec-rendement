@@ -40,6 +40,10 @@ const FieldUpdate = ({ field, setField, fields, refreshFields, fieldsLoading }: 
 
             await fetchWithAuth(`/getfields`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
 
                 body: JSON.stringify({
                     field: normalizedField,

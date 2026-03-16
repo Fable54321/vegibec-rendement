@@ -782,6 +782,10 @@ const TaskCostsInput = () => {
                                                                         `/data/costs/${entry.id}`,
                                                                         {
                                                                             method: "PATCH",
+                                                                            headers: {
+                                                                                "Content-Type": "application/json",
+                                                                                "Accept": "application/json",
+                                                                            },
 
                                                                             body: JSON.stringify({
                                                                                 vegetable: editingData.vegetable,
@@ -795,6 +799,7 @@ const TaskCostsInput = () => {
                                                                                 created_at: editingData.created_at,
                                                                                 field: editingData.field,
                                                                             }),
+
                                                                         }
                                                                     );
 

@@ -60,6 +60,10 @@ const FullYear = () => {
             // 2️⃣ If not exists, proceed to insert
             const data = await fetchWithAuth(`/salary-periods`, {
                 method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
                 body: JSON.stringify({
                     employee_name: name,
                     yearly_amount: Number(annualSalary),

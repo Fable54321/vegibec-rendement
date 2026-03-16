@@ -59,7 +59,10 @@ const EditWages = () => {
         try {
             const data = await fetchWithAuth(`/salary-periods`, {
                 method: 'PUT', // Update route
-
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
                 body: JSON.stringify({
                     employee_name: name,
                     yearly_amount: Number(annualSalary),

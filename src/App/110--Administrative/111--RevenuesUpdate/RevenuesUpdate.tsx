@@ -110,6 +110,10 @@ const RevenuesUpdate = () => {
 
             await fetchWithAuth(`/revenues`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
                 body: JSON.stringify(payload),
             });
 

@@ -20,6 +20,11 @@ export const useAddSupervisor = () => {
       const response = await fetch(`/supervisors`, {
         method: "POST",
 
+        headers: {
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+
         body: JSON.stringify({ supervisor: supervisor.trim() }),
       });
 

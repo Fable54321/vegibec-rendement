@@ -100,7 +100,10 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                 // 1️⃣ Add vegetable
                 await fetchWithAuth(`/vegetables`, {
                     method: "POST",
-
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accept": "application/json",
+                    },
                     body: JSON.stringify({
                         vegetable: normalizedCulture,
                     }),
@@ -110,6 +113,10 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                 if (!isRevenueExisting) {
                     await fetchWithAuth(`/projected-revenues`, {
                         method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "accept": "application/json",
+                        },
 
                         body: JSON.stringify({
                             vegetable: normalizedCulture,
@@ -139,6 +146,10 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                 // 0️⃣ Add the generic group itself as a vegetable
                 await fetchWithAuth(`/vegetables`, {
                     method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accept": "application/json",
+                    },
 
                     body: JSON.stringify({
                         vegetable: normalizedGroup,
@@ -159,6 +170,10 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                     // Add vegetable linked to group
                     await fetchWithAuth(`/vegetables`, {
                         method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "accept": "application/json",
+                        },
 
                         body: JSON.stringify({
                             vegetable: normalizedVegetable,
@@ -171,6 +186,10 @@ const CulturesUpdate = ({ onClose, embedded = false }: CulturesUpdateProps) => {
                     if (!entry.revenueExisting && entry.projectedRevenue !== "") {
                         await fetchWithAuth(`/projected-revenues`, {
                             method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "accept": "application/json",
+                            },
 
                             body: JSON.stringify({
                                 vegetable: normalizedVegetable,

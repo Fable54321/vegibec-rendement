@@ -136,6 +136,10 @@ const LossesTracking = () => {
                 `/losses-tracking/packaging`,
                 {
                     method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accept": "application/json",
+                    },
 
                     body: JSON.stringify({
                         vegetable: packVeg.trim().toUpperCase(),

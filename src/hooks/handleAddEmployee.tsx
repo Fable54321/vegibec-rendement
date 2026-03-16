@@ -25,6 +25,11 @@ export const useAddEmployee = () => {
             const response = await fetch(`/employees`, {
                 method: "POST",
 
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
+
                 body: JSON.stringify({ name: name.trim() }),
             });
 

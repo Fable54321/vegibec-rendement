@@ -119,7 +119,9 @@ const EntriesJournal = () => {
         try {
             await fetchWithAuth(`/journal/${id}/correct`, {
                 method: "POST",
-
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({ amount: Number(newAmount) }),
             });
 
@@ -159,6 +161,9 @@ const EntriesJournal = () => {
         try {
             await fetchWithAuth(`/units-sold-entries/${id}/correct`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({ units_sold: newAmount }),
             });
             fetchUnitsSold(); // refresh table

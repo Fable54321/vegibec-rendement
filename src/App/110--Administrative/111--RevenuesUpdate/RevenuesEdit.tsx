@@ -59,7 +59,10 @@ const RevenuesEdit = () => {
 
             await fetchWithAuth(`/revenues`, {
                 method: "PATCH",
-
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
                 body: JSON.stringify({ year_from: revenuesSelectedYear, revenues: payload }),
             });
 
@@ -89,7 +92,9 @@ const RevenuesEdit = () => {
 
             await fetchWithAuth(`/revenues/single`, {
                 method: "DELETE",
-
+                headers: {
+                    "accept": "application/json",
+                },
                 body: JSON.stringify({ year_from: revenuesSelectedYear, vegetable: veg }),
             });
 
@@ -131,7 +136,10 @@ const RevenuesEdit = () => {
 
             await fetchWithAuth(`/revenues/single`, {
                 method: "POST",
-
+                headers: {
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
                 body: JSON.stringify(payload),
             });
 
