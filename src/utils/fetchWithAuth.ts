@@ -41,16 +41,37 @@ export async function fetchWithAuth<T>(
     throw new Error("Session expirée, veuillez vous reconnecter.");
   }
 
-  const url = `${API_BASE_URL}${path}`;
+  const url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
-  const makeRequest = () =>
-    fetch(url, {
+  const makeRequest = () => {
+    const headers = new Headers(options.headers);
+
+    // If body is plain object and no content-type is set, send JSON automatically
+    let body = options.body;
+
+    const isPlainObject =
+      body != null &&
+      typeof body === "object" &&
+      !(body instanceof FormData) &&
+      !(body instanceof URLSearchParams) &&
+      !(body instanceof Blob) &&
+      !(body instanceof ArrayBuffer) &&
+      !(body instanceof ReadableStream);
+
+    if (isPlainObject) {
+      if (!headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+      }
+      body = JSON.stringify(body);
+    }
+
+    return fetch(url, {
       ...options,
       credentials: "include",
-      headers: {
-        ...options.headers,
-      },
+      headers,
+      body,
     });
+  };
 
   let response = await makeRequest();
 

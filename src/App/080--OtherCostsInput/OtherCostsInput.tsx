@@ -137,6 +137,10 @@ const OtherCostsInput = () => {
             const data = await fetchWithAuth(endpoint, {
                 method: "POST",
                 body: JSON.stringify(payload),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                }
             }) as { success?: boolean };
 
             if (data?.success === false) {
