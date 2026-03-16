@@ -1,8 +1,12 @@
 import { useState } from "react";
-
 import { useEmployees } from "@/context/employees/EmployeesContext";
+import { fetchWithAuth } from "@/utils/fetchWithAuth";
 
-
+type AddedEmployeeResponse = {
+    id?: number;
+    name?: string;
+    message?: string;
+};
 
 export const useAddEmployee = () => {
     const { refetchEmployees } = useEmployees();
@@ -16,38 +20,27 @@ export const useAddEmployee = () => {
             return;
         }
 
-
-
         setLoading(true);
         setError(null);
 
         try {
-            const response = await fetch(`/employees`, {
+            const addedEmployee = await fetchWithAuth<AddedEmployeeResponse>("/employees", {
                 method: "POST",
-
                 headers: {
                     "Content-Type": "application/json",
-                    "accept": "application/json",
+                    Accept: "application/json",
                 },
-
-                body: JSON.stringify({ name: name.trim() }),
+                body: JSON.stringify({
+                    name: name.trim(),
+                }),
             });
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || "Failed to add employee");
-            }
-
-            // Optional: get returned name
-            const addedEmployee = await response.json();
             console.log("Added employee:", addedEmployee);
 
-            // Refetch employees list in context
             await refetchEmployees();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error adding employee:", err);
-            setError(err.message || "Failed to add employee");
+            setError(err instanceof Error ? err.message : "Failed to add employee");
         } finally {
             setLoading(false);
         }

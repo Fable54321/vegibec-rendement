@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { useSupervisors } from "@/context/supervisors/SupervisorContext";
+import { fetchWithAuth } from "@/utils/fetchWithAuth";
+
+type AddedSupervisorResponse = {
+  id?: number;
+  supervisor?: string;
+  message?: string;
+};
 
 export const useAddSupervisor = () => {
   const { refetchSupervisors } = useSupervisors();
@@ -17,29 +24,21 @@ export const useAddSupervisor = () => {
     setError(null);
 
     try {
-      const response = await fetch(`/supervisors`, {
+      await fetchWithAuth<AddedSupervisorResponse>("/supervisors", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
-          accept: "application/json",
+          Accept: "application/json",
         },
-
-        body: JSON.stringify({ supervisor: supervisor.trim() }),
+        body: JSON.stringify({
+          supervisor: supervisor.trim(),
+        }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Erreur lors de l'ajout");
-      }
-
-      await response.json(); // optional payload
-
-      refetchSupervisors();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+      await refetchSupervisors();
+    } catch (err: unknown) {
       console.error("Error adding supervisor:", err);
-      setError(err.message || "Erreur lors de l'ajout");
+      setError(err instanceof Error ? err.message : "Erreur lors de l'ajout");
     } finally {
       setLoading(false);
     }
