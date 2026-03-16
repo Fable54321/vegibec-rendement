@@ -188,9 +188,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
         setTimeout(() => window.location.reload(), 200);
     };
 
-    useEffect(() => {
-        console.log(multiplier)
-    }, [multiplier])
+
 
 
     // 🔹 Helper to format 3.5 → 3h30

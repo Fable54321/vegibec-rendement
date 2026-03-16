@@ -28,20 +28,7 @@ const TaskCostsInput = () => {
     const { supervisors } = useSupervisors();
     const { fields } = useFields();
 
-    useEffect(() => {
-        console.log(
-            "vegList",
-            vegList,
-            "supervisors",
-            supervisors,
-            "fields",
-            fields,
-            "categories",
-            categories,
-            "subcategories",
-            subcategories,
-        );
-    }, [vegList, supervisors, fields, categories, subcategories]);
+
 
     interface TaskCostEntry {
         id: number;

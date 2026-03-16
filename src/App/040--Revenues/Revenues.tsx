@@ -44,9 +44,7 @@ const Revenues = () => {
     };
 
 
-    useEffect(() => {
-        console.log("Revenues updated:", revenues);
-    }, [revenues])
+
 
     const getConicGradient = (revenues: Revenue[]) => {
         if (revenues.length === 0) return "radial-gradient(circle, #ccc 0%, #999 100%)";

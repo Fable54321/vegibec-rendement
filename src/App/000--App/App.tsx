@@ -397,27 +397,7 @@ function App() {
       return acc;
     }, {});
 
-    console.log("==== BEFORE REDISTRIBUTION ====");
-    console.log("Vegetable costs:", newAdjusted);
-    console.log("Revenue map LR:", revenueMap["LAITUE ROMAINE"]);
-    console.log("Revenue map CR:", revenueMap["CŒUR DE ROMAINE"]);
-    console.log("Vegetables metadata:", vegetables);
 
-
-    console.log(
-      "Base LR:",
-      newAdjusted.find(v => v.vegetable === "LAITUE ROMAINE")
-    );
-
-    console.log(
-      "Base CR:",
-      newAdjusted.find(v => v.vegetable === "CŒUR DE ROMAINE")
-    );
-
-    console.log(
-      "Base LAITUE:",
-      newAdjusted.find(v => v.vegetable === "LAITUE")
-    );
 
     // 4️⃣ Apply the generic redistribution
     newAdjusted = genericCostsRedistribution(
@@ -432,15 +412,7 @@ function App() {
       vegetables   // ✅ NEW SOURCE OF TRUTH
     );
 
-    console.log("==== AFTER REDISTRIBUTION ====");
-    console.log(
-      "LR:",
-      newAdjusted.find(v => v.vegetable === "LAITUE ROMAINE")
-    );
-    console.log(
-      "CR:",
-      newAdjusted.find(v => v.vegetable === "CŒUR DE ROMAINE")
-    );
+
 
     setAdjustedVegetableCosts(newAdjusted);
 

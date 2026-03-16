@@ -45,15 +45,16 @@ const USDA = () => {
 
     const [totalCostsArray, setTotalCostsArray] = useState<{ vegetable: string; total_cost: number }[]>([]);
 
-    const [USDALoading, setUSDALoading] = useState<boolean>(false);
-    const [USDAError, setUSDAError] = useState<string | null>(null);
+    const [, setUSDALoading] = useState<boolean>(false);
+
+    const [, setUSDAError] = useState<string | null>(null);
     const [vegReports, setVegReports] = useState<VegReport[]>([]);
     const [usdToCadRate, setUsdToCadRate] = useState<number | null>(null);
-    const [fxLoading, setFxLoading] = useState(false);
-    const [fxError, setFxError] = useState<string | null>(null);
+    const [, setFxLoading] = useState(false);
+    const [, setFxError] = useState<string | null>(null);
 
 
-    useEffect(() => { console.log('remember to deal with these') }, [USDALoading, fxLoading, USDAError, fxError]);
+
 
     const genericVegetables = useMemo(() =>
         ["BRUSSELS SPROUTS",
@@ -206,7 +207,7 @@ const USDA = () => {
     );
 
 
-    useEffect(() => { console.log(vegReports) }, [vegReports])
+
 
 
     ////////////////////////////////////////////////////WEIGHT INFO////////////  

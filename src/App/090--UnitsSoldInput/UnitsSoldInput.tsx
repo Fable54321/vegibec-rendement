@@ -69,9 +69,7 @@ const UnitsSoldInput = () => {
         }
     };
 
-    useEffect(() => {
-        console.log("value changed:", value);
-    }, [value]);
+
 
     return (
 
