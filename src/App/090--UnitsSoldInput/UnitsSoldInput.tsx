@@ -47,7 +47,9 @@ const UnitsSoldInput = () => {
         try {
             const data = await fetchWithAuth(`/units/send-data`, {
                 method: "POST",
-
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify(payload),
             });
 
@@ -57,12 +59,10 @@ const UnitsSoldInput = () => {
                 throw new Error("Server did not return data");
             }
 
-            // Reset
             setValue("");
             setEntryDate("");
 
             alert("Entrée enregistrée avec succès ✅");
-
         } catch (err) {
             console.error(err);
             alert("Erreur serveur ❌");
