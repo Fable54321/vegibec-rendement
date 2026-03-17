@@ -97,6 +97,15 @@ export async function fetchWithAuth<T>(
       if (text) errorMessage = text;
     }
 
+    if (response.status === 403) {
+      errorMessage =
+        "Accès refusé : vous n'avez pas les permissions nécessaires.";
+    }
+
+    if (response.status === 500) {
+      errorMessage = "Erreur serveur, veuillez réessayer plus tard.";
+    }
+
     throw new Error(errorMessage);
   }
 
