@@ -158,9 +158,14 @@ const OtherCostsInput = () => {
 
             alert("Coût ajouté avec succès ✅");
 
-        } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error(err);
-            alert("Erreur serveur ❌");
+            if (err.message.includes("Accès refusé")) {
+                alert("Accès refusé ❌");
+            } else {
+                alert("Erreur serveur ❌");
+            }
         }
     };
 

@@ -180,9 +180,15 @@ const SecondStep: React.FC<SecondStepProps> = ({
             console.log("Report saved:", result);
             alert("✅ Tâche enregistrée avec succès !");
             setIsFirstStepCompleted(true);
-        } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
             console.error(err);
-            alert("❌ Une erreur est survenue lors de l'enregistrement.");
+
+            if (err.message.includes("Accès refusé")) {
+                alert("Accès refusé ❌");
+            } else {
+                alert("Une erreur est survenue ❌");
+            }
         }
 
         setTimeout(() => window.location.reload(), 200);
