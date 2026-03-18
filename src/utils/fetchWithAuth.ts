@@ -98,8 +98,10 @@ export async function fetchWithAuth<T>(
     }
 
     if (response.status === 403) {
-      errorMessage =
-        "Accès refusé : vous n'avez pas les permissions nécessaires.";
+      window.location.replace("https://vegibec-portail.com/");
+      throw new Error(
+        "Accès refusé : vous n'avez pas les permissions nécessaires.",
+      );
     }
 
     if (response.status === 500) {
