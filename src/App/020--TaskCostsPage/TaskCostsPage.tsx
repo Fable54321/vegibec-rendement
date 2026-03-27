@@ -81,7 +81,7 @@ const TaskCostsPage = () => {
                 ? groupBy.join(",")
                 : groupBy;
 
-            let url = `https://vegibec-rendement-backend.onrender.com/data/costs/summary?groupBy=${encodeURIComponent(groupParam)}`;
+            let url = `/data/costs/summary?groupBy=${encodeURIComponent(groupParam)}`;
 
             if (yearSelected) {
                 if (monthSelected) {
