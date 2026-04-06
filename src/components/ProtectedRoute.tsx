@@ -11,7 +11,11 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const hasAccess = user?.appAccess.some((app) => app.slug === "rendement");
 
     useEffect(() => {
-        if ((!loading && !user) || !hasAccess) {
+
+        if (loading) return;
+
+
+        if (!user || !hasAccess) {
             alert("Vous n'avez pas les permissions nécessaires pour accéder à cette application.");
             window.location.replace("https://vegibec-portail.com/");
         }
