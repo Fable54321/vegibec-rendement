@@ -52,9 +52,9 @@ const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <ProtectedRoute>
+        <ProtectedRoute>
             <Home />
-          </ProtectedRoute>
+         </ProtectedRoute>
         ),
       },
       {

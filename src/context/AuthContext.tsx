@@ -7,10 +7,18 @@ import {
     useEffect,
 } from "react";
 
+type App = {
+    slug: string;
+    role: string;
+}
+
+type AppAccess = App[];
+
 type User = {
     id: number;
     username: string;
     role?: string;
+    appAccess: AppAccess;
 };
 
 interface AuthContextType {
