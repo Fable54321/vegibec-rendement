@@ -407,15 +407,7 @@ function App() {
       vegetables   // ✅ NEW SOURCE OF TRUTH
     );
 
-    console.log("==== AFTER REDISTRIBUTION ====");
-    console.log(
-      "LR:",
-      newAdjusted.find(v => v.vegetable === "LAITUE ROMAINE")
-    );
-    console.log(
-      "CR:",
-      newAdjusted.find(v => v.vegetable === "CŒUR DE ROMAINE")
-    );
+   
 
     setAdjustedVegetableCosts(newAdjusted);
 
