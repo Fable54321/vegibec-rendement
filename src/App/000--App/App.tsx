@@ -61,7 +61,7 @@ export type AppOutletContext = {
 
 
 function App() {
-  const { user, loading, authChecked } = useAuth();
+  const { user, loading, authChecked, isAuthorized } = useAuth();
 
 
 
@@ -718,7 +718,7 @@ function App() {
       {mainLoading && <p className="text-center">Chargement...</p>}
       {mainError && <p className="text-center text-red-500">{mainError}</p>}
 
-      <div className="font-[nunito] w-full">
+      <div className={`font-[nunito] w-full ${!isAuthorized ? "pointer-events-none blur-xl" : ""}`}>
         <ScrollToTop />
         <Outlet
           context={{

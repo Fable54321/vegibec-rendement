@@ -6,6 +6,8 @@ import type { JSX } from "react";
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { user, loading } = useAuth();
 
+    const { setIsAuthorized } = useAuth();
+
     const hasAccess = user?.appAccess.some((app) => app.slug === "rendement");
 
     useEffect(() => {
@@ -19,7 +21,10 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
     if (!user) return null; // redirect in progress
 
-    return children;
+    else {
+        setIsAuthorized(true);
+        return children;
+    }
 };
 
 export default ProtectedRoute;
