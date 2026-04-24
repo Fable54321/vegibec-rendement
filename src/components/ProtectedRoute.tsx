@@ -6,17 +6,29 @@ import type { JSX } from "react";
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { user, loading } = useAuth();
 
+    const { setIsAuthorized } = useAuth();
+
+    const hasAccess = user?.appAccess.some((app) => app.slug === "rendement");
+
     useEffect(() => {
-        if (!loading && !user) {
+
+        if (loading) return;
+
+
+        if (!user || !hasAccess) {
+            alert("Vous n'avez pas les permissions nécessaires pour accéder à cette application.");
             window.location.replace("https://vegibec-portail.com/");
         }
-    }, [user, loading]);
+    }, [user, loading, hasAccess]);
 
     if (loading) return <div>Loading...</div>;
 
     if (!user) return null; // redirect in progress
 
-    return children;
+    else {
+        setIsAuthorized(true);
+        return children;
+    }
 };
 
 export default ProtectedRoute;

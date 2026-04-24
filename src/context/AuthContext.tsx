@@ -7,10 +7,18 @@ import {
     useEffect,
 } from "react";
 
+type App = {
+    slug: string;
+    role: string;
+}
+
+type AppAccess = App[];
+
 type User = {
     id: number;
     username: string;
     role?: string;
+    appAccess: AppAccess;
 };
 
 interface AuthContextType {
@@ -19,6 +27,8 @@ interface AuthContextType {
     authChecked: boolean;
     checkAuth: () => Promise<void>;
     clearAuth: () => void;
+    isAuthorized: boolean;
+    setIsAuthorized: (authorized: boolean) => void;
 }
 
 const API_BASE_URL = "https://api.vegibec-portail.com";
@@ -29,12 +39,15 @@ const AuthContext = createContext<AuthContextType>({
     authChecked: false,
     checkAuth: async () => { },
     clearAuth: () => { },
+    isAuthorized: false,
+    setIsAuthorized: () => { },
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     const clearAuth = () => {
         setUser(null);
@@ -106,6 +119,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 authChecked,
                 checkAuth,
                 clearAuth,
+                isAuthorized,
+                setIsAuthorized,
             }}
         >
             {children}

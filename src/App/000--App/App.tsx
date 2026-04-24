@@ -61,7 +61,7 @@ export type AppOutletContext = {
 
 
 function App() {
-  const { user, loading, authChecked } = useAuth();
+  const { user, loading, authChecked, isAuthorized } = useAuth();
 
 
 
@@ -407,15 +407,7 @@ function App() {
       vegetables   // ✅ NEW SOURCE OF TRUTH
     );
 
-    console.log("==== AFTER REDISTRIBUTION ====");
-    console.log(
-      "LR:",
-      newAdjusted.find(v => v.vegetable === "LAITUE ROMAINE")
-    );
-    console.log(
-      "CR:",
-      newAdjusted.find(v => v.vegetable === "CŒUR DE ROMAINE")
-    );
+   
 
     setAdjustedVegetableCosts(newAdjusted);
 
@@ -726,7 +718,7 @@ function App() {
       {mainLoading && <p className="text-center">Chargement...</p>}
       {mainError && <p className="text-center text-red-500">{mainError}</p>}
 
-      <div className="font-[nunito] w-full">
+      <div className={`font-[nunito] w-full ${!isAuthorized ? "pointer-events-none blur-xl" : ""}`}>
         <ScrollToTop />
         <Outlet
           context={{
