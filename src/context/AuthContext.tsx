@@ -21,7 +21,7 @@ interface AuthContextType {
     clearAuth: () => void;
 }
 
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+const API_BASE_URL = "https://api.vegibec-portail.com";
 
 const AuthContext = createContext<AuthContextType>({
     user: null,

@@ -10,12 +10,10 @@ export function usdaToVegibec(row: {
   const variant = normalize(row.var);
   const props = normalize(row.properties);
 
-  // 🥬 Brussels sprouts
   if (commodity === "BRUSSELS SPROUTS") {
     return "CHOU DE BRUXELLES";
   }
 
-  // 🥬 Cabbage
   if (commodity === "CABBAGE") {
     if (variant === "ROUND GREEN TYPE") return "CHOU VERT";
     if (variant === "RED TYPE") return "CHOU ROUGE";

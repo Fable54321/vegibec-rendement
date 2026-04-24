@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://vegibec-rendement-backend.onrender.com";
+const API_BASE_URL = "https://api.vegibec-portail.com";
 
 let refreshPromise: Promise<boolean> | null = null;
 let sessionExpired = false;
